@@ -5,7 +5,8 @@ function evaluate!(call::FunctionCall)
    result = Fail("")
    #println(call)
    try
-      result = call.fun(call.args.positionalelements...; call.args.namedelements...)
+      result = Base.invokelatest(call.fun,
+            call.args.positionalelements...; call.args.namedelements...)
    catch ex
       result = Fail("Evaluation failed. Original error: $ex")
    end
@@ -27,10 +28,11 @@ function evaluate!(list::ElementList)
       try
          if length(list.names) > 0
             # composite type
-            return constructor([list.namedelements[name] for name in list.names]...)
+            return Base.invokelatest(constructor,
+                  [list.namedelements[name] for name in list.names]...)
          else
             # array type
-            return constructor(collect(list.positionalelements))
+            return Base.invokelatest(constructor, collect(list.positionalelements))
          end
       catch ex
          return Fail("Construction of type $jltype failed. Original error: $ex")

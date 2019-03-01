@@ -1,4 +1,4 @@
-JULIA_PORT <- 11987
+JULIA_PORT <- 11983
 
 # Constants
 TYPE_ID_NULL <- as.raw(0x00)
