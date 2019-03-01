@@ -1,0 +1,6 @@
+export("juliafun")
+export("stopJulia")
+export("useJuliaPkg")
+export("juliafun")
+
+import(sys)
