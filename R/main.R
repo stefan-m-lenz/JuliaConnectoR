@@ -1,5 +1,4 @@
-JULIA_HOST = "localhost"
-JULIA_PORT = 11987
+JULIA_PORT <- 11987
 
 # Constants
 TYPE_ID_NULL <- as.raw(0x00)
@@ -12,7 +11,7 @@ TYPE_ID_FAIL <- as.raw(0xff)
 
 CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
-BYBYE <- as.raw(0xbb)
+BYEBYE <- as.raw(0xbb)
 
 TYPE_IDS <- list(
    "double" = TYPE_ID_DOUBLE,
@@ -29,12 +28,12 @@ juliaConnection <- function() {
    } else {
       juliaexe <- file.path(juliaexe, "julia")
    }
-   print("julia started")
-   system2(juliaexe, "./Julia/main.jl", wait = FALSE, invisible = FALSE)
-   print("julia command success")
-   Sys.sleep(10)
-   print("trying socket connection")
-   socketConnection(host = JULIA_HOST,
+
+   system2(juliaexe, c("./Julia/main.jl", JULIA_PORT),
+           wait = FALSE, invisible = FALSE)
+
+   Sys.sleep(2.5) # wait for julia to start
+   socketConnection(host = "localhost",
                     port = JULIA_PORT,
                     blocking = TRUE,
                     server = FALSE,
@@ -46,11 +45,8 @@ finalize <- function(env) {
    stopJulia()
 }
 
-
 .onLoad <- function(libname, pkgname) {
-   # start Julia
-   con <<- juliaConnection()
-
+   con <<- NULL
    # register finalizer to stop Julia connection
    parent <- parent.env(environment())
    reg.finalizer(parent, finalize, onexit = TRUE)
@@ -58,6 +54,9 @@ finalize <- function(env) {
 
 
 juliafun <- function(name, ...) {
+   if (is.null(con)) {
+      startJulia()
+   }
    jlargs <- list(...)
    writeBin(CALL_INDICATOR, con)
    writeString(name)
@@ -72,11 +71,24 @@ juliafun <- function(name, ...) {
    }
 }
 
+startJulia <- function() {
+   con <<- juliaConnection()
+}
+
 stopJulia <- function() {
-   writeBin(BYBYE, con)
+   if (!is.null(con)) {
+      tryCatch({
+         writeBin(BYEBYE, con)
+         close(con)
+      })
+      con <<- NULL
+   }
 }
 
 useJuliaPkg <- function(pkgnames) {
+   if (is.null(con)) {
+      startJulia()
+   }
    juliafun("TcpCallR.execute", paste("using", (paste(pkgnames, collapse = ", "))))
 }
 

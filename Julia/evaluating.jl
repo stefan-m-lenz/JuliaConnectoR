@@ -3,8 +3,9 @@ function evaluate!(call::FunctionCall)
 
    # the actual function call
    result = Fail("")
+   #println(call)
    try
-      result = call.fun(call.args.positionalelements..., call.args.namedelements...)
+      result = call.fun(call.args.positionalelements...; call.args.namedelements...)
    catch ex
       result = Fail("Evaluation failed. Original error: $ex")
    end
@@ -46,6 +47,6 @@ end
 
 """ Executes Julia code, passed as String, in the Main module """
 function execute(str::String)
-   @eval Main $(Meta.parse(str))
+   Main.eval(Meta.parse(str))
 end
 

@@ -1,2 +1,3 @@
 include("./TcpCallR.jl")
-TcpCallR.serve()
+using BoltzmannMachines
+TcpCallR.serve(parse(Int, ARGS[1]))

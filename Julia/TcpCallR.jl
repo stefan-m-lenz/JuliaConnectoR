@@ -18,12 +18,11 @@ include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")
 
-function serve(port::Int = 11987)
+function serve(port::Int)
    server = listen(port)
-   println("Julia is listening ...")
    sock = accept(server)
+   println("Julia is listening on port $port.")
    while isopen(sock)
-
       functioncall = FunctionCall()
       try
          firstbyte = read(sock, 1)[1]
