@@ -85,10 +85,20 @@ stopJulia <- function() {
    }
 }
 
+juliaObj <- function(type, x) {
+   if (length(x) > 26) stop("So many members need a more sophisticated implementation.")
+   attributes(x) <- list(JLTYPE = type, names = letters[length(x)])
+   x
+}
+
 useJuliaPkg <- function(pkgnames) {
    if (is.null(con)) {
       startJulia()
    }
    juliafun("TcpCallR.execute", paste("using", (paste(pkgnames, collapse = ", "))))
+
+   for (pkgName in pkgnames) {
+      juliafun("names", juliafun("Module", juliafun("Symbol", pkgName)))
+   }
 }
 

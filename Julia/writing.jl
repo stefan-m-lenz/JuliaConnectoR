@@ -62,13 +62,34 @@ function writeElement(outputstream, fail::Fail)
    writeString(outputstream, fail.message)
 end
 
-function writeElement(outputstream, t::T) where T<:Union{Tuple, Pair}
+# TODO rewrite: cannot be given back to julia
+function writeElement(outputstream, t::T) where T <: Union{Tuple, Pair}
    writeElement(outputstream, collect(t))
 end
 
 function writeElement(outputstream, ellist::ElementList)
    write(outputstream, TYPE_ID_LIST)
    writeList(outputstream, ellist)
+end
+
+function writeElement(outputstream, obj::Symbol)
+   writeElement(outputstream, ElementList(
+         Vector{Any}(),
+         [:name],
+         Dict{Symbol, Any}(:name => string(obj)),
+         Dict{String, Any}("JLTYPE" => "Symbol")))
+end
+
+function writeElement(outputstream, obj::Module)
+   modulename = string(obj)
+   if startswith(modulename, "Main.")
+      modulename = String(modulename[6:end])
+   end
+   writeElement(outputstream, ElementList(
+         Vector{Any}(),
+         [:name],
+         Dict{Symbol, Any}(:name => Symbol(modulename)),
+         Dict{String, Any}("JLTYPE" => "Module")))
 end
 
 function writeElement(outputstream, obj::T) where T

@@ -24,8 +24,8 @@ function evaluate!(list::ElementList)
 
    jltype = get(list.attributes, "JLTYPE", "")
    if !isempty(jltype)
-      constructor = findfield(jltype)
       try
+         constructor = findfield(jltype)
          if length(list.names) > 0
             # composite type
             return Base.invokelatest(constructor,
