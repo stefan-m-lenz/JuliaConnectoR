@@ -159,7 +159,7 @@ end
 function findfield(name::AbstractString)
    # The use of eval here brings a potential security risk if one wants
    # to restrict the functions that can be called somehow
-   Main.eval(Meta.parse(name))::Union{Function, DataType, Module}
+   maineval(name)::Union{Function, DataType, Module}
 end
 
 

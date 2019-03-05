@@ -51,4 +51,36 @@ function serve(port::Int)
    end
 end
 
+""" Lists the content of a package for import in R"""
+function pkgContentList(pkgname::AbstractString)
+   themodule = TcpCallR.maineval(pkgname)::Module
+
+   allsyms = names(themodule, all = true)
+   filter!(sym -> string(sym)[1] != '#', allsyms)
+
+   exportedsyms = names(themodule, all = false)
+
+   exportedfunctions = Vector{String}(undef, 0)
+   sizehint!(exportedfunctions, length(exportedsyms))
+
+   internalfunctions = Vector{String}(undef, 0)
+   sizehint!(internalfunctions, length(exportedsyms))
+
+   for sym in allsyms
+      field = themodule.eval(sym)
+      if field isa Function || field isa DataType
+         if sym in exportedsyms
+            push!(exportedfunctions, string(sym))
+         else
+            push!(internalfunctions, string(sym))
+         end
+      end
+   end
+
+   ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
+         Dict{Symbol, Any}(
+               :exportedFunctions => exportedfunctions, 
+               :internalFunctions => internalfunctions))
+end
+
 end

@@ -1,6 +1,6 @@
 
-useJuliaPkg("StatsBase")
-juliafun("mean_and_var", c(1,2,3)) # geht beim ersten mal
+usingJuliaPkg("StatsBase")
+juliafun("mean_and_var", c(1,2,3))
 
 # Should work
 juliafun("prod", c(1,2,3))
@@ -8,7 +8,7 @@ juliafun("println", "hello world")
 juliafun("println", list(as.integer(1), "bla" = 23L))
 juliafun("eval", "println(22)")
 
-useJuliaPkg("BoltzmannMachines")
+usingJuliaPkg("BoltzmannMachines")
 
 x <- juliafun("barsandstripes", 100L, 4L)
 x

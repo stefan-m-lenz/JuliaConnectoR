@@ -47,8 +47,8 @@ function evaluate!(item)
 end
 
 
-""" Executes Julia code, passed as String, in the Main module """
-function execute(str::String)
+""" Evaluates Julia code, passed as String, in the Main module """
+function maineval(str::String)
    Main.eval(Meta.parse(str))
 end
 

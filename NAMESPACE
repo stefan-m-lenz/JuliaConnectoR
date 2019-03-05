@@ -1,2 +1,2 @@
 export("juliafun")
-export("useJuliaPkg")
+export("usingJuliaPkg")

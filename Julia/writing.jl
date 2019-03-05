@@ -22,13 +22,13 @@ end
 
 function writeElement(outputstream, arr::AbstractArray{Int32})
    write(outputstream, TYPE_ID_INT)
-   writeDimensions(arr)
+   writeDimensions(outputstream, arr)
    writeInt32s(outputstream, arr)
 end
 
 function writeElement(outputstream, arr::AbstractArray{String})
    write(outputstream, TYPE_ID_STRING)
-   writeDimensions(arr)
+   writeDimensions(outputstream, arr)
    for str in arr
       writeString(outputstream, str)
    end
