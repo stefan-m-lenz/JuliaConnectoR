@@ -1,4 +1,4 @@
-JULIA_PORT <- 11987
+JULIA_PORTS <- 11980:11989
 
 # Constants
 TYPE_ID_NULL <- as.raw(0x00)
@@ -32,17 +32,19 @@ juliaConnection <- function() {
    juliaStartupTime <- system.time(system2(juliaexe, c("./Julia/main.jl", "-1")),
                                    gcFirst = FALSE)["elapsed"]
 
-   # start Julia server in background
-   system2(juliaexe, c("./Julia/main.jl", JULIA_PORT),
-           wait = FALSE, invisible = FALSE)
+   for(port in JULIA_PORTS) {
+      # start Julia server in background
+      system2(juliaexe, c("./Julia/main.jl", port),
+              wait = FALSE, invisible = TRUE)
 
-   # give Julia server a head start before connecting
-   Sys.sleep(juliaStartupTime + 1)
-   socketConnection(host = "localhost",
-                    port = JULIA_PORT,
-                    blocking = TRUE,
-                    server = FALSE,
-                    open="r+b")
+      # give Julia server a head start before connecting
+      Sys.sleep(juliaStartupTime + 1.5)
+      try(return(socketConnection(host = "localhost",
+                                  port = port,
+                                  blocking = TRUE,
+                                  server = FALSE,
+                                  open="r+b", timeout = 2)))
+   }
 }
 
 
