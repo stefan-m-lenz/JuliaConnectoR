@@ -29,13 +29,16 @@ juliaConnection <- function() {
       juliaexe <- file.path(juliaexe, "julia")
    }
 
-   juliaStartupTime <- system.time(system2(juliaexe, c("./Julia/main.jl", "-1")),
+   mainJuliaFile <- system.file("Julia", "main.jl",
+                                package = "JuliaConnectoR", mustWork = TRUE)
+
+   juliaStartupTime <- system.time(system2(juliaexe, c(mainJuliaFile, "-1")),
                                    gcFirst = FALSE)["elapsed"]
 
    for(port in JULIA_PORTS) {
       # start Julia server in background
-      system2(juliaexe, c("./Julia/main.jl", port),
-              wait = FALSE, invisible = TRUE)
+      system2(juliaexe, c(mainJuliaFile, port),
+              wait = FALSE) # for testing on Windows: invisible = FALSE
 
       # give Julia server a head start before connecting
       Sys.sleep(juliaStartupTime + 1.5)

@@ -102,7 +102,6 @@ function writeElement(outputstream, obj::T) where T
             Vector(), collect(names),
             Dict{Symbol, Any}(zip(names, fieldvalues)),
             attributes))
-      # TODO attributes
    else
       writeElement(outputstream, Fail("Lost in translation: $(string(obj))"))
    end
