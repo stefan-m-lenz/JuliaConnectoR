@@ -63,7 +63,7 @@ finalize <- function(env) {
 }
 
 
-juliafun <- function(name, ...) {
+juliaCall <- function(name, ...) {
    if (is.null(con)) {
       startJulia()
    }
@@ -104,14 +104,14 @@ juliaObj <- function(type, x) {
    x
 }
 
-usingJuliaPkg <- function(pkgName) {
+usingJuliaPackage <- function(pkgName) {
    if (is.null(con)) {
       startJulia()
    }
    if (length(pkgName) != 1) {
       stop("Expected exactly one package name")
    }
-   juliafun("TcpCallR.maineval", paste("using", pkgName))
-   juliafun("TcpCallR.pkgContentList", pkgName)
+   juliaCall("TcpCallR.maineval", paste("using", pkgName))
+   juliaCall("TcpCallR.pkgContentList", pkgName)
 }
 

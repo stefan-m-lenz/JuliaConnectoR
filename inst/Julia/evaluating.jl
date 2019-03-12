@@ -1,4 +1,4 @@
-function evaluate!(call::FunctionCall)
+function evaluate!(call::Call)
    evaluate!(call.args)
 
    # the actual function call

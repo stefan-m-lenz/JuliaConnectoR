@@ -18,12 +18,12 @@ function ElementList(unnamed::Vector{Any} = Vector{Any}(),
 end
 
 
-struct FunctionCall
+struct Call
    fun::Union{Function, DataType, Module}
    args::ElementList
    parsingfails::Vector{Fail}
 
-   function FunctionCall(fun::Union{Function, DataType} = () -> nothing,
+   function Call(fun::Union{Function, DataType} = () -> nothing,
       args::ElementList = ElementList(),
       parsingfails::Vector{Fail} = Vector{Fail}())
 
@@ -109,8 +109,8 @@ function read_element(inputstream)
 end
 
 
-function collectfails(funcall::FunctionCall)
-   vcat(funcall.parsingfails, collectfails(funcall.args))
+function collectfails(call::Call)
+   vcat(call.parsingfails, collectfails(call.args))
 end
 
 function collectfails(ellist::ElementList)
@@ -173,5 +173,5 @@ function read_call(inputstream)
       push!(fails, Fail("Unable to identify function: $ex"))
    end
    args = read_list(inputstream)
-   FunctionCall(fun, args, fails)
+   Call(fun, args, fails)
 end

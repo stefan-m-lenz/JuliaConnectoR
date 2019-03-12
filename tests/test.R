@@ -1,30 +1,30 @@
 
-usingJuliaPkg("StatsBase")
-juliafun("mean_and_var", c(1,2,3))
+usingJuliaPackage("StatsBase")
+juliaCall("mean_and_var", c(1,2,3))
 
 # Should work
-juliafun("prod", c(1,2,3))
-juliafun("println", "hello world")
-juliafun("println", list(as.integer(1), "bla" = 23L))
-juliafun("eval", "println(22)")
+juliaCall("prod", c(1,2,3))
+juliaCall("println", "hello world")
+juliaCall("println", list(as.integer(1), "bla" = 23L))
+juliaCall("eval", "println(22)")
 
-usingJuliaPkg("BoltzmannMachines")
+usingJuliaPackage("BoltzmannMachines")
 
-x <- juliafun("barsandstripes", 100L, 4L)
+x <- juliaCall("barsandstripes", 100L, 4L)
 x
-dbm <- juliafun("BoltzmannMachines.fitdbm", x,
+dbm <- juliaCall("BoltzmannMachines.fitdbm", x,
                 epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
                 nhiddens = c(4L,3L))
 # TODO TrainLayer arguments
 
 dbm
-juliafun("samples", dbm, 10L)
-rbm <- juliafun("BoltzmannMachines.fitrbm", juliafun("barsandstripes", 100L, 4L))
-juliafun("samples", rbm, 10L)
-juliafun("BoltzmannMachines.Monitor")
+juliaCall("samples", dbm, 10L)
+rbm <- juliaCall("BoltzmannMachines.fitrbm", juliaCall("barsandstripes", 100L, 4L))
+juliaCall("samples", rbm, 10L)
+juliaCall("BoltzmannMachines.Monitor")
 
 # Should error
-juliafun("sum", c(1,2,3, "bla"))
-juliafun("thisisnotarealfunction", 100, 4)
-juliafun("TcpCallR.thisisnotarealfunction", "haha")
-juliafun("NotARealModule.thisisnotarealfunction", list(1,2,3))
+juliaCall("sum", c(1,2,3, "bla"))
+juliaCall("thisisnotarealfunction", 100, 4)
+juliaCall("TcpCallR.thisisnotarealfunction", "haha")
+juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3))

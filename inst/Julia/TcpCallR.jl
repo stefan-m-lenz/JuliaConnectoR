@@ -26,12 +26,12 @@ function serve(port::Int)
    sock = accept(server)
    println("Julia is listening on port $port.")
    while isopen(sock)
-      functioncall = FunctionCall()
+      call = Call()
       try
          firstbyte = read(sock, 1)[1]
          if firstbyte == CALL_INDICATOR
             # Parse incoming function call
-            functioncall = read_call(sock)
+            call = read_call(sock)
          elseif firstbyte == BYEBYE
             close(sock)
             return
@@ -41,10 +41,10 @@ function serve(port::Int)
                "Original error: $ex")
       end
 
-      fails = collectfails(functioncall)
+      fails = collectfails(call)
       if isempty(fails)
          # evaluate function only if the parsing was totally successful
-         result = evaluate!(functioncall)
+         result = evaluate!(call)
       else
          result = Fail("Parsing failed. Reason: " * string(fails))
       end
@@ -82,7 +82,7 @@ function pkgContentList(pkgname::AbstractString)
 
    ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
          Dict{Symbol, Any}(
-               :exportedFunctions => exportedfunctions, 
+               :exportedFunctions => exportedfunctions,
                :internalFunctions => internalfunctions))
 end
 
