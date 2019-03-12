@@ -68,11 +68,14 @@ juliafun <- function(name, ...) {
    writeBin(CALL_INDICATOR, con)
    writeString(name)
    writeList(jlargs)
-   message_type <- readBin(con, "raw", 1)
-   if (message_type == RESULT_INDICATOR) {
+   messageType <- c()
+   while (length(messageType) == 0) {
+      messageType <- readBin(con, "raw", 1)
+   }
+   if (messageType == RESULT_INDICATOR) {
       return(readElement())
    } else {
-      print(message_type)
+      print(messageType)
       print("Message type not supported (yet)")
       stopJulia()
    }
