@@ -8,7 +8,7 @@ juliaCall("println", "hello world")
 juliaCall("println", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
 
-usingJuliaPackage("BoltzmannMachines")
+usingJuliaPackage("BoltzmannMachines", all = TRUE)
 
 x <- juliaCall("barsandstripes", 100L, 4L)
 x

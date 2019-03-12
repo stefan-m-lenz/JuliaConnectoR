@@ -55,35 +55,31 @@ function serve(port::Int)
 end
 
 """ Lists the content of a package for import in R"""
-function pkgContentList(pkgname::AbstractString)
+function pkgContentList(pkgname::AbstractString; all::Bool = false)
    themodule = TcpCallR.maineval(pkgname)::Module
 
-   allsyms = names(themodule, all = true)
-   filter!(sym -> string(sym)[1] != '#', allsyms)
-
-   exportedsyms = names(themodule, all = false)
-
-   exportedfunctions = Vector{String}(undef, 0)
-   sizehint!(exportedfunctions, length(exportedsyms))
-
-   internalfunctions = Vector{String}(undef, 0)
-   sizehint!(internalfunctions, length(exportedsyms))
-
-   for sym in allsyms
+   function iscallable(sym::Symbol)
       field = themodule.eval(sym)
-      if field isa Function || field isa DataType
-         if sym in exportedsyms
-            push!(exportedfunctions, string(sym))
-         else
-            push!(internalfunctions, string(sym))
-         end
-      end
+      field isa Function || field isa DataType
    end
 
-   ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
-         Dict{Symbol, Any}(
-               :exportedFunctions => exportedfunctions,
-               :internalFunctions => internalfunctions))
+   exportedsyms = names(themodule, all = false)
+   exportedfunctions = map(string, filter(iscallable, exportedsyms))
+   exportedSymSet = Set(exportedsyms)
+
+   if all
+      allsyms = names(themodule, all = true)
+      filter!(sym -> string(sym)[1] != '#', allsyms)
+      internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
+      internalfunctions = map(string, filter(iscallable, internalsyms))
+      return ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
+            Dict{Symbol, Any}(
+                  :exportedFunctions => exportedfunctions,
+                  :internalFunctions => internalfunctions))
+   else
+      return ElementList(Vector{Any}(), [:exportedFunctions],
+            Dict{Symbol, Any}(:exportedFunctions => exportedfunctions))
+   end
 end
 
 end
