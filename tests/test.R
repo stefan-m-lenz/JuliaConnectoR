@@ -17,9 +17,14 @@ dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
 # TODO TrainLayer arguments
 dbm
 samples(dbm, 10L)
+BoltzmannMachines.samples(dbm, 5L)
 rbm <- fitrbm(barsandstripes(100L, 4L))
 samples(rbm, 10L)
 BoltzmannMachines.Monitor()
+
+juliaImport("BoltzmannMachines", alias = "BMs")
+rbm2 <- BMs.fitrbm(x, epochs = 5L)
+BMs.samples(rbm2, 5L)
 
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))

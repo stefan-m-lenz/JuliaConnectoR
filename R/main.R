@@ -118,14 +118,14 @@ juliaEval <- function(str) {
 }
 
 
-attachFunctionList <- function(funnames, rPrefix, juliaPrefix) {
+attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix) {
    funlist <- lapply(funnames, function(funname) {
       function(...) {
          juliaCall(paste0(juliaPrefix, funname), ...)
       }
    })
    names(funlist) <- paste0(rPrefix, funnames)
-   attach(funlist)
+   attach(funlist, name = name)
 }
 
 attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
@@ -157,11 +157,19 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
                   "\" (is it installed?): ", pkgContent))
    }
 
-   attachFunctionList(pkgContent$exportedFunctions, rPrefixExported, juliaPrefixExported)
+   attachFunctionList(pkgContent$exportedFunctions, pkgName,
+                      rPrefixExported, juliaPrefixExported)
+
+   juliaPrefixInternal <- paste0(pkgName, ".")
+   rPrefixInternal <- paste0(alias, ".")
+
+   if (mode == LOAD_MODE_USING) {
+      attachFunctionList(pkgContent$exportedFunctions, pkgName,
+                         rPrefixInternal, juliaPrefixInternal)
+   }
+
    if (importInternal) {
-      juliaPrefixInternal <- paste0(pkgName, ".")
-      rPrefixInternal <- paste0(alias, ".")
-      attachFunctionList(pkgContent$internalFunctions,
+      attachFunctionList(pkgContent$internalFunctions, pkgName,
                          rPrefixInternal, juliaPrefixInternal)
    }
 }
