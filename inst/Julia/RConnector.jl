@@ -60,15 +60,30 @@ function pkgContentList(pkgname::AbstractString; all::Bool = false)
       field isa Function || field isa DataType
    end
 
+   function bangfuns_removed(funs::AbstractVector{String})
+      ret = Vector{String}()
+      sizehint!(ret, length(funs))
+      push!(ret, funs[1])
+      for i in 2:length(funs)
+         # assumes that funs is a sorted vector of strings
+         if !(funs[i][end] == '!' && funs[i-1] == funs[i][1:(end-1)])
+            push!(ret, funs[i])
+         end
+      end
+      ret
+   end
+
    exportedsyms = names(themodule, all = false)
    exportedfunctions = map(string, filter(iscallable, exportedsyms))
-   exportedSymSet = Set(exportedsyms)
+   exportedfunctions = bangfuns_removed(exportedfunctions)
 
    if all
       allsyms = names(themodule, all = true)
       filter!(sym -> string(sym)[1] != '#', allsyms)
+      exportedSymSet = Set(exportedsyms)
       internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
       internalfunctions = map(string, filter(iscallable, internalsyms))
+      internalfunctions = bangfuns_removed(internalfunctions)
       return ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
             Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,

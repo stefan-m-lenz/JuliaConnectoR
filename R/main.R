@@ -13,6 +13,9 @@ CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
 BYEBYE <- as.raw(0xbb)
 
+LOAD_MODE_USING <- 0L
+LOAD_MODE_IMPORT <- 1L
+
 TYPE_IDS <- list(
    "double" = TYPE_ID_DOUBLE,
    "integer" = TYPE_ID_INTEGER,
@@ -114,14 +117,60 @@ juliaEval <- function(str) {
    juliaCall("RConnector.maineval", str)
 }
 
-juliaUsing <- function(pkgName, importInternal = FALSE) {
+
+attachFunctionList <- function(funnames, rPrefix, juliaPrefix) {
+   funlist <- lapply(funnames, function(funname) {
+      function() {
+         juliaCall(paste0(juliaPrefix, funname), ...)
+      }
+   })
+   names(funlist) <- paste0(funnames, rPrefix)
+   attach(funlist)
+}
+
+attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
    if (is.null(con)) {
       startJulia()
    }
    if (length(pkgName) != 1) {
       stop("Expected exactly one package name")
    }
-   juliaEval(paste("using", pkgName))
-   juliaCall("RConnector.pkgContentList", pkgName, all = importInternal)
+
+   if (mode == LOAD_MODE_USING) {
+      loadMode <- "using"
+      juliaPrefixExported <- ""
+      rPrefixExported <- ""
+   } else if (mode == LOAD_MODE_IMPORT) {
+      loadMode <- "import"
+      juliaPrefixExported <- paste0(pkgName, ".")
+      rPrefixExported <- paste0(alias, ".")
+   } else {
+      stop(paste("Unknown mode:", mode))
+   }
+
+   juliaEval(paste(loadMode, pkgName))
+
+   pkgContent <- juliaCall("RConnector.pkgContentList", pkgName, all = importInternal)
+
+   attachFunctionList(pkgContent$exportedFunctions, rPrefixExported, juliaPrefixExported)
+   if (importInternal) {
+      juliaPrefixInternal <- paste0(pkgName, ".")
+      rPrefixInternal <- paste0(alias, ".")
+      attachFunctionList(pkgContent$internalFunctions,
+                         rPrefixInternal, juliaPrefixInternal)
+   }
+}
+
+
+juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
+   attachJuliaPackage(pkgName, alias,
+                      mode = LOAD_MODE_USING,
+                      importInternal = importInternal)
+}
+
+juliaImport <- function(pkgName, alias = pkgName, importInternal = FALSE) {
+   attachJuliaPackage(pkgName, alias,
+                      mode = LOAD_MODE_IMPORT,
+                      importInternal = importInternal)
 }
 
