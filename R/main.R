@@ -32,16 +32,22 @@ juliaConnection <- function() {
    mainJuliaFile <- system.file("Julia", "main.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
 
-   juliaStartupTime <- system.time(system2(juliaexe, c(mainJuliaFile, "-1")),
-                                   gcFirst = FALSE)["elapsed"]
+   sleepTime <- 2 # rough upper bound of startup time
 
-   for(port in JULIA_PORTS) {
+   for (port in JULIA_PORTS) {
+
       # start Julia server in background
       system2(juliaexe, c(mainJuliaFile, port),
               wait = FALSE) # for testing on Windows: invisible = FALSE
 
-      # give Julia server a head start before connecting
-      Sys.sleep(juliaStartupTime + 1.5)
+      # Give Julia server a head start before connecting.
+      # The head start increases with the number of tries,
+      # since the failure might not only be due to the port being in use
+      # but also due to a slow startup/precompilation of Julia.
+      sleepTime <- sleepTime + 1.5
+      Sys.sleep(sleepTime)
+
+      # try to connect to the Julia server that is hopefully already listening at the port
       try(return(socketConnection(host = "localhost",
                                   port = port,
                                   blocking = TRUE,

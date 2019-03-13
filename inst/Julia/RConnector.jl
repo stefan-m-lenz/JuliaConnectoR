@@ -19,9 +19,6 @@ include("evaluating.jl")
 include("writing.jl")
 
 function serve(port::Int)
-   if port < 0
-      return # argument just to trigger precompilation
-   end
    server = listen(port)
    sock = accept(server)
    println("Julia is listening on port $port.")
