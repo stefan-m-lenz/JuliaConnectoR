@@ -120,11 +120,11 @@ juliaEval <- function(str) {
 
 attachFunctionList <- function(funnames, rPrefix, juliaPrefix) {
    funlist <- lapply(funnames, function(funname) {
-      function() {
+      function(...) {
          juliaCall(paste0(juliaPrefix, funname), ...)
       }
    })
-   names(funlist) <- paste0(funnames, rPrefix)
+   names(funlist) <- paste0(rPrefix, funnames)
    attach(funlist)
 }
 
@@ -151,6 +151,11 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
    juliaEval(paste(loadMode, pkgName))
 
    pkgContent <- juliaCall("RConnector.pkgContentList", pkgName, all = importInternal)
+   if (!is.list(pkgContent)) {
+      # must be an error
+      stop(paste0("Could not load Julia package \"",  pkgName,
+                  "\" (is it installed?): ", pkgContent))
+   }
 
    attachFunctionList(pkgContent$exportedFunctions, rPrefixExported, juliaPrefixExported)
    if (importInternal) {
