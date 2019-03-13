@@ -1,4 +1,4 @@
-module TcpCallR
+module RConnector
 
 using Sockets
 
@@ -56,7 +56,7 @@ end
 
 """ Lists the content of a package for import in R"""
 function pkgContentList(pkgname::AbstractString; all::Bool = false)
-   themodule = TcpCallR.maineval(pkgname)::Module
+   themodule = RConnector.maineval(pkgname)::Module
 
    function iscallable(sym::Symbol)
       field = themodule.eval(sym)

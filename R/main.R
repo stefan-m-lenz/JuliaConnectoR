@@ -104,14 +104,18 @@ juliaObj <- function(type, x) {
    x
 }
 
-usingJuliaPackage <- function(pkgName, all = FALSE) {
+juliaEval <- function(str) {
+   juliaCall("RConnector.maineval", str)
+}
+
+juliaUsing <- function(pkgName, importInternal = FALSE) {
    if (is.null(con)) {
       startJulia()
    }
    if (length(pkgName) != 1) {
       stop("Expected exactly one package name")
    }
-   juliaCall("TcpCallR.maineval", paste("using", pkgName))
-   juliaCall("TcpCallR.pkgContentList", pkgName, all = all)
+   juliaEval(paste("using", pkgName))
+   juliaCall("RConnector.pkgContentList", pkgName, all = importInternal)
 }
 

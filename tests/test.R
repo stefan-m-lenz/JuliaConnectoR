@@ -1,5 +1,5 @@
 
-usingJuliaPackage("StatsBase")
+juliaUsing("StatsBase") # TODO fix
 juliaCall("mean_and_var", c(1,2,3))
 
 # Should work
@@ -8,7 +8,7 @@ juliaCall("println", "hello world")
 juliaCall("println", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
 
-usingJuliaPackage("BoltzmannMachines", all = TRUE)
+juliaUsing("BoltzmannMachines", importInternal = TRUE)
 
 x <- juliaCall("barsandstripes", 100L, 4L)
 x
@@ -26,5 +26,5 @@ juliaCall("BoltzmannMachines.Monitor")
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
 juliaCall("thisisnotarealfunction", 100, 4)
-juliaCall("TcpCallR.thisisnotarealfunction", "haha")
+juliaCall("RConnector.thisisnotarealfunction", "haha")
 juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3))
