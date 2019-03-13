@@ -6,7 +6,7 @@ writeString <- function(str) {
 }
 
 writeInt <- function(n) {
-   writeBin(as.integer(n), con)
+   writeBin(as.integer(n), con, size = 4)
 }
 
 writeFloat64 <- function(x) {

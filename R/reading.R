@@ -3,8 +3,17 @@ readLogical <- function(n) {
 }
 
 
+readInt <- function() {
+   readBin(con, "integer", 1, size = 4)
+}
+
+readInts <- function(n) {
+   readBin(con, "integer", n, size = 4)
+}
+
+
 readString <- function() {
-   nbytes <- readBin(con, "integer")
+   nbytes <- readInt()
    ret <-  readBin(con, "raw", nbytes)
    ret <- rawToChar(ret)
    Encoding(ret) <- "UTF-8"
@@ -21,11 +30,11 @@ readStrings <- function(n = 1) {
 
 
 readDimensions <- function() {
-   ndimensions <- readBin(con, "integer", 1)
+   ndimensions <- readInt()
    if (ndimensions == 0) {
       return(1) # everything is a vector in R
    } else {
-      return(readBin(con, "integer", ndimensions))
+      return(readInts(ndimensions))
    }
 }
 
@@ -45,7 +54,7 @@ readElement <- function() {
       if (typeId == TYPE_ID_DOUBLE) {
          ret <- readBin(con, "double", nElements)
       } else if (typeId == TYPE_ID_INTEGER) {
-         ret <- readBin(con, "integer", nElements)
+         ret <- readInts(nElements)
       } else if (typeId == TYPE_ID_LOGICAL) {
          ret <- readLogical(nElements)
       } else if (typeId == TYPE_ID_STRING) {
@@ -66,18 +75,18 @@ readElement <- function() {
 readList <- function() {
    ret <- list()
 
-   npositional <- readBin(con, "integer", 1)
+   npositional <- readInt()
    for (i in seq_len(npositional)) {
       ret <- c(ret, list(readElement()))
    }
 
-   nnamed <- readBin(con, "integer", 1)
+   nnamed <- readInt()
    for (i in seq_len(nnamed)) {
       name <- readString()
       ret[[name]] <- readElement()
    }
 
-   nAttributes <- readBin(con, "integer", 1)
+   nAttributes <- readInt()
    listAttributes <- list()
    for (i in seq_len(nAttributes)) {
       name <- readString()
