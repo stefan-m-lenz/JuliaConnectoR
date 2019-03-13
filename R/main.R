@@ -125,8 +125,31 @@ attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix) {
       }
    })
    names(funlist) <- paste0(rPrefix, funnames)
-   attach(funlist, name = name)
+   funenv <- list2env(funlist)
+
+   # support versions lower than 3.3.0
+   if (exists("endsWith")) {
+      endsWithChar <- endsWith
+   } else {
+      endsWithChar <- function(str, suffix) {
+         substring(str, nchar(str), nchar(str)) == suffix
+      }
+   }
+
+   # create a function without "bang" for each "bang-function"
+   # if there is not already one without bang
+   for (funname in ls(funenv)) {
+      if (endsWithChar(funname, "!")) {
+         funnameNoBang <- substr(funname, 1, nchar(funname)-1)
+         if (is.null(funenv[[funnameNoBang]])) {
+            funenv[[funnameNoBang]] <- funenv[[funname]]
+         }
+      }
+   }
+
+   attach(funenv, name = name)
 }
+
 
 attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
    if (is.null(con)) {

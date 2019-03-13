@@ -17,6 +17,11 @@ dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
 # TODO TrainLayer arguments
 dbm
 samples(dbm, 10L)
+
+particles <- initparticles(dbm, 20L)
+particles <- gibbssample(particles, dbm, 100L)
+particles
+
 BoltzmannMachines.samples(dbm, 5L)
 rbm <- fitrbm(barsandstripes(100L, 4L))
 samples(rbm, 10L)
