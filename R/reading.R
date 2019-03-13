@@ -1,20 +1,20 @@
 readLogical <- function(n) {
-   readBin(con, "logical", n = n, size = 1)
+   readBin(pkgLocal$con, "logical", n = n, size = 1)
 }
 
 
 readInt <- function() {
-   readBin(con, "integer", 1, size = 4)
+   readBin(pkgLocal$con, "integer", 1, size = 4)
 }
 
 readInts <- function(n) {
-   readBin(con, "integer", n, size = 4)
+   readBin(pkgLocal$con, "integer", n, size = 4)
 }
 
 
 readString <- function() {
    nbytes <- readInt()
-   ret <-  readBin(con, "raw", nbytes)
+   ret <-  readBin(pkgLocal$con, "raw", nbytes)
    ret <- rawToChar(ret)
    Encoding(ret) <- "UTF-8"
    ret
@@ -40,7 +40,7 @@ readDimensions <- function() {
 
 
 readElement <- function() {
-   typeId <- readBin(con, "raw", 1)
+   typeId <- readBin(pkgLocal$con, "raw", 1)
    if (typeId == TYPE_ID_LIST) {
       return(readList())
    } else if (typeId == TYPE_ID_FAIL) {
@@ -52,7 +52,7 @@ readElement <- function() {
       nElements <- prod(dimensions)
 
       if (typeId == TYPE_ID_DOUBLE) {
-         ret <- readBin(con, "double", nElements)
+         ret <- readBin(pkgLocal$con, "double", nElements)
       } else if (typeId == TYPE_ID_INTEGER) {
          ret <- readInts(nElements)
       } else if (typeId == TYPE_ID_LOGICAL) {

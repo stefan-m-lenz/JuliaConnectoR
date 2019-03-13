@@ -1,20 +1,20 @@
 writeString <- function(str) {
    str <- enc2utf8(str)
    utf8bytes <- charToRaw(str)
-   writeBin(length(utf8bytes), con)
-   writeBin(utf8bytes, con)
+   writeBin(length(utf8bytes), pkgLocal$con)
+   writeBin(utf8bytes, pkgLocal$con)
 }
 
 writeInt <- function(n) {
-   writeBin(as.integer(n), con, size = 4)
+   writeBin(as.integer(n), pkgLocal$con, size = 4)
 }
 
 writeFloat64 <- function(x) {
-   writeBin(x, con)
+   writeBin(x, pkgLocal$con)
 }
 
 writeLogical <- function(b) {
-   writeBin(as.logical(b), con, size = 1)
+   writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
 
@@ -42,11 +42,11 @@ writeElement <- function(elem) {
       stop("Type of element could not be identified") # TODO write a NULL value instead
    }
 
-   writeBin(typeId, con)
+   writeBin(typeId, pkgLocal$con)
 
    if (typeId <= TYPE_ID_INTEGER) {
       writeInt(dimensions(elem))
-      writeBin(as.vector(elem), con)
+      writeBin(as.vector(elem), pkgLocal$con)
    } else if (typeId == TYPE_ID_LOGICAL) {
       writeInt(dimensions(elem))
       writeLogical(elem)

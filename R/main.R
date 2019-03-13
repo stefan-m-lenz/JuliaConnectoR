@@ -24,6 +24,10 @@ TYPE_IDS <- list(
    "list" = TYPE_ID_LIST)
 
 
+# for holding local package variables (the Julia connection object)
+pkgLocal <- new.env(parent = emptyenv())
+
+
 juliaConnection <- function() {
    juliaexe <- Sys.getenv("JULIA_BINDIR")
    if (juliaexe == "") {
@@ -65,7 +69,6 @@ finalize <- function(env) {
 }
 
 .onLoad <- function(libname, pkgname) {
-   con <<- NULL
    # register finalizer to stop Julia connection
    parent <- parent.env(environment())
    reg.finalizer(parent, finalize, onexit = TRUE)
@@ -73,16 +76,15 @@ finalize <- function(env) {
 
 
 juliaCall <- function(name, ...) {
-   if (is.null(con)) {
-      startJulia()
-   }
+   ensureJuliaConnection()
+
    jlargs <- list(...)
-   writeBin(CALL_INDICATOR, con)
+   writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    writeList(jlargs)
    messageType <- c()
    while (length(messageType) == 0) {
-      messageType <- readBin(con, "raw", 1)
+      messageType <- readBin(pkgLocal$con, "raw", 1)
    }
    if (messageType == RESULT_INDICATOR) {
       return(readElement())
@@ -94,16 +96,22 @@ juliaCall <- function(name, ...) {
 }
 
 startJulia <- function() {
-   con <<- juliaConnection()
+   pkgLocal$con <- juliaConnection()
 }
 
 stopJulia <- function() {
-   if (!is.null(con)) {
+   if (!is.null(pkgLocal$con)) {
       tryCatch({
-         writeBin(BYEBYE, con)
-         close(con)
+         writeBin(BYEBYE, pkgLocal$con)
+         close(pkgLocal$con)
       })
-      con <<- NULL
+      pkgLocal$con <- NULL
+   }
+}
+
+ensureJuliaConnection <- function() {
+   if (is.null(pkgLocal$con)) {
+      startJulia()
    }
 }
 
@@ -152,9 +160,8 @@ attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix) {
 
 
 attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
-   if (is.null(con)) {
-      startJulia()
-   }
+   ensureJuliaConnection()
+
    if (length(pkgName) != 1) {
       stop("Expected exactly one package name")
    }
