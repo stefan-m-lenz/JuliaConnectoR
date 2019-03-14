@@ -1,4 +1,4 @@
-
+library(JuliaConnectoR)
 juliaUsing("StatsBase") # TODO fix
 juliaCall("mean_and_var", c(1,2,3))
 
