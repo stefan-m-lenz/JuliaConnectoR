@@ -43,8 +43,6 @@ readElement <- function() {
    typeId <- readBin(pkgLocal$con, "raw", 1)
    if (typeId == TYPE_ID_LIST) {
       return(readList())
-   } else if (typeId == TYPE_ID_FAIL) {
-      return(base::simpleError(readString()))
    } else if (typeId == TYPE_ID_NULL) {
       return(NULL)
    } else if (typeId == TYPE_ID_EXPRESSION) {

@@ -1,3 +1,14 @@
+function write_answer(outputstream, result)
+   write(outputstream, RESULT_INDICATOR)
+   writeElement(outputstream, result)
+end
+
+function write_answer(outputstream, fail::Fail)
+   write(outputstream, FAIL_INDICATOR)
+   writeString(outputstream, fail.message)
+end
+
+
 function writeInt32(outputstream, i::Int)
    write(outputstream, Int32(i))
 end
@@ -60,11 +71,6 @@ end
 function writeElement(outputstream, f::Function)
    write(outputstream, TYPE_ID_CALLBACK)
    writeInt32(outputstream, 0)
-end
-
-function writeElement(outputstream, fail::Fail)
-   write(outputstream, TYPE_ID_FAIL)
-   writeString(outputstream, fail.message)
 end
 
 # TODO rewrite: cannot be given back to julia

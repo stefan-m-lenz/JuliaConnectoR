@@ -2,8 +2,8 @@
 
     message -> '0x01' functioncall
         | '0x00' element
+        | '0xff' fail
         | byebye
-    byebye -> '0xbb'
     functioncall -> string list
     list    -> int32 {element} int32 {named_element} attributes
     attributes -> int32 {named_element}
@@ -16,12 +16,12 @@
             | '0x05' list
             | '0xcb' callback
             | '0xee' expression
-            | '0xff' fail
     callback -> int32
-    fail -> string
     string -> int32 utf8string
     dimensions -> ndimensions {int32}
     ndimensions -> int32
+    fail -> string
+    byebye -> '0xbb'
 
 # Meaning of the int32 numbers
 * A string is preceded by the number of bytes to UTF-8-encode the string.

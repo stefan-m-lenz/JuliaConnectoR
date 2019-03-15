@@ -10,10 +10,10 @@ const TYPE_ID_STRING = 0x04
 const TYPE_ID_LIST = 0x05
 const TYPE_ID_EXPRESSION = 0xee
 const TYPE_ID_CALLBACK = 0xcb
-const TYPE_ID_FAIL = 0xff
 
 const CALL_INDICATOR = 0x01
 const RESULT_INDICATOR = 0x00
+const FAIL_INDICATOR = 0xff
 const BYEBYE = 0xbb
 
 include("reading.jl")
@@ -53,8 +53,7 @@ function serve(port::Int)
          result = Fail("Parsing failed. Reason: " * string(fails))
       end
 
-      write(sock, RESULT_INDICATOR)
-      writeElement(sock, result)
+      write_answer(sock, result)
    end
 end
 

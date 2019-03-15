@@ -9,10 +9,10 @@ TYPE_ID_STRING <- as.raw(0x04)
 TYPE_ID_LIST <- as.raw(0x05)
 TYPE_ID_CALLBACK <- as.raw(0xcb)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
-TYPE_ID_FAIL <- as.raw(0xff)
 
 CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
+FAIL_INDICATOR <- as.raw(0xff)
 BYEBYE <- as.raw(0xbb)
 
 LOAD_MODE_USING <- 0L
@@ -69,12 +69,9 @@ juliaCall <- function(name, ...) {
       messageType <- readBin(pkgLocal$con, "raw", 1)
    }
    if (messageType == RESULT_INDICATOR) {
-      result <- readElement()
-      if (inherits(result, "error")) {
-         stop(result)
-      } else {
-         return(result)
-      }
+      return(readElement())
+   } else if (messageType == FAIL_INDICATOR) {
+      stop(readString())
    } else {
       print(messageType)
       print("Message type not supported (yet)")
