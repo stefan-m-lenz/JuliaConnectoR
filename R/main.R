@@ -7,6 +7,8 @@ TYPE_ID_INTEGER <- as.raw(0x02)
 TYPE_ID_LOGICAL <- as.raw(0x03)
 TYPE_ID_STRING <- as.raw(0x04)
 TYPE_ID_LIST <- as.raw(0x05)
+TYPE_ID_CALLBACK <- as.raw(0xcb)
+TYPE_ID_EXPRESSION <- as.raw(0xee)
 TYPE_ID_FAIL <- as.raw(0xff)
 
 CALL_INDICATOR <- as.raw(0x01)

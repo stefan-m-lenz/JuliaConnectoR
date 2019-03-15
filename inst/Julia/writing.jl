@@ -92,6 +92,10 @@ function writeElement(outputstream, obj::Module)
          Dict{String, Any}("JLTYPE" => "Module")))
 end
 
+function writeElement(outputstream, d::T) where {T2, T <: Type{T2}}
+   writeExpression(outputstream, string(d))
+end
+
 function writeElement(outputstream, obj::T) where T
    if isstructtype(T)
       write(outputstream, TYPE_ID_LIST)
@@ -133,6 +137,12 @@ end
 
 function writeElement(outputstream, n::Nothing)
    write(outputstream, TYPE_ID_NOTHING)
+end
+
+
+function writeExpression(outputstream, str::AbstractString)
+   write(outputstream, TYPE_ID_EXPRESSION)
+   writeString(outputstream, str)
 end
 
 

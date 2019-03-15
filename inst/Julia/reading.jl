@@ -82,6 +82,10 @@ function read_element(inputstream)
 
    if typeid == TYPE_ID_LIST
       return read_list(inputstream)
+   elseif typeid == TYPE_ID_NOTHING
+      return nothing
+   elseif typeid == TYPE_ID_EXPRESSION
+      return read_expression(inputstream)
    else
       dimensions = read_dimensions(inputstream)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)
@@ -106,6 +110,16 @@ function read_element(inputstream)
    end
 
    ret
+end
+
+
+function read_expression(inputstream)
+   exprstr = read_string(inputstream)
+   try
+      return maineval(exprstr)
+   catch ex
+      return Fail("Evaluation of \"$exprstr\" failed. Original error $ex")
+   end
 end
 
 

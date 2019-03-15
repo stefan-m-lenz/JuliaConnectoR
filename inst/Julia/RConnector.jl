@@ -8,6 +8,8 @@ const TYPE_ID_INT = 0x02
 const TYPE_ID_BOOL = 0x03
 const TYPE_ID_STRING = 0x04
 const TYPE_ID_LIST = 0x05
+const TYPE_ID_EXPRESSION = 0xee
+const TYPE_ID_CALLBACK = 0xcb
 const TYPE_ID_FAIL = 0xff
 
 const CALL_INDICATOR = 0x01
@@ -25,13 +27,18 @@ function serve(port::Int)
    while isopen(sock)
       call = Call()
       try
-         firstbyte = read(sock, 1)[1]
-         if firstbyte == CALL_INDICATOR
+         firstbyte = read(sock, 1)
+         if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
             call = read_call(sock)
-         elseif firstbyte == BYEBYE
-            close(sock)
-            return
+         else
+            if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
+               close(sock)
+               error("Unexpected leading character $(firstbyte[1])")
+            else
+               close(sock)
+               return
+            end
          end
       catch ex
          error("Unexpected parsing error. Stopping listening. " *
@@ -55,9 +62,14 @@ end
 function pkgContentList(pkgname::AbstractString; all::Bool = false)
    themodule = RConnector.maineval(pkgname)::Module
 
-   function iscallable(sym::Symbol)
+   function isfunction(sym::Symbol)
       field = themodule.eval(sym)
-      field isa Function || field isa DataType
+      field isa Function
+   end
+
+   function isdatatype(sym::Symbol)
+      field = themodule.eval(sym)
+      field isa DataType
    end
 
    function bangfuns_removed(funs::AbstractVector{String})
@@ -74,23 +86,32 @@ function pkgContentList(pkgname::AbstractString; all::Bool = false)
    end
 
    exportedsyms = names(themodule, all = false)
-   exportedfunctions = map(string, filter(iscallable, exportedsyms))
+   exportedfunctions = map(string, filter(isfunction, exportedsyms))
    exportedfunctions = bangfuns_removed(exportedfunctions)
+   exporteddatatypes = map(string, filter(isdatatype, exportedsyms))
 
    if all
       allsyms = names(themodule, all = true)
       filter!(sym -> string(sym)[1] != '#', allsyms)
       exportedSymSet = Set(exportedsyms)
       internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
-      internalfunctions = map(string, filter(iscallable, internalsyms))
+      internalfunctions = map(string, filter(isfunction, internalsyms))
+      internaldatatypes = map(string, filter(isdatatype, internalsyms))
       internalfunctions = bangfuns_removed(internalfunctions)
-      return ElementList(Vector{Any}(), [:exportedFunctions, :internalFunctions],
+      return ElementList(Vector{Any}(),
+            [:exportedFunctions, :exportedDataTypes,
+                  :internalFunctions, :internalDataTypes],
             Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
-                  :internalFunctions => internalfunctions))
+                  :exportedDataTypes => exporteddatatypes,
+                  :internalFunctions => internalfunctions,
+                  :internalDataTypes => internaldatatypes))
    else
-      return ElementList(Vector{Any}(), [:exportedFunctions],
-            Dict{Symbol, Any}(:exportedFunctions => exportedfunctions))
+      return ElementList(Vector{Any}(),
+            [:exportedFunctions, :exportedDataTypes],
+            Dict{Symbol, Any}(
+                  :exportedFunctions => exportedfunctions,
+                  :exportedDataTypes => exporteddatatypes))
    end
 end
 

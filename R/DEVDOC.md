@@ -1,19 +1,23 @@
 # Serialization Grammar
 
-    message -> '\x01' functioncall
-        | '\x00' element
+    message -> '0x01' functioncall
+        | '0x00' element
         | byebye
-    byebye -> '\xbb'
+    byebye -> '0xbb'
     functioncall -> string list
     list    -> int32 {element} int32 {named_element} attributes
     attributes -> int32 {named_element}
     named_element -> string element
-    element -> '\x01' dimensions {double}
-            | '\x02' dimensions {integer}
-            | '\x03' dimensions {boolean}
-            | '\x04' dimensions {string}
-            | '\x05' list
-            | '\xff' fail
+    element -> '0x00'
+            | '0x01' dimensions {double}
+            | '0x02' dimensions {integer}
+            | '0x03' dimensions {boolean}
+            | '0x04' dimensions {string}
+            | '0x05' list
+            | '0xcb' callback
+            | '0xee' expression
+            | '0xff' fail
+    callback -> int32
     fail -> string
     string -> int32 utf8string
     dimensions -> ndimensions {int32}

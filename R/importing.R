@@ -1,9 +1,22 @@
-attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix) {
-   funlist <- lapply(funnames, function(funname) {
-      function(...) {
-         juliaCall(paste0(juliaPrefix, funname), ...)
-      }
-   })
+attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix,
+                               constructors = FALSE) {
+
+   if (constructors) {
+      funlist <- lapply(funnames, function(funname) {
+         constructor <- function(...) {
+            juliaCall(paste0(juliaPrefix, funname), ...)
+         }
+         attributes(constructor)$JLDATATYPE <- funname
+         constructor
+      })
+   } else {
+      funlist <- lapply(funnames, function(funname) {
+         function(...) {
+            juliaCall(paste0(juliaPrefix, funname), ...)
+         }
+      })
+   }
+
    names(funlist) <- paste0(rPrefix, funnames)
    funenv <- list2env(funlist)
 
@@ -52,6 +65,9 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 
    attachFunctionList(pkgContent$exportedFunctions, pkgName,
                       rPrefixExported, juliaPrefixExported)
+   attachFunctionList(pkgContent$exportedDataTypes, pkgName,
+                      rPrefixExported, juliaPrefixExported,
+                      constructors = TRUE)
 
    juliaPrefixInternal <- paste0(pkgName, ".")
    rPrefixInternal <- paste0(alias, ".")
@@ -59,11 +75,17 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
    if (mode == LOAD_MODE_USING) {
       attachFunctionList(pkgContent$exportedFunctions, pkgName,
                          rPrefixInternal, juliaPrefixInternal)
+      attachFunctionList(pkgContent$exportedDataTypes, pkgName,
+                         rPrefixInternal, juliaPrefixInternal,
+                         constructors = TRUE)
    }
 
    if (importInternal) {
       attachFunctionList(pkgContent$internalFunctions, pkgName,
                          rPrefixInternal, juliaPrefixInternal)
+      attachFunctionList(pkgContent$internalDataTypes, pkgName,
+                         rPrefixInternal, juliaPrefixInternal,
+                         constructors = TRUE)
    }
 }
 

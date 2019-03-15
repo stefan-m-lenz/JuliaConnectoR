@@ -47,6 +47,10 @@ readElement <- function() {
       return(readString())
    } else if (typeId == TYPE_ID_NULL) {
       return(NULL)
+   } else if (typeId == TYPE_ID_EXPRESSION) {
+      expr <- readString()
+      attr(expr, "JLEXPR") <- TRUE
+      return(expr)
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)

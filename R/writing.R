@@ -30,6 +30,7 @@ dimensions <- function(x) {
    }
 }
 
+
 writeElement <- function(elem) {
 
    if (is.null(elem)) {
@@ -37,27 +38,47 @@ writeElement <- function(elem) {
       return()
    }
 
-   typeId <- TYPE_IDS[[typeof(elem)]]
-   if (is.null(typeId)) {
-      stop("Type of element could not be identified") # TODO write a NULL value instead
-   }
-
-   writeBin(typeId, pkgLocal$con)
-
-   if (typeId <= TYPE_ID_INTEGER) {
-      writeInt(dimensions(elem))
-      writeBin(as.vector(elem), pkgLocal$con)
-   } else if (typeId == TYPE_ID_LOGICAL) {
-      writeInt(dimensions(elem))
-      writeLogical(elem)
-   } else if (typeId == TYPE_ID_STRING) {
-      writeInt(dimensions(elem))
-      for (i in 1:length(elem)) {
-         writeString(elem[i])
+   elemType <- typeof(elem)
+   if (elemType == "closure") {
+      if (is.null(attr(elem, "JLDATATYPE"))) {
+         writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
+         writeInt(0L) # TODO really support callbacks
+      } else {
+         writeExpression(attr(elem, "JLDATATYPE"))
       }
-   } else if (typeId == TYPE_ID_LIST) {
-      writeList(elem)
+   } else {
+      typeId <- TYPE_IDS[[typeof(elem)]]
+      if (is.null(typeId)) {
+         # TODO check before writing?
+         typeId <- TYPE_ID_NULL
+         warning(paste0("Could not coerce type of element ", element, ". Writing NULL."))
+      }
+      writeBin(typeId, pkgLocal$con)
+
+      if (typeId <= TYPE_ID_INTEGER) {
+         writeInt(dimensions(elem))
+         writeBin(as.vector(elem), pkgLocal$con)
+      } else if (typeId == TYPE_ID_LOGICAL) {
+         writeInt(dimensions(elem))
+         writeLogical(elem)
+      } else if (typeId == TYPE_ID_STRING) {
+         if (is.null(attr(elem, "JLEXPR"))) {
+            writeInt(dimensions(elem))
+            for (i in 1:length(elem)) {
+               writeString(elem[i])
+            }
+         } else {
+            writeExpression(elem)
+         }
+      } else if (typeId == TYPE_ID_LIST) {
+         writeList(elem)
+      }
    }
+}
+
+writeExpression <- function(str) {
+   writeBin(TYPE_ID_EXPRESSION, pkgLocal$con)
+   writeString(str)
 }
 
 

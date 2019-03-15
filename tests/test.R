@@ -23,11 +23,13 @@ particles <- gibbssample(particles, dbm, 100L)
 particles
 
 BoltzmannMachines.samples(dbm, 5L)
-rbm <- fitrbm(barsandstripes(100L, 4L))
+
+rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)
 samples(rbm, 10L)
 BoltzmannMachines.Monitor()
 
 juliaImport("BoltzmannMachines", alias = "BMs")
+x <- BMs.barsandstripes(100L, 4L)
 rbm2 <- BMs.fitrbm(x, epochs = 5L)
 BMs.samples(rbm2, 5L)
 
