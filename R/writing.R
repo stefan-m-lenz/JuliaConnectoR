@@ -34,7 +34,7 @@ dimensions <- function(x) {
 writeElement <- function(elem) {
 
    if (is.null(elem)) {
-      writeBin(TYPE_ID_NULL)
+      writeBin(TYPE_ID_NULL, pkgLocal$con)
       return()
    }
 
@@ -50,19 +50,21 @@ writeElement <- function(elem) {
       typeId <- TYPE_IDS[[typeof(elem)]]
       if (is.null(typeId)) {
          # TODO check before writing?
-         typeId <- TYPE_ID_NULL
+         writeBin(TYPE_ID_NULL, pkgLocal$con)
          warning(paste0("Could not coerce type of element ", element, ". Writing NULL."))
       }
-      writeBin(typeId, pkgLocal$con)
 
       if (typeId <= TYPE_ID_INTEGER) {
+         writeBin(typeId, pkgLocal$con)
          writeInt(dimensions(elem))
          writeBin(as.vector(elem), pkgLocal$con)
       } else if (typeId == TYPE_ID_LOGICAL) {
+         writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
          writeInt(dimensions(elem))
          writeLogical(elem)
       } else if (typeId == TYPE_ID_STRING) {
          if (is.null(attr(elem, "JLEXPR"))) {
+            writeBin(TYPE_ID_STRING, pkgLocal$con)
             writeInt(dimensions(elem))
             for (i in 1:length(elem)) {
                writeString(elem[i])
@@ -71,6 +73,7 @@ writeElement <- function(elem) {
             writeExpression(elem)
          }
       } else if (typeId == TYPE_ID_LIST) {
+         writeBin(typeId, pkgLocal$con)
          writeList(elem)
       }
    }

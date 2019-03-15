@@ -57,6 +57,11 @@ function writeElement(outputstream, arr::AbstractArray) where T
                Dict{Symbol, Any}(), attributes))
 end
 
+function writeElement(outputstream, f::Function)
+   write(outputstream, TYPE_ID_CALLBACK)
+   writeInt32(outputstream, 0)
+end
+
 function writeElement(outputstream, fail::Fail)
    write(outputstream, TYPE_ID_FAIL)
    writeString(outputstream, fail.message)
@@ -98,14 +103,18 @@ end
 
 function writeElement(outputstream, obj::T) where T
    if isstructtype(T)
-      write(outputstream, TYPE_ID_LIST)
       names = fieldnames(T)
-      fieldvalues = map(name -> getfield(obj, name), names)
-      attributes = Dict{String, Any}("JLTYPE" => string(T))
-      writeList(outputstream, ElementList(
-            Vector(), collect(names),
-            Dict{Symbol, Any}(zip(names, fieldvalues)),
-            attributes))
+      if isempty(names) # type without members
+         writeExpression(outputstream, string(T) * "()")
+      else
+         write(outputstream, TYPE_ID_LIST)
+         fieldvalues = map(name -> getfield(obj, name), names)
+         attributes = Dict{String, Any}("JLTYPE" => string(T))
+         writeList(outputstream, ElementList(
+               Vector(), collect(names),
+               Dict{Symbol, Any}(zip(names, fieldvalues)),
+               attributes))
+      end
    else
       writeElement(outputstream, Fail("Lost in translation: $(string(obj))"))
    end

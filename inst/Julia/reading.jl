@@ -32,6 +32,11 @@ struct Call
 end
 
 
+""" Accepts everything, does nothing """
+function emptyfun(args...; kwargs...)
+end
+
+
 function read_float64s(inputstream, n::Int)
    reinterpret(Float64, read(inputstream, 8*n))
 end
@@ -86,6 +91,13 @@ function read_element(inputstream)
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(inputstream)
+   elseif  typeid == TYPE_ID_CALLBACK
+      callbackid = read_int(inputstream)
+      if callbackid == 0
+         return emptyfun
+      else
+         return Fail("TODO implement callback functions")
+      end
    else
       dimensions = read_dimensions(inputstream)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)

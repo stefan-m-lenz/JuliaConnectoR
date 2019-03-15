@@ -51,6 +51,13 @@ readElement <- function() {
       expr <- readString()
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
+   } else if (typeId == TYPE_ID_CALLBACK) {
+      callbackId <- readInt()
+      if (callbackId == 0) {
+         return(emptyfun)
+      } else {
+         return("TODO implement callback mapping")
+      }
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)

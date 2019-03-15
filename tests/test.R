@@ -4,6 +4,7 @@ juliaCall("mean_and_var", c(1,2,3))
 
 # Should work
 juliaCall("prod", c(1,2,3))
+juliaCall("show", NULL)
 juliaCall("println", "hello world")
 juliaCall("println", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
@@ -18,8 +19,15 @@ dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
 dbm
 samples(dbm, 10L)
 
-particles <- initparticles(dbm, 20L)
-particles <- gibbssample(particles, dbm, 100L)
+dbm2 <- fitdbm(x, epochs = 10L,
+               pretraining = list(TrainLayer(nhidden = 4L),
+                                  TrainLayer(nhidden = 3L)))
+dbm2
+logpartitionfunction(dbm2)
+aislogimpweights(dbm2, nparticles = 10L)
+
+particles <- initparticles(dbm2, 20L)
+particles <- gibbssample(particles, dbm2, 100L)
 particles
 
 BoltzmannMachines.samples(dbm, 5L)

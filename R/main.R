@@ -38,6 +38,9 @@ endsWithChar <- (function() {
 })()
 
 
+emptyfun <- function(...) {}
+
+
 # for holding local package variables (the Julia connection object)
 pkgLocal <- new.env(parent = emptyenv())
 

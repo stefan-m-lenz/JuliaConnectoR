@@ -14,8 +14,7 @@ juliaConnection <- function() {
    for (port in JULIA_PORTS) {
 
       # start Julia server in background
-      system2(juliaexe, c(mainJuliaFile, port),
-              wait = FALSE) # for testing on Windows: invisible = FALSE
+      system2(juliaexe, c(mainJuliaFile, port), wait = FALSE)
 
       # Give Julia server a head start before connecting.
       # The head start increases with the number of tries,
