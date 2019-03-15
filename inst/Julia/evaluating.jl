@@ -3,7 +3,11 @@ Converts a vector to a vector of the most specific type that all
 elements share as common supertype.
 """
 function converttomostspecifictype(v::Vector)
-   Vector{mostspecifictype(v)}(v)
+   if isempty(v)
+      return v
+   else
+      Vector{mostspecifictype(v)}(v)
+   end
 end
 
 
@@ -55,7 +59,7 @@ function evaluate!(list::ElementList)
       catch ex
          return Fail("Construction of type $jltype failed. Original error: $ex")
       end
-   elseif isempty(list.namedelements) && !isempty(list.positionalelements)
+   elseif isempty(list.namedelements)
       return converttomostspecifictype(list.positionalelements)
    else
       return list
