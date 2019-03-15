@@ -8,6 +8,7 @@ juliaCall("println", "hello world")
 juliaCall("string", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
 
+# Test BoltzmannMachines package
 juliaUsing("BoltzmannMachines", importInternal = TRUE)
 
 x <- barsandstripes(100L, 4L)
@@ -42,8 +43,8 @@ BMs.samples(rbm2, 5L)
 
 # Other package
 juliaImport("StatsBase")
-juliaCall("StatsBase.mean_and_var", c(1,2,3))
-juliaCall("StatsBase.zscore", rnorm(100))
+StatsBase.mean_and_var(c(1,2,3))
+StatsBase.renyientropy(rnorm(100), 1)
 
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
