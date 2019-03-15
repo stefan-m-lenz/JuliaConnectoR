@@ -61,15 +61,17 @@ end
 function pkgContentList(pkgname::AbstractString; all::Bool = false)
    themodule = RConnector.maineval(pkgname)::Module
 
-   function isfunction(sym::Symbol)
-      field = themodule.eval(sym)
-      field isa Function
+   function symbolisa(sym::Symbol, type)
+      if isdefined(themodule, sym)
+         field = themodule.eval(sym)
+         return field isa type
+      else
+         return false
+      end
    end
 
-   function isdatatype(sym::Symbol)
-      field = themodule.eval(sym)
-      field isa DataType
-   end
+   isafunction(sym) = symbolisa(sym, Function)
+   isadatatype(sym) = symbolisa(sym, DataType)
 
    function bangfuns_removed(funs::AbstractVector{String})
       ret = Vector{String}()
@@ -85,17 +87,17 @@ function pkgContentList(pkgname::AbstractString; all::Bool = false)
    end
 
    exportedsyms = names(themodule, all = false)
-   exportedfunctions = map(string, filter(isfunction, exportedsyms))
+   exportedfunctions = map(string, filter(isafunction, exportedsyms))
    exportedfunctions = bangfuns_removed(exportedfunctions)
-   exporteddatatypes = map(string, filter(isdatatype, exportedsyms))
+   exporteddatatypes = map(string, filter(isadatatype, exportedsyms))
 
    if all
       allsyms = names(themodule, all = true)
       filter!(sym -> string(sym)[1] != '#', allsyms)
       exportedSymSet = Set(exportedsyms)
       internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
-      internalfunctions = map(string, filter(isfunction, internalsyms))
-      internaldatatypes = map(string, filter(isdatatype, internalsyms))
+      internalfunctions = map(string, filter(isafunction, internalsyms))
+      internaldatatypes = map(string, filter(isadatatype, internalsyms))
       internalfunctions = bangfuns_removed(internalfunctions)
       return ElementList(Vector{Any}(),
             [:exportedFunctions, :exportedDataTypes,

@@ -40,6 +40,11 @@ x <- BMs.barsandstripes(100L, 4L)
 rbm2 <- BMs.fitrbm(x, epochs = 5L)
 BMs.samples(rbm2, 5L)
 
+# Other package
+juliaImport("StatsBase")
+juliaCall("StatsBase.mean_and_var", c(1,2,3))
+juliaCall("StatsBase.zscore", rnorm(100))
+
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
 juliaCall("thisisnotarealfunction", 100, 4)
@@ -47,6 +52,4 @@ juliaCall("RConnector.thisisnotarealfunction", "haha")
 juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3))
 
 
-# TODO fix
-juliaUsing("StatsBase")
-juliaCall("mean_and_var", c(1,2,3))
+
