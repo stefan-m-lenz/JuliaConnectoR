@@ -69,7 +69,12 @@ juliaCall <- function(name, ...) {
       messageType <- readBin(pkgLocal$con, "raw", 1)
    }
    if (messageType == RESULT_INDICATOR) {
-      return(readElement())
+      result <- readElement()
+      if (inherits(result, "error")) {
+         stop(result)
+      } else {
+         return(result)
+      }
    } else {
       print(messageType)
       print("Message type not supported (yet)")

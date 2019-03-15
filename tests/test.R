@@ -1,12 +1,11 @@
 library(JuliaConnectoR)
-juliaUsing("StatsBase") # TODO fix
-juliaCall("mean_and_var", c(1,2,3))
 
 # Should work
 juliaCall("prod", c(1,2,3))
 juliaCall("show", NULL)
+juliaCall("string", list())
 juliaCall("println", "hello world")
-juliaCall("println", list(as.integer(1), "bla" = 23L))
+juliaCall("string", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
 
 juliaUsing("BoltzmannMachines", importInternal = TRUE)
@@ -46,3 +45,8 @@ juliaCall("sum", c(1,2,3, "bla"))
 juliaCall("thisisnotarealfunction", 100, 4)
 juliaCall("RConnector.thisisnotarealfunction", "haha")
 juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3))
+
+
+# TODO fix
+juliaUsing("StatsBase")
+juliaCall("mean_and_var", c(1,2,3))
