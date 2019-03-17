@@ -56,7 +56,7 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 
    juliaEval(paste(loadMode, pkgName))
 
-   pkgContent <- juliaCall("RConnector.pkgContentList", pkgName, all = importInternal)
+   pkgContent <- juliaCall("RConnector.moduleinfo", pkgName, all = importInternal)
    if (!is.list(pkgContent)) {
       # must be an error
       stop(paste0("Could not load Julia package \"",  pkgName,

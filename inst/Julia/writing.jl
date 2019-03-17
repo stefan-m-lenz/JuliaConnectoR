@@ -1,130 +1,130 @@
 function write_answer(outputstream, result)
    write(outputstream, RESULT_INDICATOR)
-   writeElement(outputstream, result)
+   write_element(outputstream, result)
 end
 
 function write_answer(outputstream, fail::Fail)
    write(outputstream, FAIL_INDICATOR)
-   writeString(outputstream, fail.message)
+   write_string(outputstream, fail.message)
 end
 
 
-function writeInt32(outputstream, i::Int)
+function write_int32(outputstream, i::Int)
    write(outputstream, Int32(i))
 end
 
-function writeInt32s(outputstream, intarr::AbstractArray{Int})
+function write_int32s(outputstream, intarr::AbstractArray{Int})
    for i in intarr
-      writeInt32(outputstream, i)
+      write_int32(outputstream, i)
    end
 end
 
-function writeString(outputstream, str::String)
-   writeInt32(outputstream, ncodeunits(str))
+function write_string(outputstream, str::String)
+   write_int32(outputstream, ncodeunits(str))
    write(outputstream, str)
 end
 
-function writeDimensions(outputstream, arr::AbstractArray)
+function write_dimensions(outputstream, arr::AbstractArray)
    dims = size(arr)
-   writeInt32(outputstream, length(dims))
-   writeInt32s(outputstream, collect(dims))
+   write_int32(outputstream, length(dims))
+   write_int32s(outputstream, collect(dims))
 end
 
 
-function writeElement(outputstream, arr::AbstractArray{Int32})
+function write_element(outputstream, arr::AbstractArray{Int32})
    write(outputstream, TYPE_ID_INT)
-   writeDimensions(outputstream, arr)
-   writeInt32s(outputstream, arr)
+   write_dimensions(outputstream, arr)
+   write_int32s(outputstream, arr)
 end
 
-function writeElement(outputstream, arr::AbstractArray{String})
+function write_element(outputstream, arr::AbstractArray{String})
    write(outputstream, TYPE_ID_STRING)
-   writeDimensions(outputstream, arr)
+   write_dimensions(outputstream, arr)
    for str in arr
-      writeString(outputstream, str)
+      write_string(outputstream, str)
    end
 end
 
-function writeElement(outputstream, arr::AbstractArray{<:Number})
+function write_element(outputstream, arr::AbstractArray{<:Number})
    write(outputstream, TYPE_ID_FLOAT64)
-   writeDimensions(outputstream, arr)
+   write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, Float64(d))
    end
 end
 
-function writeElement(outputstream, arr::AbstractArray{<:Complex})
+function write_element(outputstream, arr::AbstractArray{<:Complex})
    write(outputstream, TYPE_ID_COMPLEX)
-   writeDimensions(outputstream, arr)
+   write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, Float64(real(d)))
       write(outputstream, Float64(imag(d)))
    end
 end
 
-function writeElement(outputstream, arr::AbstractArray{Bool})
+function write_element(outputstream, arr::AbstractArray{Bool})
    write(outputstream, TYPE_ID_BOOL)
-   writeDimensions(outputstream, arr)
+   write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, d)
    end
 end
 
-function writeElement(outputstream, arr::AbstractArray{UInt8})
+function write_element(outputstream, arr::AbstractArray{UInt8})
    write(outputstream, TYPE_ID_RAW)
-   writeDimensions(outputstream, arr)
+   write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, d)
    end
 end
 
-function writeElement(outputstream, arr::AbstractArray) where T
+function write_element(outputstream, arr::AbstractArray) where T
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
-   writeElement(outputstream,
+   write_element(outputstream,
          ElementList(Vector{Any}(arr), Vector{Symbol}(),
                Dict{Symbol, Any}(), attributes))
 end
 
-function writeElement(outputstream, f::Function)
+function write_element(outputstream, f::Function)
    write(outputstream, TYPE_ID_CALLBACK)
-   writeInt32(outputstream, 0)
+   write_int32(outputstream, 0)
 end
 
 # TODO rewrite: cannot be given back to julia
-function writeElement(outputstream, t::T) where T <: Union{Tuple, Pair}
-   writeElement(outputstream, collect(t))
+function write_element(outputstream, t::T) where T <: Union{Tuple, Pair}
+   write_element(outputstream, collect(t))
 end
 
-function writeElement(outputstream, ellist::ElementList)
+function write_element(outputstream, ellist::ElementList)
    write(outputstream, TYPE_ID_LIST)
    writeList(outputstream, ellist)
 end
 
-function writeElement(outputstream, obj::Symbol)
-   writeElement(outputstream, ElementList(
+function write_element(outputstream, obj::Symbol)
+   write_element(outputstream, ElementList(
          Vector{Any}(),
          [:name],
          Dict{Symbol, Any}(:name => string(obj)),
          Dict{String, Any}("JLTYPE" => "Symbol")))
 end
 
-function writeElement(outputstream, obj::Module)
+function write_element(outputstream, obj::Module)
    modulename = string(obj)
    if startswith(modulename, "Main.")
       modulename = String(modulename[6:end])
    end
-   writeElement(outputstream, ElementList(
+   write_element(outputstream, ElementList(
          Vector{Any}(),
          [:name],
          Dict{Symbol, Any}(:name => Symbol(modulename)),
          Dict{String, Any}("JLTYPE" => "Module")))
 end
 
-function writeElement(outputstream, d::T) where {T2, T <: Type{T2}}
+function write_element(outputstream, d::T) where {T2, T <: Type{T2}}
    writeExpression(outputstream, string(d))
 end
 
-function writeElement(outputstream, obj::T) where T
+function write_element(outputstream, obj::T) where T
    if isstructtype(T)
       names = fieldnames(T)
       if isempty(names) # type without members
@@ -139,55 +139,55 @@ function writeElement(outputstream, obj::T) where T
                attributes))
       end
    else
-      writeElement(outputstream, Fail("Lost in translation: $(string(obj))"))
+      write_element(outputstream, Fail("Lost in translation: $(string(obj))"))
    end
 end
 
-function writeElement(outputstream, i::Number)
+function write_element(outputstream, i::Number)
    write(outputstream, TYPE_ID_FLOAT64)
-   writeInt32(outputstream, 0)
+   write_int32(outputstream, 0)
    write(outputstream, Float64(i))
 end
 
-function writeElement(outputstream, i::Int32)
+function write_element(outputstream, i::Int32)
    write(outputstream, TYPE_ID_INT)
-   writeInt32(outputstream, 0)
-   writeInt32(outputstream, i)
+   write_int32(outputstream, 0)
+   write_int32(outputstream, i)
 end
 
-function writeElement(outputstream, b::Bool)
+function write_element(outputstream, b::Bool)
    write(outputstream, TYPE_ID_BOOL)
-   writeInt32(outputstream, 0)
+   write_int32(outputstream, 0)
    write(outputstream, b)
 end
 
-function writeElement(outputstream, str::String)
+function write_element(outputstream, str::String)
    write(outputstream, TYPE_ID_STRING)
-   writeInt32(outputstream, 0)
-   writeString(outputstream, str)
+   write_int32(outputstream, 0)
+   write_string(outputstream, str)
 end
 
-function writeElement(outputstream, c::Complex)
+function write_element(outputstream, c::Complex)
    write(outputstream, TYPE_ID_COMPLEX)
-   writeInt32(outputstream, 0)
+   write_int32(outputstream, 0)
    write(outputstream, Float64(real(c)))
    write(outputstream, Float64(imag(c)))
 end
 
-function writeElement(outputstream, u::UInt8)
+function write_element(outputstream, u::UInt8)
    write(outputstream, TYPE_ID_RAW)
-   writeInt32(outputstream, 0)
+   write_int32(outputstream, 0)
    write(outputstream, u)
 end
 
-function writeElement(outputstream, n::Nothing)
+function write_element(outputstream, n::Nothing)
    write(outputstream, TYPE_ID_NOTHING)
 end
 
 
 function writeExpression(outputstream, str::AbstractString)
    write(outputstream, TYPE_ID_EXPRESSION)
-   writeString(outputstream, str)
+   write_string(outputstream, str)
 end
 
 
@@ -196,20 +196,20 @@ function writeList(outputstream, arr::AbstractArray)
 end
 
 function writeList(outputstream, ellist::ElementList)
-   writeInt32(outputstream, length(ellist.positionalelements))
+   write_int32(outputstream, length(ellist.positionalelements))
    for el in ellist.positionalelements
-      writeElement(outputstream, el)
+      write_element(outputstream, el)
    end
 
-   writeInt32(outputstream, length(ellist.namedelements))
+   write_int32(outputstream, length(ellist.namedelements))
    for name in ellist.names # use the order of the names here
-      writeString(outputstream, string(name))
-      writeElement(outputstream, ellist.namedelements[name])
+      write_string(outputstream, string(name))
+      write_element(outputstream, ellist.namedelements[name])
    end
 
-   writeInt32(outputstream, length(ellist.attributes))
+   write_int32(outputstream, length(ellist.attributes))
    for (key, value) in ellist.attributes
-      writeString(outputstream, key)
-      writeElement(outputstream, value)
+      write_string(outputstream, key)
+      write_element(outputstream, value)
    end
 end

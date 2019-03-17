@@ -60,7 +60,7 @@ function serve(port::Int)
 end
 
 """ Lists the content of a package for import in R"""
-function pkgContentList(pkgname::AbstractString; all::Bool = false)
+function moduleinfo(pkgname::AbstractString; all::Bool = false)
    themodule = RConnector.maineval(pkgname)::Module
 
    function symbolisa(sym::Symbol, type)
