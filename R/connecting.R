@@ -13,8 +13,14 @@ juliaConnection <- function() {
 
    for (port in JULIA_PORTS) {
 
+      # workaround for https://github.com/rstudio/rstudio/issues/2446
+      stdoutfile = tempfile('stdout'); stderrfile = tempfile('stderr')
+      on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
+
       # start Julia server in background
-      system2(juliaexe, c(mainJuliaFile, port), wait = FALSE)
+      system2(juliaexe, c(mainJuliaFile, port), wait = FALSE,
+              stdout = stdoutfile, stderr = stderrfile)
+
 
       # Give Julia server a head start before connecting.
       # The head start increases with the number of tries,
@@ -43,7 +49,7 @@ stopJulia <- function() {
       tryCatch({
          writeBin(BYEBYE, pkgLocal$con)
          close(pkgLocal$con)
-      })
+      }, error = function(e) {})
       pkgLocal$con <- NULL
    }
 }
