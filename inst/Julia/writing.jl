@@ -1,9 +1,9 @@
-function write_answer(outputstream, result)
+function write_message(outputstream, result)
    write(outputstream, RESULT_INDICATOR)
    write_element(outputstream, result)
 end
 
-function write_answer(outputstream, fail::Fail)
+function write_message(outputstream, fail::Fail)
    write(outputstream, FAIL_INDICATOR)
    write_string(outputstream, fail.message)
 end
@@ -97,7 +97,7 @@ end
 
 function write_element(outputstream, ellist::ElementList)
    write(outputstream, TYPE_ID_LIST)
-   writeList(outputstream, ellist)
+   write_list(outputstream, ellist)
 end
 
 function write_element(outputstream, obj::Symbol)
@@ -121,19 +121,19 @@ function write_element(outputstream, obj::Module)
 end
 
 function write_element(outputstream, d::T) where {T2, T <: Type{T2}}
-   writeExpression(outputstream, string(d))
+   write_expression(outputstream, string(d))
 end
 
 function write_element(outputstream, obj::T) where T
    if isstructtype(T)
       names = fieldnames(T)
       if isempty(names) # type without members
-         writeExpression(outputstream, string(T) * "()")
+         write_expression(outputstream, string(T) * "()")
       else
          write(outputstream, TYPE_ID_LIST)
          fieldvalues = map(name -> getfield(obj, name), names)
          attributes = Dict{String, Any}("JLTYPE" => string(T))
-         writeList(outputstream, ElementList(
+         write_list(outputstream, ElementList(
                Vector(), collect(names),
                Dict{Symbol, Any}(zip(names, fieldvalues)),
                attributes))
@@ -185,17 +185,17 @@ function write_element(outputstream, n::Nothing)
 end
 
 
-function writeExpression(outputstream, str::AbstractString)
+function write_expression(outputstream, str::AbstractString)
    write(outputstream, TYPE_ID_EXPRESSION)
    write_string(outputstream, str)
 end
 
 
-function writeList(outputstream, arr::AbstractArray)
-   writeList(outputstream, ElementList(vec(arr)))
+function write_list(outputstream, arr::AbstractArray)
+   write_list(outputstream, ElementList(vec(arr)))
 end
 
-function writeList(outputstream, ellist::ElementList)
+function write_list(outputstream, ellist::ElementList)
    write_int32(outputstream, length(ellist.positionalelements))
    for el in ellist.positionalelements
       write_element(outputstream, el)

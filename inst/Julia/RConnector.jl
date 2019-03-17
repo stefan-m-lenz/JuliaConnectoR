@@ -55,7 +55,7 @@ function serve(port::Int)
          result = Fail("Parsing failed. Reason: " * string(fails))
       end
 
-      write_answer(sock, result)
+      write_message(sock, result)
    end
 end
 
