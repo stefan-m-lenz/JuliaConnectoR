@@ -4,10 +4,12 @@ using Sockets
 
 const TYPE_ID_NOTHING = 0x00
 const TYPE_ID_FLOAT64 = 0x01
-const TYPE_ID_INT = 0x02
-const TYPE_ID_BOOL = 0x03
-const TYPE_ID_STRING = 0x04
-const TYPE_ID_LIST = 0x05
+const TYPE_ID_COMPLEX = 0x02
+const TYPE_ID_RAW = 0x03
+const TYPE_ID_INT = 0x04
+const TYPE_ID_BOOL = 0x05
+const TYPE_ID_STRING = 0x06
+const TYPE_ID_LIST = 0x07
 const TYPE_ID_EXPRESSION = 0xee
 const TYPE_ID_CALLBACK = 0xcb
 

@@ -3,10 +3,12 @@ JULIA_PORTS <- 11980:11989
 # Constants
 TYPE_ID_NULL <- as.raw(0x00)
 TYPE_ID_DOUBLE <- as.raw(0x01)
-TYPE_ID_INTEGER <- as.raw(0x02)
-TYPE_ID_LOGICAL <- as.raw(0x03)
-TYPE_ID_STRING <- as.raw(0x04)
-TYPE_ID_LIST <- as.raw(0x05)
+TYPE_ID_COMPLEX <- as.raw(0x02)
+TYPE_ID_RAW <- as.raw(0x03)
+TYPE_ID_INTEGER <- as.raw(0x04)
+TYPE_ID_LOGICAL <- as.raw(0x05)
+TYPE_ID_STRING <- as.raw(0x06)
+TYPE_ID_LIST <- as.raw(0x07)
 TYPE_ID_CALLBACK <- as.raw(0xcb)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
 
@@ -20,6 +22,8 @@ LOAD_MODE_IMPORT <- 1L
 
 TYPE_IDS <- list(
    "double" = TYPE_ID_DOUBLE,
+   "complex" = TYPE_ID_COMPLEX,
+   "raw" = TYPE_ID_RAW,
    "integer" = TYPE_ID_INTEGER,
    "logical" = TYPE_ID_LOGICAL,
    "character" = TYPE_ID_STRING,

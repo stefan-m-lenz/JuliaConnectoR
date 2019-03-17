@@ -46,6 +46,13 @@ juliaImport("StatsBase")
 StatsBase.mean_and_var(c(1,2,3))
 StatsBase.renyientropy(rnorm(100), 1)
 
+# more exotic data types
+juliaImport("LinearAlgebra", alias = "jla")
+jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
+          matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
+jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
+juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
 juliaCall("thisisnotarealfunction", 100, 4)

@@ -54,10 +54,14 @@ writeElement <- function(elem) {
          warning(paste0("Could not coerce type of element ", element, ". Writing NULL."))
       }
 
-      if (typeId <= TYPE_ID_INTEGER) {
+      if (typeId <= TYPE_ID_RAW) { # clearly defined number of bytes
          writeBin(typeId, pkgLocal$con)
          writeInt(dimensions(elem))
          writeBin(as.vector(elem), pkgLocal$con)
+      } else if (typeId == TYPE_ID_INTEGER) {
+         writeBin(TYPE_ID_INTEGER, pkgLocal$con)
+         writeInt(dimensions(elem))
+         writeInt(elem)
       } else if (typeId == TYPE_ID_LOGICAL) {
          writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
          writeInt(dimensions(elem))

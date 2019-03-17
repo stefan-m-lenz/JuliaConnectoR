@@ -36,6 +36,10 @@ end
 function emptyfun(args...; kwargs...)
 end
 
+function read_complexs(inputstream, n::Int)
+   doublepairs = reinterpret(Float64, read(inputstream, 16*n))
+   map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
+end
 
 function read_float64s(inputstream, n::Int)
    reinterpret(Float64, read(inputstream, 8*n))
@@ -110,6 +114,10 @@ function read_element(inputstream)
          ret = read_bools(inputstream, nelements)
       elseif typeid == TYPE_ID_STRING
          ret = read_strings(inputstream, nelements)
+      elseif typeid == TYPE_ID_COMPLEX
+         ret = read_complexs(inputstream, nelements)
+      elseif typeid == TYPE_ID_RAW
+         ret = read(inputstream, nelements)
       else
          return Fail("Invalid type id $typeid of element")
       end

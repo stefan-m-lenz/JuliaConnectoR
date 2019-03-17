@@ -10,10 +10,12 @@
     named_element -> string element
     element -> '0x00'
             | '0x01' dimensions {double}
-            | '0x02' dimensions {integer}
-            | '0x03' dimensions {boolean}
-            | '0x04' dimensions {string}
-            | '0x05' list
+            | '0x02' dimensions {complex}
+            | '0x03' dimensions {raw}
+            | '0x04' dimensions {integer}
+            | '0x05' dimensions {boolean}
+            | '0x06' dimensions {string}
+            | '0x07' list
             | '0xcb' callback
             | '0xee' expression
     callback -> int32

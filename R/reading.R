@@ -68,6 +68,10 @@ readElement <- function() {
          ret <- readLogical(nElements)
       } else if (typeId == TYPE_ID_STRING) {
          ret <- readStrings(nElements)
+      } else if (typeId == TYPE_ID_COMPLEX) {
+         ret <- readBin(pkgLocal$con, "complex", nElements)
+      } else if (typeId == TYPE_ID_RAW) {
+         ret <- readBin(pkgLocal$con, "raw", nElements)
       } else {
          stopJulia()
          stop(paste("Invalid type ID", typeId))

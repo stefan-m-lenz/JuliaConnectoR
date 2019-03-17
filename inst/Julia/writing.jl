@@ -53,8 +53,25 @@ function writeElement(outputstream, arr::AbstractArray{<:Number})
    end
 end
 
+function writeElement(outputstream, arr::AbstractArray{<:Complex})
+   write(outputstream, TYPE_ID_COMPLEX)
+   writeDimensions(outputstream, arr)
+   for d in arr
+      write(outputstream, Float64(real(d)))
+      write(outputstream, Float64(imag(d)))
+   end
+end
+
 function writeElement(outputstream, arr::AbstractArray{Bool})
    write(outputstream, TYPE_ID_BOOL)
+   writeDimensions(outputstream, arr)
+   for d in arr
+      write(outputstream, d)
+   end
+end
+
+function writeElement(outputstream, arr::AbstractArray{UInt8})
+   write(outputstream, TYPE_ID_RAW)
    writeDimensions(outputstream, arr)
    for d in arr
       write(outputstream, d)
@@ -148,6 +165,19 @@ function writeElement(outputstream, str::String)
    write(outputstream, TYPE_ID_STRING)
    writeInt32(outputstream, 0)
    writeString(outputstream, str)
+end
+
+function writeElement(outputstream, c::Complex)
+   write(outputstream, TYPE_ID_COMPLEX)
+   writeInt32(outputstream, 0)
+   write(outputstream, Float64(real(c)))
+   write(outputstream, Float64(imag(c)))
+end
+
+function writeElement(outputstream, u::UInt8)
+   write(outputstream, TYPE_ID_RAW)
+   writeInt32(outputstream, 0)
+   write(outputstream, u)
 end
 
 function writeElement(outputstream, n::Nothing)
