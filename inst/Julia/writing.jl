@@ -90,9 +90,13 @@ function write_element(outputstream, f::Function)
    write_int32(outputstream, 0)
 end
 
-# TODO rewrite: cannot be given back to julia
 function write_element(outputstream, t::T) where T <: Union{Tuple, Pair}
-   write_element(outputstream, collect(t))
+   write(outputstream, TYPE_ID_LIST)
+   attributes = Dict{String, Any}("JLTYPE" => string(T))
+   write_list(outputstream, ElementList(
+         Vector{Any}(collect(t)), 
+         Vector{Symbol}(), Dict{Symbol, Any}(),
+         attributes))
 end
 
 function write_element(outputstream, ellist::ElementList)
@@ -153,6 +157,16 @@ function write_element(outputstream, i::Int32)
    write(outputstream, TYPE_ID_INT)
    write_int32(outputstream, 0)
    write_int32(outputstream, i)
+end
+
+function write_element(outputstream, i::Int64)
+   if typemin(Int32) <= i <= typemax(Int32)
+      write(outputstream, TYPE_ID_INT)
+      write_int32(outputstream, 0)
+      write(outputstream, convert(Int32, i))
+   else
+      write_element(outputstream, Float64(i))
+   end
 end
 
 function write_element(outputstream, b::Bool)

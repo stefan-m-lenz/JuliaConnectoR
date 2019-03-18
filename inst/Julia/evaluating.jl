@@ -53,8 +53,13 @@ function evaluate!(list::ElementList)
             return Base.invokelatest(constructor,
                   [list.namedelements[name] for name in list.names]...)
          else
-            # array type
-            return Base.invokelatest(constructor, collect(list.positionalelements))
+            if constructor <: Union{Pair, Tuple}
+               return Base.invokelatest(constructor, list.positionalelements...)
+            else
+               # array type
+               return Base.invokelatest(constructor, 
+                     collect(list.positionalelements))
+            end
          end
       catch ex
          return Fail("Construction of type $jltype failed. Original error: $ex")
