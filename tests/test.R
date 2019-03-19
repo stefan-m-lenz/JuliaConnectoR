@@ -25,6 +25,24 @@ dbm2
 logpartitionfunction(dbm2)
 aislogimpweights(dbm2, nparticles = 10L)
 
+# monitoring
+rbm <- fitdbm(x, epochs = 20L,
+               monitoring = function(rbm, epoch) {print(epoch)})
+
+
+# call back again!
+# (Abusing environments for call by reference)
+monitor <- new.env(parent = emptyenv())
+monitor$loglik <- c()
+rbm <- fitrbm(x, epochs = 100L,
+              monitoring = function(rbm, epoch) {
+                 monitor$loglik <- c(monitor$loglik, loglikelihood(rbm, x))
+            })
+monitor$loglik
+plot(1:100, monitor$loglik, "l")
+
+# TODO nested monitoring in TrainLayers of fitdbm
+
 particles <- initparticles(dbm2, 20L)
 particles <- gibbssample(particles, dbm2, 100L)
 particles
@@ -39,7 +57,8 @@ juliaImport("BoltzmannMachines", alias = "BMs")
 x <- BMs.barsandstripes(100L, 4L)
 rbm2 <- BMs.fitrbm(x, epochs = 5L)
 BMs.samples(rbm2, 5L)
-BMs.samples(rbm2, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
+BMs.samples(rbm2, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
+
 
 # Other package
 juliaImport("StatsBase")

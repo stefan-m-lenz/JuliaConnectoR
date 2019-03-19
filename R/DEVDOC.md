@@ -1,10 +1,10 @@
 # Serialization Grammar
 
-    message -> '0x01' functioncall
+    message -> '0x01' call
         | '0x00' element
         | '0xff' fail
         | byebye
-    functioncall -> string list
+    call -> string list
     list    -> int32 {element} int32 {named_element} attributes
     attributes -> int32 {named_element}
     named_element -> string element

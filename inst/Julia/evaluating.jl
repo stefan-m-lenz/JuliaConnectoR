@@ -1,3 +1,19 @@
+function collectfails(call::Call)
+   vcat(call.parsingfails, collectfails(call.args))
+end
+
+function collectfails(ellist::ElementList)
+   ellist.parsingfails
+end
+
+function collectfails(el)
+   Fail[]
+end
+
+function collectfails(fail::Fail)
+   fail
+end
+
 """
 Converts a vector to a vector of the most specific type that all
 elements share as common supertype.
@@ -21,6 +37,13 @@ end
 
 
 function evaluate!(call::Call)
+   # check parsing first
+   fails = collectfails(call)
+   if !isempty(fails)
+      return Fail("Parsing failed. Reason: " * string(fails))
+   end
+
+   # evaluate arguments
    evaluate!(call.args)
 
    # the actual function call
@@ -57,7 +80,7 @@ function evaluate!(list::ElementList)
                return Base.invokelatest(constructor, list.positionalelements...)
             else
                # array type
-               return Base.invokelatest(constructor, 
+               return Base.invokelatest(constructor,
                      collect(list.positionalelements))
             end
          end

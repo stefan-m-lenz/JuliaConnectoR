@@ -47,17 +47,11 @@ function serve(port::Int)
                "Original error: $ex")
       end
 
-      fails = collectfails(call)
-      if isempty(fails)
-         # evaluate function only if the parsing was totally successful
-         result = evaluate!(call)
-      else
-         result = Fail("Parsing failed. Reason: " * string(fails))
-      end
-
+      result = evaluate!(call)
       write_message(sock, result)
    end
 end
+
 
 """ Lists the content of a package for import in R"""
 function moduleinfo(pkgname::AbstractString; all::Bool = false)
@@ -101,20 +95,45 @@ function moduleinfo(pkgname::AbstractString; all::Bool = false)
       internalfunctions = map(string, filter(isafunction, internalsyms))
       internaldatatypes = map(string, filter(isadatatype, internalsyms))
       internalfunctions = bangfuns_removed(internalfunctions)
-      return ElementList(Vector{Any}(),
-            [:exportedFunctions, :exportedDataTypes,
-                  :internalFunctions, :internalDataTypes],
-            Dict{Symbol, Any}(
+      return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
                   :exportedDataTypes => exporteddatatypes,
                   :internalFunctions => internalfunctions,
                   :internalDataTypes => internaldatatypes))
    else
-      return ElementList(Vector{Any}(),
-            [:exportedFunctions, :exportedDataTypes],
-            Dict{Symbol, Any}(
+      return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
                   :exportedDataTypes => exporteddatatypes))
+   end
+end
+
+
+function callbackfun(callbackid::Int, io)
+   (args...; kwargs...) -> begin
+      callbackargs = ElementList(collect(args), Dict{Symbol, Any}(kwargs))
+      write_callback_message(io, callbackid, callbackargs)
+
+      # read, parse and return answer
+      while true
+         firstbyte = read(io, 1)[1]
+         if firstbyte == RESULT_INDICATOR
+            answer = read_element(io)
+            fails = collectfails(answer)
+            if isempty(fails)
+               return evaluate!(answer)
+            else
+               return Fail("Parsing failed. Reason: " * string(fails))
+            end
+         elseif firstbyte == CALL_INDICATOR
+            call = read_call(io)
+            result = evaluate!(call)
+            write_message(io, result)
+         elseif firstbyte == FAIL_INDICATOR
+            return Fail(read_string(io))
+         else
+            error("Unexpected leading byte: " * string(firstbyte))
+         end
+      end
    end
 end
 

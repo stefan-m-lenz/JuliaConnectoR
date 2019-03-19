@@ -67,13 +67,10 @@ juliaCall <- function(name, ...) {
    jlargs <- list(...)
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
-   writeList(jlargs)
-   messageType <- c()
-   while (length(messageType) == 0) {
-      messageType <- readBin(pkgLocal$con, "raw", 1)
-   }
+   callbacks <- writeList(jlargs)
+   messageType <- handleCallbacks(callbacks)
    if (messageType == RESULT_INDICATOR) {
-      return(readElement())
+      return(readElement(callbacks))
    } else if (messageType == FAIL_INDICATOR) {
       stop(readString())
    } else {
@@ -87,6 +84,31 @@ juliaCall <- function(name, ...) {
 juliaEval <- function(str) {
    ensureJuliaConnection()
    juliaCall("RConnector.maineval", str)
+}
+
+
+handleCallbacks <- function(callbacks) {
+   repeat {
+      messageType <- readMessageType()
+      if (messageType == CALL_INDICATOR) {
+         call <- readCall()
+         callbackIdx <- strtoi(call$name, base = 10)
+         callbackfun <- callbacks[[callbackIdx]]
+         tryCatch(answerCallback(callbackfun, call$args),
+                  error = function(e) {
+                     warning(e)
+                     writeFailMessage(as.character(e))
+                  })
+      } else {
+         return(messageType)
+      }
+   }
+}
+
+
+answerCallback <- function(fun, args) {
+   ret <- do.call(fun, args)
+   writeResultMessage(ret)
 }
 
 

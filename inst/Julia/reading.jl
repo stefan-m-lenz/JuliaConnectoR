@@ -17,6 +17,13 @@ function ElementList(unnamed::Vector{Any} = Vector{Any}(),
    ElementList(unnamed, names, named, attributes, Vector{Fail}())
 end
 
+function ElementList(unnamed::Vector{Any},
+      named::Dict{Symbol, Any} = Dict{Symbol, Any}(),
+      attributes = Dict{String, Any}())
+
+   ElementList(unnamed, collect(keys(named)), named, attributes, Vector{Fail}())
+end
+
 
 struct Call
    fun::Union{Function, DataType, Module}
@@ -100,7 +107,7 @@ function read_element(inputstream)
       if callbackid == 0
          return emptyfun
       else
-         return Fail("TODO implement callback functions")
+         return callbackfun(callbackid, inputstream)
       end
    else
       dimensions = read_dimensions(inputstream)
@@ -140,15 +147,6 @@ function read_expression(inputstream)
    catch ex
       return Fail("Evaluation of \"$exprstr\" failed. Original error $ex")
    end
-end
-
-
-function collectfails(call::Call)
-   vcat(call.parsingfails, collectfails(call.args))
-end
-
-function collectfails(ellist::ElementList)
-   ellist.parsingfails
 end
 
 

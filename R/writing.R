@@ -31,18 +31,23 @@ dimensions <- function(x) {
 }
 
 
-writeElement <- function(elem) {
+writeElement <- function(elem, callbacks = list()) {
 
    if (is.null(elem)) {
       writeBin(TYPE_ID_NULL, pkgLocal$con)
-      return()
+      return(callbacks)
    }
 
    elemType <- typeof(elem)
    if (elemType == "closure") {
       if (is.null(attr(elem, "JLDATATYPE"))) {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
-         writeInt(0L) # TODO really support callbacks
+         if (identical(elem, emptyfun)) {
+             writeInt(0L)
+         } else {
+            callbacks <- c(callbacks, elem)
+            writeInt(length(callbacks))
+         }
       } else {
          writeExpression(attr(elem, "JLDATATYPE"))
       }
@@ -80,6 +85,8 @@ writeElement <- function(elem) {
          writeList(elem)
       }
    }
+
+   return(callbacks)
 }
 
 writeExpression <- function(str) {
@@ -88,14 +95,14 @@ writeExpression <- function(str) {
 }
 
 
-writeList <- function(theList) {
+writeList <- function(theList, callbacks = list()) {
    theNames <- names(theList)
 
    npositional <- Position(function(name) {name != ""}, theNames,
                            nomatch = length(theList) + 1) - 1
    writeInt(npositional)
    for (i in seq_len(npositional)) {
-      writeElement(theList[[i]])
+      callbacks <- c(callbacks, writeElement(theList[[i]], callbacks))
    }
 
    nnamed <- length(theList) - npositional
@@ -103,7 +110,7 @@ writeList <- function(theList) {
    if (nnamed > 0) {
       for (i in (npositional + 1):length(theList)) {
          writeString(theNames[i])
-         writeElement(theList[[i]])
+         callbacks <- c(callbacks, writeElement(theList[[i]], callbacks))
       }
    }
 
@@ -116,6 +123,18 @@ writeList <- function(theList) {
       writeString(attributeNames[i])
       writeElement(listAttributes[[i]])
    }
+
+   return(callbacks)
 }
 
+
+writeFailMessage <- function(msgStr) {
+   writeBin(FAIL_INDICATOR, pkgLocal$con)
+   writeString(msgStr)
+}
+
+writeResultMessage <- function(result) {
+   writeBin(RESULT_INDICATOR, pkgLocal$con)
+   writeElement(result)
+}
 

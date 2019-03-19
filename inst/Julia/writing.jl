@@ -9,6 +9,13 @@ function write_message(outputstream, fail::Fail)
 end
 
 
+function write_callback_message(outputstream, callbackid::Int, args::ElementList)
+   write(outputstream, CALL_INDICATOR)
+   write_string(outputstream, string(callbackid))
+   write_list(outputstream, args)
+end
+
+
 function write_int32(outputstream, i::Int)
    write(outputstream, Int32(i))
 end
@@ -94,7 +101,7 @@ function write_element(outputstream, t::T) where T <: Union{Tuple, Pair}
    write(outputstream, TYPE_ID_LIST)
    attributes = Dict{String, Any}("JLTYPE" => string(T))
    write_list(outputstream, ElementList(
-         Vector{Any}(collect(t)), 
+         Vector{Any}(collect(t)),
          Vector{Symbol}(), Dict{Symbol, Any}(),
          attributes))
 end
