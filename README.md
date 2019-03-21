@@ -16,6 +16,6 @@ Sine Julia is more type-sensitive than R, it is important to know the translatio
 | `vector` of length 1 of type (`typeof`)<br />&bull; `integer`<br />&bull; `double` <br />&bull; `logical` <br />&bull; `character` <br />&bull; `complex` <br />&bull; `raw`| <br />&bull; `Int` <br />&bull; `Float64` <br />&bull; `Bool` <br />&bull; `String` <br />&bull; `Complex{Float64}`<br />&bull; `UInt8` |
 | `vector` of length > 1 (N = 1)  or <br /> `array` with N dimensions (`dim`) of type <br />&bull; `integer`<br />&bull; `double` <br />&bull;  `logical` <br />&bull; `character` <br />&bull; `complex` <br />&bull; `raw`| <br /><br />&bull; `Array{Int, N}` <br />&bull; `Array{Float64, N}` <br />&bull; `Array{Bool, N}`<br />&bull; `Array{String, N}` <br />&bull; `Array{Complex{Float64}, N}`<br />&bull; `Array{UInt8, N}` |
 | R function (type `closure`) | Julia function that will call the given R function |
-| `list` with attribute `"JLDATATYPE"` | Julia object of this data type. The constructor is called with the elements of the list in the given order. |
+| `list` with attribute `"JLDATATYPE"` | Julia object of the data type specified in the attribute. The constructor is called with the elements of the list in the given order. |
 | `list` without attribute `"JLDATATYPE"` | `Vector{T}` where `T` is the most specific supertype of the list elements after translation to Julia |
 | Julia code as one-element character vector with attribute `"JLEXPR"` | Evaluation of the expression |

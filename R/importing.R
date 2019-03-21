@@ -90,13 +90,50 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 }
 
 
+#' Load and import a Julia package via \code{using} statement
+#'
+#' The specified package/module is loaded via \code{using} in Julia
+#' and its functions are attached to the R search path.
+#' This way, all functions (including constructors) exported by the
+#' package are available in R under their name and under the name
+#' prefixed with the module name plus "\code{.}", like in Julia.
+#'
+#' @param pkgName name of the package/module that is to be used
+#' @param alias alternative prefix for the package
+#' (useful e.g. to avoid naming collisions or for brevity)
+#' @param importInternal \code{logical} value, default \code{FALSE}.
+#' Specifies whether unexported functions shall be imported.
+#'
+#' @return \code{NULL} on success
+#' @export
+#'
+#' @examples
+#' juliaUsing("UUIDs")
+#' juliaCall("string", uuid4())
 juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
    attachJuliaPackage(pkgName, alias,
                       mode = LOAD_MODE_USING,
                       importInternal = importInternal)
 }
 
-
+#' Load and import a Julia package via \code{import} statement
+#'
+#' The specified package/module is loaded via \code{import} in Julia
+#' and its functions are attached to the R search path.
+#' This way, all functions (including constructors) exported by the
+#' package are available in R under their name
+#' prefixed with the module name plus "\code{.}", like in Julia.
+#'
+#' @param pkgName name of the package/module that is to be used
+#' @param alias alternative prefix for the package
+#' (useful e.g. to avoid naming collisions or for brevity)
+#' @param importInternal \code{logical} value, default \code{FALSE}.
+#' Specifies whether unexported functions shall be imported.
+#'
+#' @return \code{NULL} on success
+#' @export
+#'
+#' @examples
 juliaImport <- function(pkgName, alias = pkgName, importInternal = FALSE) {
    attachJuliaPackage(pkgName, alias,
                       mode = LOAD_MODE_IMPORT,

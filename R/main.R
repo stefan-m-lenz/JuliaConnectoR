@@ -60,7 +60,14 @@ finalize <- function(env) {
    stopJulia()
 }
 
-
+#' Calls a Julia function.
+#'
+#' @param name name of the Julia function
+#' @param ... parameters handed to the function. Will be translated
+#' to Julia data structures
+#'
+#' @return the value returned from Julia,
+#' translated to an R data structure
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
@@ -81,9 +88,16 @@ juliaCall <- function(name, ...) {
 }
 
 
-juliaEval <- function(str) {
+#' Evaluates a Julia expression and translates the result to R.
+#'
+#' @param expr Julia expression as a one-element character vector
+#'
+#' @return the value of the expression, translated to R
+#'
+#' @examples juliaEval("1 + 2")
+juliaEval <- function(expr) {
    ensureJuliaConnection()
-   juliaCall("RConnector.maineval", str)
+   juliaCall("RConnector.maineval", expr)
 }
 
 
