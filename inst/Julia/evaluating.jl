@@ -104,3 +104,12 @@ function maineval(str::String)
    Main.eval(Meta.parse(str))
 end
 
+
+function mainevalcmd(str::String)
+   ret = maineval(str)
+   if str[end] == ';'
+      return nothing
+   else
+      return ret
+   end
+end

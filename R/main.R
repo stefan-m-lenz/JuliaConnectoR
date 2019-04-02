@@ -94,10 +94,14 @@ juliaCall <- function(name, ...) {
 #'
 #' @return the value of the expression, translated to R
 #'
-#' @examples juliaEval("1 + 2")
+#' @examples
+#' juliaEval("1 + 2")
+#' juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
+#' juliaEval('using Random; Random.seed!(5);')
+#'
 juliaEval <- function(expr) {
    ensureJuliaConnection()
-   juliaCall("RConnector.maineval", expr)
+   juliaCall("RConnector.mainevalcmd", expr)
 }
 
 

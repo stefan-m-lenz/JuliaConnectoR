@@ -38,12 +38,6 @@ function write_dimensions(outputstream, arr::AbstractArray)
 end
 
 
-function write_element(outputstream, arr::AbstractArray{Int32})
-   write(outputstream, TYPE_ID_INT)
-   write_dimensions(outputstream, arr)
-   write_int32s(outputstream, arr)
-end
-
 function write_element(outputstream, arr::AbstractArray{String})
    write(outputstream, TYPE_ID_STRING)
    write_dimensions(outputstream, arr)

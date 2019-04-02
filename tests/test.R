@@ -7,6 +7,8 @@ juliaCall("string", list())
 juliaCall("println", "hello world")
 juliaCall("string", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
+juliaEval("using Random; Random.seed!(5)")
+juliaEval("Random.seed!(5);") # no output
 
 # Test BoltzmannMachines package
 juliaUsing("BoltzmannMachines", importInternal = TRUE)
