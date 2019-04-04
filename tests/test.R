@@ -28,8 +28,8 @@ logpartitionfunction(dbm2)
 aislogimpweights(dbm2, nparticles = 10L)
 
 # monitoring
-rbm <- fitdbm(x, epochs = 20L,
-               monitoring = function(rbm, epoch) {print(epoch)})
+rbm <- fitrbm(x, epochs = 20L,
+              monitoring = function(rbm, epoch) {print(epoch)})
 
 
 # call back again!
@@ -43,7 +43,29 @@ rbm <- fitrbm(x, epochs = 100L,
 monitor$loglik
 plot(1:100, monitor$loglik, "l")
 
-# TODO nested monitoring in TrainLayers of fitdbm
+
+monitor <- new.env(parent = emptyenv())
+mdbm <- fitdbm(x, epochs = 50L,
+               pretraining = list(
+                  TrainLayer(nhidden = 4L, epochs = 40L,
+                             monitoring = function(rbm, epoch) {
+                                print("Epoch")
+                                print(epoch)
+                                monitor$layer1 <- c(monitor$layer1,
+                                                    reconstructionerror(rbm, x))
+                             }),
+                  TrainLayer(nhidden = 3L, epochs = 30L,
+                             monitoring = function(rbm, epoch) {
+                                monitor$layer2 <- c(monitor$layer2,
+                                                    reconstructionerror(rbm, x))
+                             })),
+               monitoring = function(dbm, epoch) {
+                  monitor$logproblowerbound <- c(monitor$logproblowerbound,
+                                                 logproblowerbound(dbm, x))
+               })
+
+plot(1:100, monitor$layer1, "l")
+
 
 particles <- initparticles(dbm2, 20L)
 particles <- gibbssample(particles, dbm2, 100L)

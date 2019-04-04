@@ -46,6 +46,7 @@ writeElement <- function(elem, callbacks = list()) {
              writeInt(0L)
          } else {
             callbacks <- c(callbacks, elem)
+            print(paste("write callback ", length(callbacks)))
             writeInt(length(callbacks))
          }
       } else {

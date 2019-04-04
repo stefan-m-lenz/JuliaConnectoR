@@ -28,11 +28,13 @@ function serve(port::Int)
    println("Julia is listening on port $port.")
    while isopen(sock)
       call = Call()
+      callbacks = Vector{Function}()
+
       try
          firstbyte = read(sock, 1)
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
-            call = read_call(sock)
+            call = read_call(sock, callbacks)
          else
             if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
                close(sock)
@@ -48,7 +50,7 @@ function serve(port::Int)
       end
 
       result = evaluate!(call)
-      write_message(sock, result)
+      write_message(sock, result, callbacks)
    end
 end
 
@@ -107,17 +109,35 @@ function moduleinfo(pkgname::AbstractString; all::Bool = false)
    end
 end
 
+struct CombinedIO
+   realio
+   debugio
+end
+
+import Base.write
+
+function write(co::CombinedIO, x)
+   write(co.debugio, x)
+   write(co.realio, x)
+end
+
 
 function callbackfun(callbackid::Int, io)
    (args...; kwargs...) -> begin
+   print("calling callbackfun")
       callbackargs = ElementList(collect(args), Dict{Symbol, Any}(kwargs))
-      write_callback_message(io, callbackid, callbackargs)
+      println("iam so here")
+      testoutputfile = open("test.txt", "w")
+      write_callback_message(CombinedIO(io, testoutputfile), callbackid, callbackargs)
+      close(testoutputfile)
+      print("i am here")
 
       # read, parse and return answer
       while true
          firstbyte = read(io, 1)[1]
          if firstbyte == RESULT_INDICATOR
-            answer = read_element(io)
+            callbacks = Vector{Function}()
+            answer = read_element(io, callbacks)
             fails = collectfails(answer)
             if isempty(fails)
                return evaluate!(answer)
@@ -125,9 +145,10 @@ function callbackfun(callbackid::Int, io)
                return Fail("Parsing failed. Reason: " * string(fails))
             end
          elseif firstbyte == CALL_INDICATOR
-            call = read_call(io)
+            callbacks = Vector{Function}()
+            call = read_call(io, callbacks)
             result = evaluate!(call)
-            write_message(io, result)
+            write_message(io, result, callbacks)
          elseif firstbyte == FAIL_INDICATOR
             return Fail(read_string(io))
          else
@@ -136,5 +157,7 @@ function callbackfun(callbackid::Int, io)
       end
    end
 end
+
+
 
 end

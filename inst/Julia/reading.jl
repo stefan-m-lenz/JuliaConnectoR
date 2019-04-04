@@ -93,11 +93,11 @@ function read_dimensions(inputstream)
 end
 
 
-function read_element(inputstream)
+function read_element(inputstream, callbacks::Vector{Function})
    typeid = read(inputstream, UInt8)
 
    if typeid == TYPE_ID_LIST
-      return read_list(inputstream)
+      return read_list(inputstream, callbacks)
    elseif typeid == TYPE_ID_NOTHING
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
@@ -107,7 +107,9 @@ function read_element(inputstream)
       if callbackid == 0
          return emptyfun
       else
-         return callbackfun(callbackid, inputstream)
+         callback = callbackfun(callbackid, inputstream)
+         push!(callbacks, callback)
+         return callback
       end
    else
       dimensions = read_dimensions(inputstream)
@@ -150,12 +152,12 @@ function read_expression(inputstream)
 end
 
 
-function read_list(inputstream)
+function read_list(inputstream, callbacks::Vector{Function})
 
    npositional = read_int(inputstream)
    positionalelements = Vector{Any}(undef, npositional)
    for i in 1:npositional
-      positionalelements[i] = read_element(inputstream)
+      positionalelements[i] = read_element(inputstream, callbacks)
    end
 
    fails = Vector{Fail}(
@@ -166,7 +168,7 @@ function read_list(inputstream)
    namedelements = Dict{Symbol, Any}()
    for i in 1:nnamed
       name = read_string(inputstream)
-      namedelement = read_element(inputstream)
+      namedelement = read_element(inputstream, callbacks)
       try
          sym = Symbol(name)
          namedelements[sym] = namedelement
@@ -181,7 +183,7 @@ function read_list(inputstream)
    attributes = Dict{String, Any}()
    for i in 1:nattributes
       name = read_string(inputstream)
-      attributes[name] = read_element(inputstream)
+      attributes[name] = read_element(inputstream, callbacks)
    end
 
    ElementList(positionalelements, names, namedelements, attributes, fails)
@@ -195,7 +197,7 @@ function findfield(name::AbstractString)
 end
 
 
-function read_call(inputstream)
+function read_call(inputstream, callbacks::Vector{Function})
    name = read_string(inputstream)
    fails = Vector{Fail}()
    fun = () -> nothing
@@ -204,6 +206,7 @@ function read_call(inputstream)
    catch ex
       push!(fails, Fail("Unable to identify function: $ex"))
    end
-   args = read_list(inputstream)
+   callbacks = Vector{Function}()
+   args = read_list(inputstream, callbacks)
    Call(fun, args, fails)
 end
