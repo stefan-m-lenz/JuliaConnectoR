@@ -121,15 +121,22 @@ function write(co::CombinedIO, x)
    write(co.realio, x)
 end
 
+struct HexOut
+
+end
+
+function write(h::HexOut, x)
+#   write(Base.stdout, convert(Vector{UInt8}, x))
+end
+
 
 function callbackfun(callbackid::Int, io)
    (args...; kwargs...) -> begin
    print("calling callbackfun")
       callbackargs = ElementList(collect(args), Dict{Symbol, Any}(kwargs))
       println("iam so here")
-      testoutputfile = open("test.txt", "w")
-      write_callback_message(CombinedIO(io, testoutputfile), callbackid, callbackargs)
-      close(testoutputfile)
+      testoutput = open("test.txt", "w")
+      write_callback_message(CombinedIO(io, testoutput), callbackid, callbackargs)
       print("i am here")
 
       # read, parse and return answer

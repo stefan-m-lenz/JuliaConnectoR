@@ -206,7 +206,6 @@ function read_call(inputstream, callbacks::Vector{Function})
    catch ex
       push!(fails, Fail("Unable to identify function: $ex"))
    end
-   callbacks = Vector{Function}()
    args = read_list(inputstream, callbacks)
    Call(fun, args, fails)
 end

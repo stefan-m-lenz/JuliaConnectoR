@@ -13,8 +13,10 @@ function write_callback_message(outputstream, callbackid::Int, args::ElementList
    print("writing callback message")
    write(outputstream, CALL_INDICATOR)
    write_string(outputstream, string(callbackid))
-   testio2 = open("bla2.txt")
-   write_list(Combinedio(testio2,outputstream), args)
+   println("writing callback id " .* string(callbackid))
+   println(args)
+   callbacks = Vector{Function}()
+   write_list(CombinedIO(outputstream,HexOut()), args, callbacks)
 end
 
 
@@ -29,7 +31,10 @@ function write_int32s(outputstream, intarr::AbstractArray{Int})
 end
 
 function write_string(outputstream, str::String)
+   println("writing string", str)
+   println("code units" .* string(ncodeunits(str)))
    write_int32(outputstream, ncodeunits(str))
+   println("actially writing string")
    write(outputstream, str)
 end
 
@@ -118,10 +123,11 @@ function write_element(outputstream, t::T, callbacks::Vector{Function}
 
    write(outputstream, TYPE_ID_LIST)
    attributes = Dict{String, Any}("JLTYPE" => string(T))
-   write_list(outputstream, ElementList(
+   ellist = ElementList(
          Vector{Any}(collect(t)),
          Vector{Symbol}(), Dict{Symbol, Any}(),
-         attributes))
+         attributes)
+   write_list(outputstream, ellist, callbacks)
 end
 
 function write_element(outputstream, ellist::ElementList,
@@ -248,20 +254,30 @@ function write_list(outputstream, arr::AbstractArray, callbacks::Vector{Function
 end
 
 function write_list(outputstream, ellist::ElementList, callbacks::Vector{Function})
+   print("writing list")
+   print(ellist)
+   print(length(ellist.positionalelements))
    write_int32(outputstream, length(ellist.positionalelements))
+   println("npositional written")
    for el in ellist.positionalelements
+      println("printing element")
+      println(el)
       write_element(outputstream, el, callbacks)
    end
 
+   println("write namedelement")
    write_int32(outputstream, length(ellist.namedelements))
    for name in ellist.names # use the order of the names here
       write_string(outputstream, string(name))
       write_element(outputstream, ellist.namedelements[name], callbacks)
    end
 
+   println("write attributes")
    write_int32(outputstream, length(ellist.attributes))
    for (key, value) in ellist.attributes
       write_string(outputstream, key)
       write_element(outputstream, value, callbacks)
    end
+
+   println("list written")
 end
