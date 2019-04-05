@@ -24,6 +24,23 @@ t <- juliaCall("testNestedFun2",
                list(juliaCall("TestStruct", function() {print("bla")}),
                     juliaCall("TestStruct", function() {print("blup")})))
 
+
+juliaEval('function testNestedFunArgs(ts::Vector{TestStruct}, args...) map(t -> t.f(args...), ts) end')
+t <- juliaCall("testNestedFunArgs",
+               list(juliaCall("TestStruct", function(x) {print(x)}),
+                    juliaCall("TestStruct", function(x, y) {print(x); return(c(5,6,7))})),
+               c(1, 2, 3))
+
+juliaEval('function testNestedAndUnnested(f::Function, ts::Vector{TestStruct}, args...)
+            testNestedFunArgs(ts, args...)
+            f(args...)
+          end')
+t <- juliaCall("testNestedAndUnnested",
+               function(x) {print("1"); print(x)},
+               list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
+                    juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
+               c(1, 2, 3))
+
 # Test BoltzmannMachines package
 # Install via
 # juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
@@ -66,13 +83,37 @@ rbm <- fitrbm(x, epochs = 100L,
 monitor$loglik
 plot(1:100, monitor$loglik, "l")
 
+monitor <- new.env(parent = emptyenv())
+
+# monitoring function wird nicht einmal ausgeführt!!!!!
+dbm <- fitdbm(x,
+              monitoring = function(dbm, epoch) {
+                 print("mesuring loglik")
+                 monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
+              },
+              epochs = 50L,
+              pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L,
+                                            monitoring = function(){print("blablBL")}),
+                                 TrainLayer(nhidden = 3L))
+              )
+monitor$loglik
+plot(1:50, monitor$loglik, "l")
+
 
 
 # TODO fix: hangs. Repeated call of nested function works ... what's wrong?
+# monitoring function wird genau einmal ausgeführt!!!!!
 t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
-           monitoring = function(rbm, epoch) {
-              print("Epoch")
-              print(epoch)})))
+                                             monitoring = function(rbm, epoch) {
+              print("Epoch");print(epoch)})))
+
+juliaEval("function simmonitoring(ts::Vector{TrainLayer}) for t in ts t.monitoring(3,4) end end")
+juliaCall("simmonitoring", list(TrainLayer(nhidden = 4L, epochs = 40L,
+                                      monitoring = function(rbm, epoch) {
+                                         print("Epoch");print(epoch)})))
+
+t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
+                                             monitoring = function(rbm, epoch) {c(1,2,3)})))
 
 monitor <- new.env(parent = emptyenv())
 mdbm <- fitdbm(x, epochs = 50L,
@@ -88,11 +129,12 @@ mdbm <- fitdbm(x, epochs = 50L,
                              monitoring = function(rbm, epoch) {
                                 monitor$layer2 <- c(monitor$layer2,
                                                     reconstructionerror(rbm, x))
-                             })),
-               monitoring = function(dbm, epoch) {
-                  monitor$logproblowerbound <- c(monitor$logproblowerbound,
-                                                 logproblowerbound(dbm, x))
-               })
+                             }))#,
+               #monitoring = function(dbm, epoch) {
+                #  monitor$logproblowerbound <- c(monitor$logproblowerbound,
+                                                # logproblowerbound(dbm, x))
+#               }
+)
 
 plot(1:100, monitor$layer1, "l")
 

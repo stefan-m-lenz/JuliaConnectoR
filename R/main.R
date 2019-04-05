@@ -130,7 +130,12 @@ handleCallbacks <- function(callbacks) {
 
 
 answerCallback <- function(fun, args) {
+   print("calling function with args")
+   print(args)
    ret <- do.call(fun, args)
+   print("function called, wrtigin result")
+   print(ret)
+
    writeResultMessage(ret)
 }
 

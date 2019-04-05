@@ -109,67 +109,51 @@ function moduleinfo(pkgname::AbstractString; all::Bool = false)
    end
 end
 
-struct CombinedIO
-   realio
-   debugio
-end
-
-import Base.write
-
-function write(co::CombinedIO, x)
-   write(co.debugio, x)
-   write(co.realio, x)
-end
-
-struct HexOut
-
-end
-
-function write(h::HexOut, x)
-#   write(Base.stdout, convert(Vector{UInt8}, x))
-end
-
 
 function callbackfun(callbackid::Int, io)
    (args...; kwargs...) -> begin
-      posargs = isempty(args) ? Vector{Any}() : collect(args)
+      posargs = isempty(args) ? Vector{Any}() : collect(Any, args)
       callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
       write_callback_message(io, callbackid, callbackargs)
 
+      println(args)
+      println("callbackfun with id calld")
+      println(callbackid)
       # read, parse and return answer
       while true
+         println("reading firstbyte")
          firstbyte = read(io, 1)[1]
+         println("firstbyte")
+         println(firstbyte)
          if firstbyte == RESULT_INDICATOR
+            println("result")
             callbacks = Vector{Function}()
             answer = read_element(io, callbacks)
+            println("read answer")
+            println(answer)
             fails = collectfails(answer)
             if isempty(fails)
-               return evaluate!(answer)
+               println("evaluate answer")
+               ret =  evaluate!(answer)
+               println("answer evaluated")
+               return ret
             else
                return Fail("Parsing failed. Reason: " * string(fails))
             end
          elseif firstbyte == CALL_INDICATOR
+            println("call")
             callbacks = Vector{Function}()
             call = read_call(io, callbacks)
             result = evaluate!(call)
             write_message(io, result, callbacks)
          elseif firstbyte == FAIL_INDICATOR
+            println("fail")
             return Fail(read_string(io))
          else
+            println("error")
             error("Unexpected leading byte: " * string(firstbyte))
          end
       end
-   end
-end
-
-
-struct TestStruct
-   f::Function
-end
-
-function testNestedFun(ts::Vector{TestStruct})
-   for t in ts
-      t.f()
    end
 end
 

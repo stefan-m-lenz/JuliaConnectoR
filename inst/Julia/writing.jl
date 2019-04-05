@@ -13,7 +13,7 @@ function write_callback_message(outputstream, callbackid::Int, args::ElementList
    write(outputstream, CALL_INDICATOR)
    write_string(outputstream, string(callbackid))
    callbacks = Vector{Function}()
-   write_list(CombinedIO(outputstream,HexOut()), args, callbacks)
+   write_list(outputstream, args, callbacks)
 end
 
 
