@@ -39,7 +39,7 @@ t <- juliaCall("testNestedAndUnnested",
                function(x) {print("1"); print(x)},
                list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
                     juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
-               c(1, 2, 3))
+               c(1, 2, 3)) # TODO try with list
 
 # Test BoltzmannMachines package
 # Install via
@@ -104,7 +104,7 @@ dbm <- fitdbm(x,
               },
               epochs = 50L,
               pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L,
-                                            monitoring = function(){print("blablBL")}),
+                                            monitoring = function(){print("blablBL")}), # TODO change input arguments
                                  TrainLayer(nhidden = 3L))
               )
 monitor$loglik
