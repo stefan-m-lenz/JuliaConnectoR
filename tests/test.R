@@ -83,6 +83,17 @@ rbm <- fitrbm(x, epochs = 100L,
 monitor$loglik
 plot(1:100, monitor$loglik, "l")
 
+
+monitor <- new.env(parent = emptyenv())
+dbm <- fitdbm(x, epochs = 50L,
+              pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L),
+                                 TrainLayer(nhidden = 3L)),
+              monitoring = function(dbm, epoch) {
+                 monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
+              }
+)
+monitor$loglik
+
 monitor <- new.env(parent = emptyenv())
 
 # monitoring function wird nicht einmal ausgeführt!!!!!
