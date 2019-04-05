@@ -39,7 +39,7 @@ t <- juliaCall("testNestedAndUnnested",
                function(x) {print("1"); print(x)},
                list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
                     juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
-               c(1, 2, 3)) # TODO try with list
+               c(1, 2, 3)) # TODO try with list as argument or with function with error
 
 # Test BoltzmannMachines package
 # Install via
