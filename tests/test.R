@@ -10,29 +10,52 @@ juliaCall("eval", "println(22)")
 juliaEval("using Random; Random.seed!(5)")
 juliaEval("Random.seed!(5);") # no output
 
+# Nested callback functions
+juliaEval('struct TestStruct f::Function end')
+juliaEval('function testNestedFun(ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
+t <- juliaCall("testNestedFun",
+               list(juliaCall("TestStruct", function() {print("bla")}),
+                    juliaCall("TestStruct", function() {print("blup")}),
+                    juliaCall("TestStruct", function() {print("blip")})))
+
+# test repeated call of nested functions
+juliaEval('function testNestedFun2(ts::Vector{TestStruct}) for i = 1:2 map(t -> t.f(), ts) end end')
+t <- juliaCall("testNestedFun2",
+               list(juliaCall("TestStruct", function() {print("bla")}),
+                    juliaCall("TestStruct", function() {print("blup")})))
+
 # Test BoltzmannMachines package
+# Install via
+# juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
 juliaUsing("BoltzmannMachines", importInternal = TRUE)
 
+# a test data set
 x <- barsandstripes(100L, 4L)
 x
+
+# Train DBMs with more complex parameters
 dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
               nhiddens = c(4L,3L))
 dbm
-samples(dbm, 10L)
-
 dbm2 <- fitdbm(x, epochs = 10L,
                pretraining = list(TrainLayer(nhidden = 4L),
                                   TrainLayer(nhidden = 3L)))
 dbm2
-logpartitionfunction(dbm2)
-aislogimpweights(dbm2, nparticles = 10L)
 
-# monitoring
+# Use a trained model to generate samples
+samples(dbm, 10L)
+
+# Evaluate the model
+aislogimpweights(dbm2, nparticles = 10L)
+logpartitionfunction(dbm2)
+
+
+# monitoring, e. g. just print the progress
 rbm <- fitrbm(x, epochs = 20L,
               monitoring = function(rbm, epoch) {print(epoch)})
 
 
-# call back again!
+# Now real monitoring with callback functions
 # (Abusing environments for call by reference)
 monitor <- new.env(parent = emptyenv())
 monitor$loglik <- c()
@@ -43,6 +66,13 @@ rbm <- fitrbm(x, epochs = 100L,
 monitor$loglik
 plot(1:100, monitor$loglik, "l")
 
+
+
+# TODO fix: hangs. Repeated call of nested function works ... what's wrong?
+t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
+           monitoring = function(rbm, epoch) {
+              print("Epoch")
+              print(epoch)})))
 
 monitor <- new.env(parent = emptyenv())
 mdbm <- fitdbm(x, epochs = 50L,
@@ -85,6 +115,8 @@ BMs.samples(rbm2, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
 
 
 # Other package
+# If not installed, run
+# juliaEval('using Pkg; Pkg.add("StatsBase")')
 juliaImport("StatsBase")
 StatsBase.mean_and_var(c(1,2,3))
 StatsBase.renyientropy(rnorm(100), 1)

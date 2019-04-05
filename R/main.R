@@ -75,13 +75,15 @@ juliaCall <- function(name, ...) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    callbacks <- writeList(jlargs)
+   #print("list written")
+   #print(callbacks)
    messageType <- handleCallbacks(callbacks)
    if (messageType == RESULT_INDICATOR) {
       return(readElement(callbacks))
    } else if (messageType == FAIL_INDICATOR) {
       stop(readString())
    } else {
-      print(paste(c("Message type", messageType, "not supported (yet)")))
+      print(paste(c("Message type not supported (yet): ", messageType)))
       stopJulia()
    }
 }
@@ -110,6 +112,10 @@ handleCallbacks <- function(callbacks) {
       if (messageType == CALL_INDICATOR) {
          call <- readCall()
          callbackIdx <- strtoi(call$name, base = 10)
+         #print("handlung callbacks")
+         #print(callbacks)
+         #print(callbackIdx)
+
          callbackfun <- callbacks[[callbackIdx]]
          tryCatch(answerCallback(callbackfun, call$args),
                   error = function(e) {

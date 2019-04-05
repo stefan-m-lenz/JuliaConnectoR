@@ -82,7 +82,7 @@ writeElement <- function(elem, callbacks = list()) {
          }
       } else if (typeId == TYPE_ID_LIST) {
          writeBin(typeId, pkgLocal$con)
-         writeList(elem)
+         callbacks <- writeList(elem, callbacks)
       }
    }
 
@@ -102,7 +102,7 @@ writeList <- function(theList, callbacks = list()) {
                            nomatch = length(theList) + 1) - 1
    writeInt(npositional)
    for (i in seq_len(npositional)) {
-      callbacks <- c(callbacks, writeElement(theList[[i]], callbacks))
+      callbacks <- writeElement(theList[[i]], callbacks)
    }
 
    nnamed <- length(theList) - npositional
@@ -110,7 +110,7 @@ writeList <- function(theList, callbacks = list()) {
    if (nnamed > 0) {
       for (i in (npositional + 1):length(theList)) {
          writeString(theNames[i])
-         callbacks <- c(callbacks, writeElement(theList[[i]], callbacks))
+         callbacks <- writeElement(theList[[i]], callbacks)
       }
    }
 

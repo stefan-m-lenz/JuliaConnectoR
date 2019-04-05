@@ -132,12 +132,9 @@ end
 
 function callbackfun(callbackid::Int, io)
    (args...; kwargs...) -> begin
-   print("calling callbackfun")
-      callbackargs = ElementList(collect(args), Dict{Symbol, Any}(kwargs))
-      println("iam so here")
-      testoutput = open("test.txt", "w")
-      write_callback_message(CombinedIO(io, testoutput), callbackid, callbackargs)
-      print("i am here")
+      posargs = isempty(args) ? Vector{Any}() : collect(args)
+      callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
+      write_callback_message(io, callbackid, callbackargs)
 
       # read, parse and return answer
       while true
@@ -165,6 +162,16 @@ function callbackfun(callbackid::Int, io)
    end
 end
 
+
+struct TestStruct
+   f::Function
+end
+
+function testNestedFun(ts::Vector{TestStruct})
+   for t in ts
+      t.f()
+   end
+end
 
 
 end
