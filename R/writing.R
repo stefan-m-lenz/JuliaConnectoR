@@ -98,19 +98,28 @@ writeExpression <- function(str) {
 writeList <- function(theList, callbacks = list()) {
    theNames <- names(theList)
 
-   npositional <- Position(function(name) {name != ""}, theNames,
-                           nomatch = length(theList) + 1) - 1
-   writeInt(npositional)
-   for (i in seq_len(npositional)) {
-      callbacks <- writeElement(theList[[i]], callbacks)
+   if (is.null(theNames)) {
+      posargs <- theList
+      nnamed <- 0
+   } else {
+      named <- (theNames != "")
+      posargs <- theList[!named]
+      namedargs <- theList[named]
+      namedNames <- theNames[named]
+      nnamed <- length(namedargs)
    }
 
-   nnamed <- length(theList) - npositional
+   npositional <- length(posargs)
+   writeInt(npositional)
+   for (arg in posargs) {
+      callbacks <- writeElement(arg, callbacks)
+   }
+
    writeInt(nnamed)
    if (nnamed > 0) {
-      for (i in (npositional + 1):length(theList)) {
-         writeString(theNames[i])
-         callbacks <- writeElement(theList[[i]], callbacks)
+      for (i in seq_along(namedargs)) {
+         writeString(namedNames[i])
+         callbacks <- writeElement(namedargs[[i]], callbacks)
       }
    }
 
@@ -129,12 +138,16 @@ writeList <- function(theList, callbacks = list()) {
 
 
 writeFailMessage <- function(msgStr) {
+   print("Writing fail message")
+   print(msgStr)
    writeBin(FAIL_INDICATOR, pkgLocal$con)
    writeString(msgStr)
 }
 
 writeResultMessage <- function(result) {
    writeBin(RESULT_INDICATOR, pkgLocal$con)
+   print("Writing resulting")
    writeElement(result)
+   print(result)
 }
 

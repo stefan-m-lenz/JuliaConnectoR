@@ -18,6 +18,12 @@ t <- juliaCall("testNestedFun",
                     juliaCall("TestStruct", function() {print("blup")}),
                     juliaCall("TestStruct", function() {print("blip")})))
 
+juliaEval('function testNestedFunNamed(;ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
+t <- juliaCall("testNestedFunNamed", ts =
+               list(juliaCall("TestStruct", function() {print("bla")}),
+                    juliaCall("TestStruct", function() {print("blup")})))
+
+
 # test repeated call of nested functions
 juliaEval('function testNestedFun2(ts::Vector{TestStruct}) for i = 1:2 map(t -> t.f(), ts) end end')
 t <- juliaCall("testNestedFun2",
@@ -39,7 +45,7 @@ t <- juliaCall("testNestedAndUnnested",
                function(x) {print("1"); print(x)},
                list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
                     juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
-               c(1, 2, 3)) # TODO try with list as argument or with function with error
+               list(x = 1, 2, 3)) # TODO try with list as argument or with function with error
 
 # Test BoltzmannMachines package
 # Install via
@@ -96,15 +102,16 @@ monitor$loglik
 
 monitor <- new.env(parent = emptyenv())
 
-# monitoring function wird nicht einmal ausgeführt!!!!!
+# monitoring function wird nicht einmal ausgeführt!!!!! Das liegt an dem Error function() {...}
+# Die richtige Funktion wird einmal ausgeführt und dann wird die Antwort von Julia nie gelesen.
 dbm <- fitdbm(x,
               monitoring = function(dbm, epoch) {
                  print("mesuring loglik")
-                 monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
+                 #monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
               },
               epochs = 50L,
               pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L,
-                                            monitoring = function(){print("blablBL")}), # TODO change input arguments
+                                            monitoring = function(dbm, epoch){print("blablBL")}), # TODO change input arguments
                                  TrainLayer(nhidden = 3L))
               )
 monitor$loglik

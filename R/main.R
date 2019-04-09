@@ -117,11 +117,12 @@ handleCallbacks <- function(callbacks) {
          #print(callbackIdx)
 
          callbackfun <- callbacks[[callbackIdx]]
-         tryCatch(answerCallback(callbackfun, call$args),
-                  error = function(e) {
-                     warning(e)
-                     writeFailMessage(as.character(e))
-                  })
+         #tryCatch(answerCallback(callbackfun, call$args),
+         #         error = function(e) {
+         #            warning(e)
+                     #writeFailMessage(as.character(e))
+                     writeResultMessage(5)
+         #         })
       } else {
          return(messageType)
       }
@@ -132,6 +133,7 @@ handleCallbacks <- function(callbacks) {
 answerCallback <- function(fun, args) {
    print("calling function with args")
    print(args)
+   print(fun)
    ret <- do.call(fun, args)
    print("function called, wrtigin result")
    print(ret)

@@ -31,7 +31,9 @@ function serve(port::Int)
       callbacks = Vector{Function}()
 
       try
+         println("reading")
          firstbyte = read(sock, 1)
+         println("read first byte")
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
             call = read_call(sock, callbacks)
@@ -122,7 +124,13 @@ function callbackfun(callbackid::Int, io)
       # read, parse and return answer
       while true
          println("reading firstbyte")
-         firstbyte = read(io, 1)[1]
+         first = Vector{UInt8}()
+         while length(first) == 0
+            println("nothing read")
+            first = read(io, 1)
+         end
+         println(first)
+         firstbyte = first[1]
          println("firstbyte")
          println(firstbyte)
          if firstbyte == RESULT_INDICATOR

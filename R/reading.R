@@ -13,7 +13,11 @@ readLogical <- function(n) {
 
 
 readInt <- function() {
-   readBin(pkgLocal$con, "integer", 1, size = 4)
+   ret <- integer()
+   while(length(ret) == 0) {
+      ret <- readBin(pkgLocal$con, "integer", 1, size = 4)
+   }
+   ret
 }
 
 readInts <- function(n) {
