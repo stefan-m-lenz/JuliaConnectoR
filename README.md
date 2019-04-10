@@ -19,11 +19,12 @@ The package requires that Julia (Version &ge; 0.7) is installed and that the Jul
 ## List of functions
 
 The following functions are exported by the package:
+
 | Function name | Description |
 |---------------|-------------|
-| `juliaImport`/`juliaUsing`| Load a Julia package in Julia via `import` or `using` (see Julia documentation) and attach its functions and data types in the R search space, such that the functions can be called directly in R|
-| `juliaEval` | Evaluate a Julia expression (and return the result) |
+| `juliaImport`/`juliaUsing` | Load a Julia package in Julia via `import` or `using` (see Julia documentation) and attach its functions and data types in the R search space, such that the functions can be called directly in R |
 | `juliaCall` | Call any Julia function by name. Not needed for the functions attached via `juliaImport`/`juliaUsing` |
+| `juliaEval` | Evaluate a Julia expression (and return the result) |
 
 ## Translating Julia and R data structure
 
