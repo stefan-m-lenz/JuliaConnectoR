@@ -35,7 +35,7 @@ readString <- function() {
 
 readStrings <- function(n = 1) {
    ret <- character(n)
-   for (i in 1:n) {
+   for (i in seq_len(n)) {
       ret[i] <- readString()
    }
    ret

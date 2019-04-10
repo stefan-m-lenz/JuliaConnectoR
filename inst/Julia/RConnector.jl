@@ -72,6 +72,9 @@ function moduleinfo(pkgname::AbstractString; all::Bool = false)
    isadatatype(sym) = symbolisa(sym, DataType)
 
    function bangfuns_removed(funs::AbstractVector{String})
+      if isempty(funs)
+         return funs
+      end
       ret = Vector{String}()
       sizehint!(ret, length(funs))
       push!(ret, funs[1])
