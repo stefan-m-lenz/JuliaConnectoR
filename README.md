@@ -16,6 +16,15 @@ The package can be installed via `devtools`:
 
 The package requires that Julia (Version &ge; 0.7) is installed and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
+## List of functions
+
+The following functions are exported by the package:
+| Function name | Description |
+|---------------|-------------|
+| `juliaImport`/`juliaUsing`| Load a Julia package in Julia via `import` or `using` (see Julia documentation) and attach its functions and data types in the R search space, such that the functions can be called directly in R|
+| `juliaEval` | Evaluate a Julia expression (and return the result) |
+| `juliaCall` | Call any Julia function by name. Not needed for the functions attached via `juliaImport`/`juliaUsing` |
+
 ## Translating Julia and R data structure
 
 Since Julia is more type-sensitive than R, it is important to know the translations of the data structures that are shown in the following table:

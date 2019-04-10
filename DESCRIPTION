@@ -12,7 +12,6 @@ Description: This package provides a functionally oriented interface between R a
 	sent via TCP and translated to Julia data structures. 
 	Returned results are translated back to R. 
 	R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
-
 License: MIT
 Encoding: UTF-8
 LazyData: true
