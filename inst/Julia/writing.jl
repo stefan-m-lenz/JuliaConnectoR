@@ -93,6 +93,8 @@ end
 function write_element(outputstream, arr::AbstractArray,
       callbacks::Vector{Function})
 
+   arr = arr[:] # TODO support multidimensional arrays
+
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
    ellist = ElementList(Vector{Any}(arr), Vector{Symbol}(),
          Dict{Symbol, Any}(), attributes)
