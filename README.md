@@ -49,8 +49,8 @@ The following example code shows how the `JuliaConnectoR` can be used to use the
 library(JuliaConnectoR)
 
 # Test BoltzmannMachines package
-# If not installed, install via
-# juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
+# If not installed, install the current version via
+# juliaEval('using Pkg; Pkg.add(PackageSpec(name = "BoltzmannMachines", rev = "master"))')
 
 # Set a random seed in Julia
 juliaEval("using Random; Random.seed!(5);")
@@ -73,9 +73,10 @@ dbm2
 # Use a trained model to generate samples
 samples(dbm, 10L)
 
-# Evaluate the model
-logpartitionfunction(dbm2)
-
+# Evaluate the model: Likelihood estimation ...
+loglikelihood(dbm2, x)
+#  ... or exact calculation (possible for such a small model)
+exactloglikelihood(dbm2, x)
 
 # RBM-fitting with simple monitoring, e. g. just print the progress in R
 rbm <- fitrbm(x, epochs = 20L,
@@ -134,7 +135,7 @@ BMs.samples(dbm, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
 # A Gaussian-BernoulliRBM
 rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)
 samples(rbm, 10L)
-BoltzmannMachines.Monitor()
+
 
 # Another way of getting the functions into R: Importing
 juliaImport("BoltzmannMachines", alias = "BMs")
