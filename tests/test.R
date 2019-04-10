@@ -57,11 +57,11 @@ t <- juliaCall("testNestedAndUnnested",
 # juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
 juliaUsing("BoltzmannMachines", importInternal = TRUE)
 
-# a test data set
+# a test data set from the BoltzmannMachines-package, just to have some data
 x <- barsandstripes(100L, 4L)
 x
 
-# Train DBMs with more complex parameters
+# Train DBMs with
 dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
               nhiddens = c(4L,3L))
 dbm
@@ -77,7 +77,7 @@ samples(dbm, 10L)
 logpartitionfunction(dbm2)
 
 
-# Simple monitoring, e. g. just print the progress
+# RBM-fitting with simple monitoring, e. g. just print the progress in R
 rbm <- fitrbm(x, epochs = 20L,
               monitoring = function(rbm, epoch) {print(epoch)})
 
@@ -136,7 +136,7 @@ rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)
 samples(rbm, 10L)
 BoltzmannMachines.Monitor()
 
-
+# Another way of getting the functions into R: Importing
 juliaImport("BoltzmannMachines", alias = "BMs")
 x <- BMs.barsandstripes(100L, 4L)
 rbm2 <- BMs.fitrbm(x, epochs = 5L)
