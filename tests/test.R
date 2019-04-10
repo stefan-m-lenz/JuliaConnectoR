@@ -45,7 +45,7 @@ t <- juliaCall("testNestedAndUnnested",
                function(x) {print("1"); print(x)},
                list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
                     juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
-               list(x = 1, 2, 3)) # TODO try with list as argument or with function with error
+               list(x = 1, 2, 3)) # TODO try with function with error
 
 # Test BoltzmannMachines package
 # Install via
@@ -102,6 +102,16 @@ monitor$loglik
 
 monitor <- new.env(parent = emptyenv())
 
+
+
+dbm <- stackrbms(x,
+              trainlayers = list(TrainLayer(monitoring = function(rbm, epoch) {
+                 print("mesuring loglik")
+                 #monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
+              },
+              epochs = 50L, nhidden = 5L))
+)
+
 # monitoring function wird nicht einmal ausgeführt!!!!! Das liegt an dem Error function() {...}
 # Die richtige Funktion wird einmal ausgeführt und dann wird die Antwort von Julia nie gelesen.
 dbm <- fitdbm(x,
@@ -125,10 +135,13 @@ t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
                                              monitoring = function(rbm, epoch) {
               print("Epoch");print(epoch)})))
 
-juliaEval("function simmonitoring(ts::Vector{TrainLayer}) for t in ts t.monitoring(3,4) end end")
+juliaEval("function simmonitoring(ts::Vector{TrainLayer})
+          ts =  BoltzmannMachines.stackrbms_preparetrainlayers(
+               ts, rand(10,1000), 5, 0.001, Vector{Int}(), 1, BoltzmannMachines.NoOptimizer())
+          for t in ts t.monitoring(3,4); sleep(5) end end")
 juliaCall("simmonitoring", list(TrainLayer(nhidden = 4L, epochs = 40L,
                                       monitoring = function(rbm, epoch) {
-                                         print("Epoch");print(epoch)})))
+                                         sleep(5);print("Epoch");print(epoch)})))
 
 t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
                                              monitoring = function(rbm, epoch) {c(1,2,3)})))
@@ -138,8 +151,6 @@ mdbm <- fitdbm(x, epochs = 50L,
                pretraining = list(
                   TrainLayer(nhidden = 4L, epochs = 40L,
                              monitoring = function(rbm, epoch) {
-                                print("Epoch")
-                                print(epoch)
                                 monitor$layer1 <- c(monitor$layer1,
                                                     reconstructionerror(rbm, x))
                              }),
@@ -147,11 +158,11 @@ mdbm <- fitdbm(x, epochs = 50L,
                              monitoring = function(rbm, epoch) {
                                 monitor$layer2 <- c(monitor$layer2,
                                                     reconstructionerror(rbm, x))
-                             }))#,
-               #monitoring = function(dbm, epoch) {
-                #  monitor$logproblowerbound <- c(monitor$logproblowerbound,
-                                                # logproblowerbound(dbm, x))
-#               }
+                             })),
+               monitoring = function(dbm, epoch) {
+                  monitor$logproblowerbound <- c(monitor$logproblowerbound,
+                                                 logproblowerbound(dbm, x))
+               }
 )
 
 plot(1:100, monitor$layer1, "l")
