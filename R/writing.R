@@ -40,7 +40,7 @@ writeElement <- function(elem, callbacks = list()) {
 
    elemType <- typeof(elem)
    if (elemType == "closure") {
-      if (is.null(attr(elem, "JLDATATYPE"))) {
+      if (is.null(attr(elem, "JLTYPE"))) {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
          if (identical(elem, emptyfun)) {
              writeInt(0L)
@@ -49,7 +49,7 @@ writeElement <- function(elem, callbacks = list()) {
             writeInt(length(callbacks))
          }
       } else {
-         writeExpression(attr(elem, "JLDATATYPE"))
+         writeExpression(attr(elem, "JLTYPE"))
       }
    } else {
       typeId <- TYPE_IDS[[typeof(elem)]]

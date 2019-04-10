@@ -6,13 +6,25 @@ juliaCall("show", NULL)
 juliaCall("string", list())
 juliaCall("println", "hello world")
 juliaCall("string", list(as.integer(1), "bla" = 23L))
+juliaEval("String[]")
 juliaCall("eval", "println(22)")
 juliaEval("using Random; Random.seed!(5)")
 juliaEval("Random.seed!(5);") # no return value
 
+# Package loading
+# If not installed, run
+# juliaEval('using Pkg; Pkg.add("StatsBase")')
+juliaImport("StatsBase")
+StatsBase.mean_and_var(c(1,2,3))
+StatsBase.renyientropy(rnorm(100), 1)
 
-juliaEval("function juliaecho(x) x end")
-juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
+# more exotic data types
+juliaImport("LinearAlgebra", alias = "jla")
+jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
+            matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
+jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
+juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+
 
 
 # Nested callback functions
@@ -52,111 +64,11 @@ t <- juliaCall("testNestedAndUnnested",
                     juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
                list(x = 1, 2, 3)) # TODO try with function with error
 
-# Test BoltzmannMachines package
-# Install via
-# juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
-juliaUsing("BoltzmannMachines", importInternal = TRUE)
 
-# a test data set from the BoltzmannMachines-package, just to have some data
-x <- barsandstripes(100L, 4L)
-x
-
-# Train DBMs with
-dbm <- fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
-              nhiddens = c(4L,3L))
-dbm
-dbm2 <- fitdbm(x, epochs = 10L,
-               pretraining = list(TrainLayer(nhidden = 4L),
-                                  TrainLayer(nhidden = 3L)))
-dbm2
-
-# Use a trained model to generate samples
-samples(dbm, 10L)
-
-# Evaluate the model
-logpartitionfunction(dbm2)
-
-
-# RBM-fitting with simple monitoring, e. g. just print the progress in R
-rbm <- fitrbm(x, epochs = 20L,
-              monitoring = function(rbm, epoch) {print(epoch)})
-
-
-# Now real monitoring with callback functions
-# (Abusing environments for call-by-reference value collection)
-monitor <- new.env(parent = emptyenv())
-monitor$loglik <- c()
-rbm <- fitrbm(x, epochs = 100L,
-              monitoring = function(rbm, epoch) {
-                 monitor$loglik <- c(monitor$loglik, loglikelihood(rbm, x))
-            })
-plot(1:100, monitor$loglik, "l")
-
-
-# A complex dbm example with layerwise monitoring
-monitor <- new.env(parent = emptyenv())
-dbm <- fitdbm(x, epochs = 60L,
-               learningrate = 0.05,
-               learningratepretraining = 0.01,
-               pretraining = list(
-                  TrainLayer(nhidden = 4L, epochs = 70L,
-                             monitoring = function(rbm, epoch) {
-                                monitor$layer1 <- c(monitor$layer1,
-                                                    reconstructionerror(rbm, x))
-                             }),
-                  TrainLayer(nhidden = 3L, epochs = 50L,
-                             monitoring = function(rbm, epoch) {
-                                monitor$layer2 <- c(monitor$layer2,
-                                                    reconstructionerror(rbm, x))
-                             })),
-               monitoring = function(dbm, epoch) {
-                  monitor$logproblowerbound <- c(monitor$logproblowerbound,
-                                                 exactloglikelihood(dbm, x))
-               }
-)
-plot(1:70, monitor$layer1, "l")
-plot(1:50, monitor$layer2, "l")
-plot(1:60, monitor$logproblowerbound, "l")
-
-
-# First approach for Gibbs-Sampling
-particles <- initparticles(dbm2, 20L)
-particles <- gibbssample(particles, dbm2, 100L) # the "!" can be omitted
-particles
-
-# Second approach for Gibbs sampling: All-in-one, returning only visible nodes
-BoltzmannMachines.samples(dbm, 5L)
-
-
-# Conditional Gibbs sampling
-BMs.samples(dbm, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
-
-# A Gaussian-BernoulliRBM
-rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)
-samples(rbm, 10L)
-BoltzmannMachines.Monitor()
-
-# Another way of getting the functions into R: Importing
-juliaImport("BoltzmannMachines", alias = "BMs")
-x <- BMs.barsandstripes(100L, 4L)
-rbm2 <- BMs.fitrbm(x, epochs = 5L)
-BMs.samples(rbm2, 5L)
-
-
-
-# Other package
-# If not installed, run
-# juliaEval('using Pkg; Pkg.add("StatsBase")')
-juliaImport("StatsBase")
-StatsBase.mean_and_var(c(1,2,3))
-StatsBase.renyientropy(rnorm(100), 1)
-
-# more exotic data types
-juliaImport("LinearAlgebra", alias = "jla")
-jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
-          matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
-jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
-juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+juliaEval("function juliaecho(x) x end")
+juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
+juliaEcho(matrix(1:6, nrow = 2))
+juliaEcho(c("bla", "blup", "blip"))
 
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
