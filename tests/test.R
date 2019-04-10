@@ -77,25 +77,25 @@ samples(dbm, 10L)
 logpartitionfunction(dbm2)
 
 
-# monitoring, e. g. just print the progress
+# Simple monitoring, e. g. just print the progress
 rbm <- fitrbm(x, epochs = 20L,
               monitoring = function(rbm, epoch) {print(epoch)})
 
 
 # Now real monitoring with callback functions
-# (Abusing environments for call by reference)
+# (Abusing environments for call-by-reference value collection)
 monitor <- new.env(parent = emptyenv())
 monitor$loglik <- c()
 rbm <- fitrbm(x, epochs = 100L,
               monitoring = function(rbm, epoch) {
                  monitor$loglik <- c(monitor$loglik, loglikelihood(rbm, x))
             })
-monitor$loglik
 plot(1:100, monitor$loglik, "l")
 
 
+# A complex dbm example with layerwise monitoring
 monitor <- new.env(parent = emptyenv())
-mdbm <- fitdbm(x, epochs = 60L,
+dbm <- fitdbm(x, epochs = 60L,
                learningrate = 0.05,
                learningratepretraining = 0.01,
                pretraining = list(
@@ -124,18 +124,24 @@ particles <- initparticles(dbm2, 20L)
 particles <- gibbssample(particles, dbm2, 100L) # the "!" can be omitted
 particles
 
-# Second approach for Gibbs sampling: All-in-one
+# Second approach for Gibbs sampling: All-in-one, returning only visible nodes
 BoltzmannMachines.samples(dbm, 5L)
 
+
+# Conditional Gibbs sampling
+BMs.samples(dbm, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
+
+# A Gaussian-BernoulliRBM
 rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)
 samples(rbm, 10L)
 BoltzmannMachines.Monitor()
+
 
 juliaImport("BoltzmannMachines", alias = "BMs")
 x <- BMs.barsandstripes(100L, 4L)
 rbm2 <- BMs.fitrbm(x, epochs = 5L)
 BMs.samples(rbm2, 5L)
-BMs.samples(rbm2, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
+
 
 
 # Other package
