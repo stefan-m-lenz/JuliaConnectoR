@@ -75,8 +75,6 @@ juliaCall <- function(name, ...) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    callbacks <- writeList(jlargs)
-   #print("list written")
-   #print(callbacks)
    messageType <- handleCallbacks(callbacks)
    if (messageType == RESULT_INDICATOR) {
       return(readElement(callbacks))
@@ -112,17 +110,12 @@ handleCallbacks <- function(callbacks) {
       if (messageType == CALL_INDICATOR) {
          call <- readCall()
          callbackIdx <- strtoi(call$name, base = 10)
-         #print("handlung callbacks")
-         #print(callbacks)
-         #print(callbackIdx)
-
          callbackfun <- callbacks[[callbackIdx]]
-         #tryCatch(answerCallback(callbackfun, call$args),
-         #         error = function(e) {
-         #            warning(e)
-                     #writeFailMessage(as.character(e))
-                     writeResultMessage(5)
-         #         })
+         tryCatch(answerCallback(callbackfun, call$args),
+                 error = function(e) {
+                    warning(e)
+                    writeFailMessage(as.character(e))
+                  })
       } else {
          return(messageType)
       }
@@ -131,13 +124,7 @@ handleCallbacks <- function(callbacks) {
 
 
 answerCallback <- function(fun, args) {
-   print("calling function with args")
-   print(args)
-   print(fun)
    ret <- do.call(fun, args)
-   print("function called, wrtigin result")
-   print(ret)
-
    writeResultMessage(ret)
 }
 

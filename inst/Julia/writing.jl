@@ -11,8 +11,6 @@ end
 
 function write_callback_message(outputstream, callbackid::Int, args::ElementList)
    write(outputstream, CALL_INDICATOR)
-   println("writing callback message")
-   println(string(callbackid))
    write_string(outputstream, string(callbackid))
    callbacks = Vector{Function}()
    write_list(outputstream, args, callbacks)
@@ -30,10 +28,7 @@ function write_int32s(outputstream, intarr::AbstractArray{Int})
 end
 
 function write_string(outputstream, str::String)
-   println("writing string")
-   println(ncodeunits(str))
    write_int32(outputstream, ncodeunits(str))
-   println(str)
    write(outputstream, str)
 end
 
@@ -110,8 +105,6 @@ function write_element(outputstream, f::Function, callbacks::Vector{Function})
    if callbackid == nothing
       callbackid = 0
    end
-
-   print(callbackid)
 
    write(outputstream, TYPE_ID_CALLBACK)
    write_int32(outputstream, callbackid)
@@ -253,8 +246,6 @@ function write_list(outputstream, arr::AbstractArray, callbacks::Vector{Function
 end
 
 function write_list(outputstream, ellist::ElementList, callbacks::Vector{Function})
-   println("Writing list")
-   println(ellist)
    write_int32(outputstream, length(ellist.positionalelements))
    for el in ellist.positionalelements
       write_element(outputstream, el, callbacks)

@@ -52,7 +52,6 @@ function evaluate!(call::Call)
       result = Base.invokelatest(call.fun,
             call.args.positionalelements...; call.args.namedelements...)
    catch ex
-      println(ex)
       result = Fail("Evaluation failed. Original error: $ex")
    end
    result

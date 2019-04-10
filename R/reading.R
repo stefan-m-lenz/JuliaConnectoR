@@ -54,7 +54,6 @@ readDimensions <- function() {
 
 readElement <- function(callbacks) {
    typeId <- readBin(pkgLocal$con, "raw", 1)
-   #print(typeId)
    if (typeId == TYPE_ID_LIST) {
       return(readList(callbacks))
    } else if (typeId == TYPE_ID_NULL) {
@@ -65,12 +64,9 @@ readElement <- function(callbacks) {
       return(expr)
    } else if (typeId == TYPE_ID_CALLBACK) {
       callbackId <- readInt()
-      #print("callback")
-      #print(callbackId)
       if (callbackId == 0) {
          return(emptyfun)
       } else {
-         #print(callbacks)
          return(callbacks[[callbackId]])
       }
    } else {

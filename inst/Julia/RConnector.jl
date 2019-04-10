@@ -31,9 +31,7 @@ function serve(port::Int)
       callbacks = Vector{Function}()
 
       try
-         println("reading")
          firstbyte = read(sock, 1)
-         println("read first byte")
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
             call = read_call(sock, callbacks)
@@ -118,47 +116,27 @@ function callbackfun(callbackid::Int, io)
       callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
       write_callback_message(io, callbackid, callbackargs)
 
-      println(args)
-      println("callbackfun with id calld")
-      println(callbackid)
       # read, parse and return answer
       while true
-         println("reading firstbyte")
-         first = Vector{UInt8}()
-         while length(first) == 0
-            println("nothing read")
-            first = read(io, 1)
-         end
-         println(first)
-         firstbyte = first[1]
-         println("firstbyte")
-         println(firstbyte)
+         firstbyte = read(io, 1)[1]
          if firstbyte == RESULT_INDICATOR
-            println("result")
             callbacks = Vector{Function}()
             answer = read_element(io, callbacks)
-            println("read answer")
-            println(answer)
             fails = collectfails(answer)
             if isempty(fails)
-               println("evaluate answer")
                ret =  evaluate!(answer)
-               println("answer evaluated")
                return ret
             else
                return Fail("Parsing failed. Reason: " * string(fails))
             end
          elseif firstbyte == CALL_INDICATOR
-            println("call")
             callbacks = Vector{Function}()
             call = read_call(io, callbacks)
             result = evaluate!(call)
             write_message(io, result, callbacks)
          elseif firstbyte == FAIL_INDICATOR
-            println("fail")
             return Fail(read_string(io))
          else
-            println("error")
             error("Unexpected leading byte: " * string(firstbyte))
          end
       end

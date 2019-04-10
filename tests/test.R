@@ -8,7 +8,12 @@ juliaCall("println", "hello world")
 juliaCall("string", list(as.integer(1), "bla" = 23L))
 juliaCall("eval", "println(22)")
 juliaEval("using Random; Random.seed!(5)")
-juliaEval("Random.seed!(5);") # no output
+juliaEval("Random.seed!(5);") # no return value
+
+
+juliaEval("function juliaecho(x) x end")
+juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
+
 
 # Nested callback functions
 juliaEval('struct TestStruct f::Function end')
@@ -69,7 +74,6 @@ dbm2
 samples(dbm, 10L)
 
 # Evaluate the model
-aislogimpweights(dbm2, nparticles = 10L)
 logpartitionfunction(dbm2)
 
 
@@ -91,87 +95,36 @@ plot(1:100, monitor$loglik, "l")
 
 
 monitor <- new.env(parent = emptyenv())
-dbm <- fitdbm(x, epochs = 50L,
-              pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L),
-                                 TrainLayer(nhidden = 3L)),
-              monitoring = function(dbm, epoch) {
-                 monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
-              }
-)
-monitor$loglik
-
-monitor <- new.env(parent = emptyenv())
-
-
-
-dbm <- stackrbms(x,
-              trainlayers = list(TrainLayer(monitoring = function(rbm, epoch) {
-                 print("mesuring loglik")
-                 #monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
-              },
-              epochs = 50L, nhidden = 5L))
-)
-
-# monitoring function wird nicht einmal ausgeführt!!!!! Das liegt an dem Error function() {...}
-# Die richtige Funktion wird einmal ausgeführt und dann wird die Antwort von Julia nie gelesen.
-dbm <- fitdbm(x,
-              monitoring = function(dbm, epoch) {
-                 print("mesuring loglik")
-                 #monitor$loglik <- c(monitor$loglik, exactloglikelihood(dbm, x))
-              },
-              epochs = 50L,
-              pretraining = list(TrainLayer(nhidden = 4L, epochs = 60L,
-                                            monitoring = function(dbm, epoch){print("blablBL")}), # TODO change input arguments
-                                 TrainLayer(nhidden = 3L))
-              )
-monitor$loglik
-plot(1:50, monitor$loglik, "l")
-
-
-
-# TODO fix: hangs. Repeated call of nested function works ... what's wrong?
-# monitoring function wird genau einmal ausgeführt!!!!!
-t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
-                                             monitoring = function(rbm, epoch) {
-              print("Epoch");print(epoch)})))
-
-juliaEval("function simmonitoring(ts::Vector{TrainLayer})
-          ts =  BoltzmannMachines.stackrbms_preparetrainlayers(
-               ts, rand(10,1000), 5, 0.001, Vector{Int}(), 1, BoltzmannMachines.NoOptimizer())
-          for t in ts t.monitoring(3,4); sleep(5) end end")
-juliaCall("simmonitoring", list(TrainLayer(nhidden = 4L, epochs = 40L,
-                                      monitoring = function(rbm, epoch) {
-                                         sleep(5);print("Epoch");print(epoch)})))
-
-t <- fitdbm(x, pretraining = list(TrainLayer(nhidden = 4L, epochs = 40L,
-                                             monitoring = function(rbm, epoch) {c(1,2,3)})))
-
-monitor <- new.env(parent = emptyenv())
-mdbm <- fitdbm(x, epochs = 50L,
+mdbm <- fitdbm(x, epochs = 60L,
+               learningrate = 0.05,
+               learningratepretraining = 0.01,
                pretraining = list(
-                  TrainLayer(nhidden = 4L, epochs = 40L,
+                  TrainLayer(nhidden = 4L, epochs = 70L,
                              monitoring = function(rbm, epoch) {
                                 monitor$layer1 <- c(monitor$layer1,
                                                     reconstructionerror(rbm, x))
                              }),
-                  TrainLayer(nhidden = 3L, epochs = 30L,
+                  TrainLayer(nhidden = 3L, epochs = 50L,
                              monitoring = function(rbm, epoch) {
                                 monitor$layer2 <- c(monitor$layer2,
                                                     reconstructionerror(rbm, x))
                              })),
                monitoring = function(dbm, epoch) {
                   monitor$logproblowerbound <- c(monitor$logproblowerbound,
-                                                 logproblowerbound(dbm, x))
+                                                 exactloglikelihood(dbm, x))
                }
 )
+plot(1:70, monitor$layer1, "l")
+plot(1:50, monitor$layer2, "l")
+plot(1:60, monitor$logproblowerbound, "l")
 
-plot(1:100, monitor$layer1, "l")
 
-
+# First approach for Gibbs-Sampling
 particles <- initparticles(dbm2, 20L)
-particles <- gibbssample(particles, dbm2, 100L)
+particles <- gibbssample(particles, dbm2, 100L) # the "!" can be omitted
 particles
 
+# Second approach for Gibbs sampling: All-in-one
 BoltzmannMachines.samples(dbm, 5L)
 
 rbm <- fitrbm(data.matrix(iris[, 1:4]), rbmtype = GaussianBernoulliRBM)

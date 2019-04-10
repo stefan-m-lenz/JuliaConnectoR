@@ -138,16 +138,12 @@ writeList <- function(theList, callbacks = list()) {
 
 
 writeFailMessage <- function(msgStr) {
-   print("Writing fail message")
-   print(msgStr)
    writeBin(FAIL_INDICATOR, pkgLocal$con)
    writeString(msgStr)
 }
 
 writeResultMessage <- function(result) {
    writeBin(RESULT_INDICATOR, pkgLocal$con)
-   print("Writing resulting")
    writeElement(result)
-   print(result)
 }
 
