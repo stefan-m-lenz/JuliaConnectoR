@@ -1,4 +1,4 @@
-# JuliaConnector
+# JuliaConnectoR
 
 This package provides a functionally oriented interface between R and Julia.
 The goal is to use functions from Julia packages directly in R.
