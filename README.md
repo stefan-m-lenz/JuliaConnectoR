@@ -5,7 +5,7 @@ The goal is to call functions from Julia packages directly as R functions.
 Julia functions imported via the `JuliaConnectoR` can accept and return R variables.
 It is also possible to pass R functions as arguments in place of Julia functions, which allows callbacks from Julia to R.
 
-From a technical perspective, R data structures are serialized with an optimized custom streaming format, 
+From a technical perspective, R data structures are serialized with an optimized custom streaming format,
 sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
 The results of function calls are likewise translated back to R.
 
@@ -131,7 +131,7 @@ particles
 BoltzmannMachines.samples(dbm, 5L)
 
 # Conditional Gibbs sampling
-BMs.samples(dbm, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
+samples(dbm, 5L, conditions = juliaEval("[1 => 1.0, 2 => 0.0]"))
 
 
 # A Gaussian-BernoulliRBM
