@@ -1,20 +1,22 @@
 # JuliaConnectoR
 
-This package provides a functionally oriented interface between R and Julia.
-The goal is to use functions from Julia packages directly in R.
+This R-package provides a functionally oriented interface between R and Julia.
+The goal is to call functions from Julia packages directly as R functions.
 Julia functions imported via the `JuliaConnectoR` can accept and return R variables.
-It is also possible to pass function arguments to enable callbacks from Julia to R.
+It is also possible to pass R functions as arguments in place of Julia functions, which allows callbacks from Julia to R.
 
-The data structures passed to and returned from Julia are serialized to a custom streaming format, sent via TCP and translated to Julia data structures. Returned results are likewise translated back to R. R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
+From a technical perspective, R data structures are serialized with an optimized custom streaming format, 
+sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
+The results of function calls are likewise translated back to R.
 
 ## Installation
 
-The package can be installed via `devtools`:
+The package can be installed in R via `devtools`:
 
     library(devtools)
     install_github("stefan-m-lenz/JuliaConnectoR")
 
-The package requires that Julia (Version &ge; 0.7) is installed and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
+The package requires that [Julia (Version &ge; 0.7) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
 ## List of functions
 
