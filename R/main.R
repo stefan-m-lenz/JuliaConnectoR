@@ -104,6 +104,12 @@ juliaEval <- function(expr) {
 }
 
 
+juliaExpr <- function(expr) {
+   attr(expr, "JLEXPR") <- TRUE
+   return(expr)
+}
+
+
 handleCallbacks <- function(callbacks) {
    repeat {
       messageType <- readMessageType()
