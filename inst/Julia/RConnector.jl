@@ -22,35 +22,44 @@ include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")
 
-function serve(port::Int)
+function serve(port::Int; multiclient::Bool = false)
+
    server = listen(port)
-   sock = accept(server)
    println("Julia is listening on port $port.")
-   while isopen(sock)
-      call = Call()
-      callbacks = Vector{Function}()
 
-      try
-         firstbyte = read(sock, 1)
-         if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
-            # Parse incoming function call
-            call = read_call(sock, callbacks)
-         else
-            if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
-               close(sock)
-               error("Unexpected leading character $(firstbyte[1])")
-            else
-               close(sock)
-               return
+   while true
+      sock = accept(server)
+      @async begin
+         while isopen(sock)
+            call = Call()
+            callbacks = Vector{Function}()
+
+            try
+               firstbyte = read(sock, 1)
+               if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
+                  # Parse incoming function call
+                  call = read_call(sock, callbacks)
+               else
+                  if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
+                     close(sock)
+                     error("Unexpected leading character $(firstbyte[1])")
+                  else
+                     close(sock)
+                     return
+                  end
+               end
+            catch ex
+               error("Unexpected parsing error. Stopping listening. " *
+                     "Original error: $ex")
             end
-         end
-      catch ex
-         error("Unexpected parsing error. Stopping listening. " *
-               "Original error: $ex")
-      end
 
-      result = evaluate!(call)
-      write_message(sock, result, callbacks)
+            result = evaluate!(call)
+            write_message(sock, result, callbacks)
+         end
+      end
+      if !multiclient
+         break
+      end
    end
 end
 

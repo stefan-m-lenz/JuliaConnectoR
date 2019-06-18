@@ -1,4 +1,22 @@
 juliaConnection <- function() {
+
+   juliaSocketAdress <- Sys.getenv("JULIASERVER_SOCKET_ADDRESS")
+   if (juliaSocketAdress != "") {
+      host_port <- strsplit(juliaSocketAdress, split = ":", fixed = TRUE)[[1]]
+      juliaPort <- as.integer(host_port[2])
+
+      if (length(host_port) != 2 || is.na(juliaPort)) {
+         error("Environment variable JULIASERVER_SOCKET_ADDRESS must be of form <host>:<port>")
+      }
+      message(paste("Connecting to Julia TCP server at", juliaSocketAdress, "..."))
+      return(socketConnection(host = host_port[1],
+                              port = juliaPort,
+                              blocking = TRUE,
+                              server = FALSE,
+                              open="r+b", timeout = 10))
+   }
+
+   # If there is no Julia server specified, start a new one:
    juliaexe <- Sys.getenv("JULIA_BINDIR")
    if (juliaexe == "") {
       juliaexe <- "julia"
