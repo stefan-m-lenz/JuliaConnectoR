@@ -112,3 +112,26 @@ function mainevalcmd(str::String)
       return ret
    end
 end
+
+
+"""
+    mainevallet(str; ...)
+Evalutes the string as the body of a let expression with the given
+keyword arguments as variables in the let expression.
+"""
+function mainevallet(str::String; kwargs...)
+   # Enclose str with a let block containing the kwargs
+
+   # prevent the creation of a toplevel-Expression in Meta.parse
+   str = "begin " * str * " end"
+
+   if !isempty(kwargs)
+      e = Expr(:let,
+            Expr(:block,
+                  [Expr(:(=), key, value) for (key, value) in kwargs]...),
+            Expr(:block, Meta.parse(str)))
+   else
+      e = Expr(:let, Expr(:block), Expr(:block, Meta.parse(str)))
+   end
+   Main.eval(e)
+end

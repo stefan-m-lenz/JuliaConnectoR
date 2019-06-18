@@ -1,4 +1,5 @@
 library(JuliaConnectoR)
+library(tools)
 
 # Should work
 juliaCall("prod", c(1,2,3))
@@ -69,6 +70,14 @@ juliaEval("function juliaecho(x) x end")
 juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
 juliaEcho(matrix(1:6, nrow = 2))
 juliaEcho(c("bla", "blup", "blip"))
+
+
+# Test Let
+juliaLet("print(1)")
+assertError(juliaLet("print(x)", 1))
+juliaLet("juliaecho(x)", x=c(2, 3))
+juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+
 
 # Should error
 juliaCall("sum", c(1,2,3, "bla"))
