@@ -23,43 +23,50 @@ include("evaluating.jl")
 include("writing.jl")
 
 function serve(port::Int; multiclient::Bool = false)
-
    server = listen(port)
    println("Julia is listening on port $port.")
 
-   while true
+   # Prevents crash when run as script and interrupted
+   ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
+
+   if multiclient
+      while true
+         sock = accept(server)
+         @async serve_repl(sock)
+      end
+   else
       sock = accept(server)
-      @async begin
-         while isopen(sock)
-            call = Call()
-            callbacks = Vector{Function}()
+      serve_repl(sock)
+   end
+end
 
-            try
-               firstbyte = read(sock, 1)
-               if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
-                  # Parse incoming function call
-                  call = read_call(sock, callbacks)
-               else
-                  if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
-                     close(sock)
-                     error("Unexpected leading character $(firstbyte[1])")
-                  else
-                     close(sock)
-                     return
-                  end
-               end
-            catch ex
-               error("Unexpected parsing error. Stopping listening. " *
-                     "Original error: $ex")
+
+function serve_repl(sock)
+   while isopen(sock)
+      call = Call()
+      callbacks = Vector{Function}()
+
+      try
+         firstbyte = read(sock, 1)
+         if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
+            # Parse incoming function call
+            call = read_call(sock, callbacks)
+         else
+            if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
+               close(sock)
+               error("Unexpected leading character $(firstbyte[1])")
+            else
+               close(sock)
+               return
             end
-
-            result = evaluate!(call)
-            write_message(sock, result, callbacks)
          end
+      catch ex
+         error("Unexpected parsing error. Stopping listening. " *
+               "Original error: $ex")
       end
-      if !multiclient
-         break
-      end
+
+      result = evaluate!(call)
+      write_message(sock, result, callbacks)
    end
 end
 
