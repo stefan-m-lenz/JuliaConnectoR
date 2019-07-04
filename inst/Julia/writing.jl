@@ -39,13 +39,18 @@ function write_dimensions(outputstream, arr::AbstractArray)
 end
 
 
-function write_element(outputstream, arr::AbstractArray{String},
-      callbacks::Vector{Function})
+function write_element(outputstream::S, arr::AbstractArray{String},
+      callbacks::Vector{Function}) where S
 
-   write(outputstream, TYPE_ID_STRING)
-   write_dimensions(outputstream, arr)
-   for str in arr
-      write_string(outputstream, str)
+   if all([isassigned(arr, i) for i in eachindex(arr)]) # TODO optimize
+      write(outputstream, TYPE_ID_STRING)
+      write_dimensions(outputstream, arr)
+      for str in arr
+         write_string(outputstream, str)
+      end
+   else
+      invoke(write_element, Tuple{S, AbstractArray, Vector{Function}},
+            outputstream, arr, callbacks)
    end
 end
 
@@ -59,14 +64,19 @@ function write_element(outputstream, arr::AbstractArray{<:Number},
    end
 end
 
-function write_element(outputstream, arr::AbstractArray{<:Complex},
-      callbacks::Vector{Function})
+function write_element(outputstream::S, arr::AbstractArray{<:Complex},
+      callbacks::Vector{Function}) where S
 
-   write(outputstream, TYPE_ID_COMPLEX)
-   write_dimensions(outputstream, arr)
-   for d in arr
-      write(outputstream, Float64(real(d)))
-      write(outputstream, Float64(imag(d)))
+   if all([isassigned(arr, i) for i in eachindex(arr)]) # TODO optimize
+      write(outputstream, TYPE_ID_COMPLEX)
+      write_dimensions(outputstream, arr)
+      for d in arr
+         write(outputstream, Float64(real(d)))
+         write(outputstream, Float64(imag(d)))
+      end
+   else
+      invoke(write_element, (S, AbstractArray, Vector{Function}),
+            outputstream, arr, callbacks)
    end
 end
 
@@ -93,10 +103,19 @@ end
 function write_element(outputstream, arr::AbstractArray,
       callbacks::Vector{Function})
 
-   arr = arr[:] # TODO support multidimensional arrays
-
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
-   ellist = ElementList(Vector{Any}(arr), Vector{Symbol}(),
+   arr2 = arr[:] # TODO support multidimensional arrays
+   unassigned = [!isassigned(arr, i) for i in eachindex(arr)]
+   if any(unassigned)
+      attributes["JLUNDEFS"] = findall(unassigned)
+      arr3 = Vector{Any}(
+            [(unassigned[i] ? nothing : arr2[i]) for i in eachindex(arr2)])
+   else
+      unassignedvalues = false
+      arr3 = Vector{Any}(arr2)
+   end
+
+   ellist = ElementList(arr3, Vector{Symbol}(),
          Dict{Symbol, Any}(), attributes)
    write_element(outputstream, ellist, callbacks)
 end

@@ -72,6 +72,18 @@ juliaEcho(matrix(1:6, nrow = 2))
 juliaEcho(c("bla", "blup", "blip"))
 
 
+# Test Arrays with undefined references
+juliaLet('(() -> begin
+         x = Vector{String}(undef, 2); x[1] = "hi";
+         return x;
+         end)()')
+juliaLet('(() -> begin
+         x = Vector{Complex}(undef, 2); x[1] = im;
+         return x;
+         end)()')
+juliaLet("Dict(zip(x, y))", x= c("bla", "blup"), y = c(1,2))
+
+
 # Test Let
 juliaLet("print(1)")
 assertError(juliaLet("print(x)", 1))
