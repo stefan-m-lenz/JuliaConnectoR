@@ -27,33 +27,32 @@ juliaConnection <- function() {
    mainJuliaFile <- system.file("Julia", "main.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
 
-   sleepTime <- 2 # rough upper bound of startup time
+   # workaround for https://github.com/rstudio/rstudio/issues/2446
+   stdoutfile = tempfile('stdout'); stderrfile = tempfile('stderr')
+   on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
 
-   for (port in JULIA_PORTS) {
+   portfilename = tempfile(paste0("juliaPort", Sys.getpid()))
 
-      # workaround for https://github.com/rstudio/rstudio/issues/2446
-      stdoutfile = tempfile('stdout'); stderrfile = tempfile('stderr')
-      on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
+   port <- 11980 # default port
 
-      # start Julia server in background
-      system2(juliaexe, c(mainJuliaFile, port), wait = FALSE,
-              stdout = stdoutfile, stderr = stderrfile)
+   # start Julia server in background
+   system2(juliaexe, c(mainJuliaFile, port, portfilename), wait = FALSE,
+           stdout = stdoutfile, stderr = stderrfile)
 
-
-      # Give Julia server a head start before connecting.
-      # The head start increases with the number of tries,
-      # since the failure might not only be due to the port being in use
-      # but also due to a slow startup/precompilation of Julia.
-      sleepTime <- sleepTime + 1.5
-      Sys.sleep(sleepTime)
-
-      # try to connect to the Julia server that is hopefully already listening at the port
-      try(return(socketConnection(host = "localhost",
-                                  port = port,
-                                  blocking = TRUE,
-                                  server = FALSE,
-                                  open="r+b", timeout = 2)))
+   # get information about the real port from the temporary file
+   while (!file.exists(portfilename)) {
+      Sys.sleep(0.2)
    }
+   portfile <- file(portfilename, open = "r")
+   realJuliaPort <- as.integer(readLines(con = portfile, n = 1L, ok = FALSE, encoding = "UTF-8"))
+   close(portfile)
+   file.remove(portfilename)
+
+   return(socketConnection(host = "localhost",
+                           port = realJuliaPort,
+                           blocking = TRUE,
+                           server = FALSE,
+                           open="r+b", timeout = 2))
 }
 
 

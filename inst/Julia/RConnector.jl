@@ -22,9 +22,18 @@ include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")
 
-function serve(port::Int; multiclient::Bool = false)
-   server = listen(port)
-   println("Julia is listening on port $port.")
+function serve(port_hint::Int; multiclient::Bool = false,
+      portfile::String = "")
+
+   realport, server = listenany(port_hint)
+   println("Julia is listening on port $realport.")
+   # write real port to portfile
+   if (portfile != "")
+      open(portfile, "w") do f
+         write(f, string(Int(realport)))
+         write(f, '\n')
+      end
+   end
 
    # Prevents crash when run as script and interrupted
    ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
