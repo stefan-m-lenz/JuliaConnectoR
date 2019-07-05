@@ -40,7 +40,7 @@ juliaConnection <- function() {
            stdout = stdoutfile, stderr = stderrfile)
 
    # get information about the real port from the temporary file
-   while (!file.exists(portfilename)) {
+   while (file.access(portfilename, mode = 4) < 0) {
       Sys.sleep(0.2)
    }
    portfile <- file(portfilename, open = "r")
