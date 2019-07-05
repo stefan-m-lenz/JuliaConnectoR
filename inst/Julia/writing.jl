@@ -101,6 +101,26 @@ function write_element(outputstream, arr::AbstractArray,
    write_element(outputstream, ellist, callbacks)
 end
 
+function write_element(outputstream, dict::AbstractDict,
+      callbacks::Vector{Function})
+
+   ellist = ElementList(Vector{Any}(),
+         [:keys, :values],
+         Dict{Symbol, Any}(:keys => collect(keys(dict)),
+               :values => collect(values(dict))),
+         Dict{String, Any}("JLTYPE" => string(typeof(dict))))
+   write_element(outputstream, ellist, callbacks)
+end
+
+function write_element(outputstream, set::AbstractSet,
+      callbacks::Vector{Function})
+
+   ellist = ElementList(Vector{Any}(collect(set)),
+         Vector{Symbol}(), Dict{Symbol, Any}(),
+         Dict{String, Any}("JLTYPE" => string(typeof(set))))
+   write_element(outputstream, ellist, callbacks)
+end
+
 function write_element(outputstream, f::Function, callbacks::Vector{Function})
    callbackid = findfirst(isequal(f), callbacks)
 

@@ -76,7 +76,28 @@ juliaEcho(c("bla", "blup", "blip"))
 juliaLet("print(1)")
 assertError(juliaLet("print(x)", 1))
 juliaLet("juliaecho(x)", x=c(2, 3))
-juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+
+# Test Named Tuples
+namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+identical(juliaEcho(namedTuple), namedTuple)
+
+# Test Dictionary
+d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
+d$keys
+d$values
+identical(juliaEcho(d), d)
+d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
+d$keys
+d$values
+identical(juliaEcho(d), d)
+
+
+# Test Set
+s1 <- juliaEval("Set([1; 2; 3; 4])")
+s2 <- juliaEval("Set([1; 2])")
+length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4))) == 0
+length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4))) == 0
+identical(s1, juliaEcho(s1))
 
 
 # Should error

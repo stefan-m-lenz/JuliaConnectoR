@@ -71,14 +71,23 @@ function evaluate!(list::ElementList)
       try
          constructor = findfield(jltype)
          if length(list.names) > 0
-            # composite type
-            return Base.invokelatest(constructor,
-                  [list.namedelements[name] for name in list.names]...)
+            if constructor <: AbstractDict
+               return Base.invokelatest(constructor, zip(
+                     list.namedelements[:keys],
+                     list.namedelements[:values]))
+            elseif constructor <: NamedTuple
+               return NamedTuple{Tuple(list.names)}(
+                     [list.namedelements[name] for name in list.names])
+            else
+               # normal composite type
+               return Base.invokelatest(constructor,
+                     [list.namedelements[name] for name in list.names]...)
+            end
          else
             if constructor <: Union{Pair, Tuple}
                return Base.invokelatest(constructor, list.positionalelements...)
             else
-               # array type
+               # array type or AbstractSet
                return Base.invokelatest(constructor,
                      collect(list.positionalelements))
             end
