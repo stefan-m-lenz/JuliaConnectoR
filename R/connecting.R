@@ -17,25 +17,18 @@ juliaConnection <- function() {
    }
 
    # If there is no Julia server specified, start a new one:
-   juliaexe <- Sys.getenv("JULIA_BINDIR")
-   if (juliaexe == "") {
-      juliaexe <- "julia"
-   } else {
-      juliaexe <- file.path(juliaexe, "julia")
-   }
-
    mainJuliaFile <- system.file("Julia", "main.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
 
-   # workaround for https://github.com/rstudio/rstudio/issues/2446
-   stdoutfile = tempfile('stdout'); stderrfile = tempfile('stderr')
-   on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
-
-   portfilename = tempfile(paste0("juliaPort", Sys.getpid()))
-
+   portfilename <- tempfile(paste0("juliaPort", Sys.getpid()))
    port <- 11980 # default port
 
+   # workaround for https://github.com/rstudio/rstudio/issues/2446
+   stdoutfile <- tempfile('stdout'); stderrfile <- tempfile('stderr')
+   on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
+
    # start Julia server in background
+   juliaexe <- getJuliaExecutablePath()
    system2(juliaexe, c(mainJuliaFile, port, portfilename), wait = FALSE,
            stdout = stdoutfile, stderr = stderrfile)
 
@@ -58,6 +51,20 @@ juliaConnection <- function() {
 
 startJulia <- function() {
    pkgLocal$con <- juliaConnection()
+}
+
+
+getJuliaExecutablePath <- function() {
+   juliaexe <- Sys.getenv("JULIA_EXE")
+   if (juliaexe == "") {
+      juliaBindir <- Sys.getenv("JULIA_BINDIR")
+      if (juliaBindir == "") {
+         juliaexe <- "julia" # assume julia is in the path
+      } else {
+         juliaexe <- file.path(juliaBindir, "julia")
+      }
+   }
+   return(juliaexe)
 }
 
 
