@@ -68,8 +68,11 @@ t <- juliaCall("testNestedAndUnnested",
 
 juliaEval("function juliaecho(x) x end")
 juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
-juliaEcho(matrix(1:6, nrow = 2))
-juliaEcho(c("bla", "blup", "blip"))
+testEcho <- function(x) {identical(x, juliaEcho(x))}
+m <- matrix(1:6, nrow = 2)
+all(juliaEcho(m) == m)
+v <- c("bla", "blup", "blip")
+all(juliaEcho(v) == v)
 
 
 # Test Let
@@ -90,7 +93,12 @@ d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
 d$keys
 d$values
 identical(juliaEcho(d), d)
-
+d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
+d$keys
+d$values
+identical(juliaEcho(d), d)
+d <- juliaLet("Dict(zip(x, y))", x = list(), y = list())
+identical(juliaEcho(d), d)
 
 # Test Set
 s1 <- juliaEval("Set([1; 2; 3; 4])")

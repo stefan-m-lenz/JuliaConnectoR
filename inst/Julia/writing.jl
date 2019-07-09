@@ -104,10 +104,17 @@ end
 function write_element(outputstream, dict::AbstractDict,
       callbacks::Vector{Function})
 
+   # Assure that keys and values are always in a list,
+   # to allow a straightforward reconstruction later on.
+   # Strings and numbers would otherwise be converted to vectors in R.
+   alwaysaslist(x) = x
+   alwaysaslist(x::Array{N}) where {N <: Union{Number, String}} =
+         ElementList(Vector{Any}(x))
+
    ellist = ElementList(Vector{Any}(),
          [:keys, :values],
-         Dict{Symbol, Any}(:keys => collect(keys(dict)),
-               :values => collect(values(dict))),
+         Dict{Symbol, Any}(:keys => alwaysaslist(collect(keys(dict))),
+               :values => alwaysaslist(collect(values(dict)))),
          Dict{String, Any}("JLTYPE" => string(typeof(dict))))
    write_element(outputstream, ellist, callbacks)
 end
