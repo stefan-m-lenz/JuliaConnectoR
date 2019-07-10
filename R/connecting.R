@@ -6,7 +6,7 @@ juliaConnection <- function() {
       juliaPort <- as.integer(host_port[2])
 
       if (length(host_port) != 2 || is.na(juliaPort)) {
-         error("Environment variable JULIASERVER_SOCKET_ADDRESS must be of form <host>:<port>")
+         stop("Environment variable JULIASERVER_SOCKET_ADDRESS must be of form <host>:<port>")
       }
       message(paste("Connecting to Julia TCP server at", juliaSocketAdress, "..."))
       return(socketConnection(host = host_port[1],
