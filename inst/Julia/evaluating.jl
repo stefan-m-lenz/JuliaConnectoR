@@ -78,10 +78,16 @@ function evaluate!(list::ElementList)
             elseif constructor <: NamedTuple
                return NamedTuple{Tuple(list.names)}(
                      [list.namedelements[name] for name in list.names])
+            elseif constructor <: Symbol
+               return Symbol(list.namedelements[:name])
+            elseif constructor <: Module
+               return Module(list.namedelements[:name])
             else
-               # normal composite type
-               return Base.invokelatest(constructor,
-                     [list.namedelements[name] for name in list.names]...)
+               # normal composite type:
+               # forge call to inner constructor (which may be private)
+               constructorargs = [list.namedelements[name] for name in list.names]
+               return Main.eval(Expr(:new, constructor,
+                     [:($arg) for arg in constructorargs]...))
             end
          else
             if constructor <: Union{Pair, Tuple}

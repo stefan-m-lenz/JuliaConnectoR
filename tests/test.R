@@ -74,7 +74,6 @@ all(juliaEcho(m) == m)
 v <- c("bla", "blup", "blip")
 all(juliaEcho(v) == v)
 
-
 # Test Let
 juliaLet("print(1)")
 assertError(juliaLet("print(x)", 1))
@@ -83,6 +82,10 @@ juliaLet("juliaecho(x)", x=c(2, 3))
 # Test Named Tuples
 namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
 identical(juliaEcho(namedTuple), namedTuple)
+
+# Test Module
+juliaEval("module TestModule end")
+testEcho(juliaEval("TestModule"))
 
 # Test Dictionary
 d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
@@ -107,12 +110,21 @@ length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4))) == 0
 length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4))) == 0
 identical(s1, juliaEcho(s1))
 
+# Test struct with private constructor
+juliaEval('struct MyPrivateX
+            x::Int
+            function MyPrivateX()
+               new(5)
+            end
+          end')
+p <- juliaEval("MyPrivateX()")
+testEcho(p)
 
 # Should error
-juliaCall("sum", c(1,2,3, "bla"))
-juliaCall("thisisnotarealfunction", 100, 4)
-juliaCall("RConnector.thisisnotarealfunction", "haha")
-juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3))
+assertError(juliaCall("sum", c(1,2,3, "bla")))
+assertError(juliaCall("thisisnotarealfunction", 100, 4))
+assertError(juliaCall("RConnector.thisisnotarealfunction", "haha"))
+assertError(juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3)))
 
 
 
