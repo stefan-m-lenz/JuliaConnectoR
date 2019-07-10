@@ -79,6 +79,17 @@ juliaLet("print(1)")
 assertError(juliaLet("print(x)", 1))
 juliaLet("juliaecho(x)", x=c(2, 3))
 
+
+#Test Pairs
+testEcho(juliaEval("(1 => 2.0)"))
+testEcho(juliaEval("1 => 2.0 => 3.0"))
+testEcho(juliaEval("[1 => 2.0, 2 => 3.0]"))
+
+# Test Tuples
+testEcho(juliaEval("(1, 2.0)"))
+testEcho(juliaEval("((1, 2.0), 3.0)"))
+testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
+
 # Test Named Tuples
 namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
 identical(juliaEcho(namedTuple), namedTuple)

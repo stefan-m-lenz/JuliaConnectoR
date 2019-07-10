@@ -90,8 +90,10 @@ function evaluate!(list::ElementList)
                      [:($arg) for arg in constructorargs]...))
             end
          else
-            if constructor <: Union{Pair, Tuple}
+            if constructor <: Pair
                return Base.invokelatest(constructor, list.positionalelements...)
+            elseif constructor <: Tuple
+               return Base.invokelatest(constructor, list.positionalelements)
             else
                # array type or AbstractSet
                return Base.invokelatest(constructor,
