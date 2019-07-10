@@ -139,11 +139,9 @@ function write_element(outputstream, f::Function, callbacks::Vector{Function})
    write_int32(outputstream, callbackid)
 end
 
-function write_element(outputstream, t::T, callbacks::Vector{Function}
-      ) where T <: Union{Tuple, Pair}
-
+function write_element(outputstream, t::Tuple, callbacks::Vector{Function})
    write(outputstream, TYPE_ID_LIST)
-   attributes = Dict{String, Any}("JLTYPE" => string(T))
+   attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
    ellist = ElementList(
          Vector{Any}(collect(t)),
          Vector{Symbol}(), Dict{Symbol, Any}(),
