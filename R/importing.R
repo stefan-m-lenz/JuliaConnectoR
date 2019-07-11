@@ -138,6 +138,8 @@ juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
 #' @export
 #'
 #' @examples
+#' juliaImport("UUIDs")
+#' juliaCall("string", UUIDs.uuid4())
 juliaImport <- function(pkgName, alias = pkgName, importInternal = FALSE) {
    attachJuliaPackage(pkgName, alias,
                       mode = LOAD_MODE_IMPORT,

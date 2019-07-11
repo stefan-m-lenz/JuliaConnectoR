@@ -121,6 +121,11 @@ length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4))) == 0
 length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4))) == 0
 identical(s1, juliaEcho(s1))
 
+# Test types with bitstypes
+juliaUsing("UUIDs")
+juliaCall("string", uuid4()) # TODO does not work!
+
+
 # Test struct with private constructor
 juliaEval('struct MyPrivateX
             x::Int

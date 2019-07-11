@@ -109,7 +109,25 @@ juliaExpr <- function(expr) {
    return(expr)
 }
 
-
+#' Evaluates a Julia expressions in a `let` block and translates the result to R.
+#'
+#' R variables can be passed as named arguments, which are inserted
+#' for those variables in the Julia expression that have the same name
+#' as the named arguments.
+#'
+#' Note that, as the evaluation is done in a `let` block, changes to
+#' global variables in the Julia session are only possible by using
+#' the keyword `global` in front of the Julia variables.
+#'
+#' @param expr a Julia expression which may contain
+#' @param ... the arguments to use in the let block. The names are
+#'
+#' @examples
+#' # Assign a global variable (although not recommended for a functional style)
+#' juliaLet("global x = xval", xval = rnorm(10))
+#' juliaEval("x")
+#'
+#' juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
 juliaLet <- function(expr, ...) {
    args <- list(...)
    if(length(which(names(args) == "")) > 0) {

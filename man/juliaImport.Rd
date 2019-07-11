@@ -25,3 +25,7 @@ This way, all functions (including constructors) exported by the
 package are available in R under their name
 prefixed with the module name plus "\code{.}", like in Julia.
 }
+\examples{
+juliaImport("UUIDs")
+juliaCall("string", UUIDs.uuid4())
+}
