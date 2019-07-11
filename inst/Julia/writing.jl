@@ -177,7 +177,7 @@ function write_element(outputstream, obj::Module,
    ellist = ElementList(
       Vector{Any}(),
       [:name],
-      Dict{Symbol, Any}(:name => Symbol(modulename)),
+      Dict{Symbol, Any}(:name => modulename),
       Dict{String, Any}("JLTYPE" => "Module"))
    write_element(outputstream, ellist, callbacks)
 end

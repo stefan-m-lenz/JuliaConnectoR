@@ -81,7 +81,7 @@ function evaluate!(list::ElementList)
             elseif constructor <: Symbol
                return Symbol(list.namedelements[:name])
             elseif constructor <: Module
-               return Module(list.namedelements[:name])
+               return Module(Symbol(list.namedelements[:name]))
             else
                # normal composite type:
                # forge call to inner constructor (which may be private)
