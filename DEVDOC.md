@@ -6,7 +6,8 @@
             | byebye
     call -> string list
     list -> int32 {element} int32 {named_element} attributes
-    attributes -> int32 {named_element}
+    attributes -> nattributes {named_element}
+    nattributes -> uint8
     named_element -> string element
     element -> '0x00'
             | '0x01' dimensions {double}
@@ -27,8 +28,7 @@
 
 ### Meaning of the int32 numbers
 * A string is preceded by the number of bytes to UTF-8-encode the string.
-* The sequence of unnamed/positional elements in a list or in attributes of a list
-  is preceded by the number of (named) elements that follow.
+* The sequence of unnamed/positional elements in a list is preceded by the number of (named) elements that follow.
 
 ### Types
 Lists that have an attributes `JL_TYPE` will be coerced to the corresponding Julia type.

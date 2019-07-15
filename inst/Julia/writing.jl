@@ -27,6 +27,10 @@ function write_int32s(outputstream, intarr::AbstractArray{Int})
    end
 end
 
+function write_nattributes(outputstream, nattributes::Int)
+   write(outputstream, convert(UInt8, nattributes))
+end
+
 function write_string(outputstream, str::String)
    write_int32(outputstream, ncodeunits(str))
    write(outputstream, str)
@@ -284,7 +288,7 @@ function write_list(outputstream, ellist::ElementList, callbacks::Vector{Functio
       write_element(outputstream, ellist.namedelements[name], callbacks)
    end
 
-   write_int32(outputstream, length(ellist.attributes))
+   write_nattributes(outputstream, length(ellist.attributes))
    for (key, value) in ellist.attributes
       write_string(outputstream, key)
       write_element(outputstream, value, callbacks)

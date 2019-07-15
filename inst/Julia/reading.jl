@@ -59,6 +59,9 @@ end
 
 read_int(inputstream) = read_ints(inputstream, 1)[1]
 
+function read_nattributes(inputstream)
+   ret = read(inputstream, 1)[1]
+end
 
 function read_string(inputstream)
    nbytes = read_int(inputstream)
@@ -179,7 +182,7 @@ function read_list(inputstream, callbacks::Vector{Function})
       end
    end
 
-   nattributes = read_int(inputstream)
+   nattributes = read_nattributes(inputstream)
    attributes = Dict{String, Any}()
    for i in 1:nattributes
       name = read_string(inputstream)

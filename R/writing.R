@@ -17,6 +17,9 @@ writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
+writeNofAttributes <- function(n) {
+   writeBin(as.raw(n), pkgLocal$con)
+}
 
 dimensions <- function(x) {
    if (is.null(dim(x))) {
@@ -127,7 +130,7 @@ writeList <- function(theList, callbacks = list()) {
    listAttributes[["names"]] <- NULL # prevents infinite recursion
    nAttributes <- length(listAttributes)
    attributeNames <- names(listAttributes)
-   writeInt(nAttributes)
+   writeNofAttributes(nAttributes)
    for (i in seq_len(nAttributes)) {
       writeString(attributeNames[i])
       writeElement(listAttributes[[i]])

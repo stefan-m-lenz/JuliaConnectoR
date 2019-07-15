@@ -27,7 +27,7 @@ readInts <- function(n) {
 
 readString <- function() {
    nbytes <- readInt()
-   ret <-  readBin(pkgLocal$con, "raw", nbytes)
+   ret <- readBin(pkgLocal$con, "raw", nbytes)
    ret <- rawToChar(ret)
    Encoding(ret) <- "UTF-8"
    ret
@@ -49,6 +49,10 @@ readDimensions <- function() {
    } else {
       return(readInts(ndimensions))
    }
+}
+
+readNofAttributes <- function() {
+   readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
 }
 
 
@@ -112,7 +116,7 @@ readList <- function(callbacks = list()) {
       ret[[name]] <- readElement(callbacks)
    }
 
-   nAttributes <- readInt()
+   nAttributes <- readNofAttributes()
    listAttributes <- list()
    for (i in seq_len(nAttributes)) {
       name <- readString()
