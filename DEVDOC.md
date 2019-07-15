@@ -31,6 +31,4 @@
 * The sequence of unnamed/positional elements in a list is preceded by the number of (named) elements that follow.
 
 ### Types
-Lists that have an attributes `JL_TYPE` will be coerced to the corresponding Julia type.
-This works only if there is a constructor that accepts all the arguments in the list as positional arguments
-such as the default constructor.
+Lists that have the attribute `JLTYPE` will be coerced to the corresponding Julia type.
