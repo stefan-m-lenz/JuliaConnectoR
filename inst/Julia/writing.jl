@@ -85,14 +85,14 @@ function write_element(outputstream, arr::AbstractArray{Float64},
 end
 
 function write_element(outputstream, arr::AbstractArray{UInt8},
-      callbacks::Vector{Function})
+      callbacks::Vector{Function}, attributes = ())
 
    write(outputstream, TYPE_ID_RAW)
    write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, d)
    end
-   write(outputstream, 0x00) # no attributes
+   write_attributes(outputstream, attributes)
 end
 
 function write_element(outputstream, arr::AbstractArray{T},

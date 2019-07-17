@@ -134,16 +134,6 @@ test_that("Echo: logical vectors", {
 # TODO bitstypes
 
 
-juliaEcho(matrix(1:6, nrow = 2))
-
-
-testEcho(matrix(1:6, nrow = 2))
-
-m <- matrix(1:6, nrow = 2)
-all(juliaEcho(m) == m)
-v <- c("bla", "blup", "blip")
-all(juliaEcho(v) == v)
-
 # Test Let
 juliaLet("print(1)")
 test_that("Let: no named argument", {expect_error(juliaLet("print(x)", 1), "")})
