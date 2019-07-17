@@ -43,8 +43,8 @@ writeAttributes <- function(elem) {
    theAttributes <- attributes(elem)
    theAttributes[["dim"]] <- NULL
    theAttributes[["dimnames"]] <- NULL
-   nAttributes <- length(theAttributes)
    theAttributes[["names"]] <- NULL # prevents infinite recursion
+   nAttributes <- length(theAttributes)
    attributeNames <- names(theAttributes)
    writeNofAttributes(nAttributes)
 

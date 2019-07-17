@@ -312,18 +312,21 @@ function write_element(outputstream, i::Int32, callbacks::Vector{Function},
       attributes = ())
    write(outputstream, TYPE_ID_INT)
    write_int32(outputstream, 0)
-   write_int32(outputstream, i)
+   write(outputstream, i)
    write_attributes(outputstream, attributes)
 end
 
+
 function write_element(outputstream, i::Int64, callbacks::Vector{Function})
-   attributes = (("JLTYPE", "Int64"), )
    if typemin(Int32) <= i <= typemax(Int32)
+      attributes = ()
       write_element(outputstream, Int32(i), callbacks, attributes)
    else
+      attributes = (("JLTYPE", "Int64"),)
       write_element(outputstream, Float64(i), callbacks) # TODO inexactness?
    end
 end
+
 
 function write_element(outputstream, i::T, callbacks::Vector{Function}
       ) where {T <: SEND_AS_RAW_TYPES}

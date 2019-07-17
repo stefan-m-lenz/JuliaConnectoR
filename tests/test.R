@@ -72,18 +72,44 @@ testEcho <- function(x) {
    if(is.list(x)) {
       expect(identical(x, juliaEcho(x)), "Echo did not work")
    } else {
+      e = juliaEcho(x)
       expect(all(x == juliaEcho(x)), "Echo did not work")
    }
 }
 
 
 test_that("Echo: empty R vector", {testEcho(c())})
-test_that("Echo: Float64", {testEcho(juliaEval("1.0"))})
-test_that("Echo: double", {testEcho(1)})
+
+test_that("Echo: double", {
+   expect(is.integer(juliaEcho(1L)))
+   testEcho(1L)
+})
+test_that("Echo: Single Int", {
+   testEcho(1L)
+   expect(is.integer(juliaEval("1")), "1 is not integer")
+   testEcho(juliaEval("1"))
+   expect(is.double(juliaEval("2^52")), "2^52 is not double") # TODO inexactness?
+   testEcho(juliaEval("2^52"))
+})
+test_that("Echo: 1-element vector of Int in Julia", {testEcho(juliaEval("[1]"))})
+test_that("Echo: Matrix of Int", {testEcho(matrix(1:6, nrow = 2))})
+
+test_that("Echo: Single Float64", {
+   testEcho(juliaEval("1.0"))
+   testEcho(1)
+})
+
+test_that("Echo: 0-element vector of Float64 in Julia", {testEcho(juliaEval("Float64[]"))})
 test_that("Echo: 1-element vector of Float64 in Julia", {testEcho(juliaEval("[1.0]"))})
-test_that("Echo: 2-element vector of Float64 in Julia", {testEcho("[1.0; 2.0]")})
-test_that("Echo: 2-element vector of double in R", {testEcho(c(1, 2))})
-test_that("Echo: matrix of Float64 in Julia", {testEcho(juliaEval("[1.0  2.0; 3.0 4.0]"))})
+test_that("Echo: 2-element vector of Float64/double", {
+   testEcho(c(1, 2))
+   testEcho("[1.0; 2.0]")
+})
+test_that("Echo: matrix of Float64 in Julia", {
+   testEcho(juliaEval("[1.0  2.0; 3.0 4.0]"))
+   testEcho(matrix(c(1,2,3,4,4,5), nrow = 2))
+})
+
 test_that("Echo: 1-element vector of Float32 in Julia", {testEcho(juliaEval("[1.0f0]"))})
 test_that("Echo: matrix of Float32 in Julia", {testEcho(juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]"))})
 
@@ -92,6 +118,20 @@ test_that("Echo: 0-element vector of String in Julia", {testEcho("String[]")})
 test_that("Echo: 1-element vector of String in R", {testEcho("bla")})
 test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
+
+test_that("Echo: logical vectors", {
+   testEcho(juliaEval('Bool[]'))
+   testEcho(logical())
+   testEcho(TRUE)
+   testEcho(FALSE)
+   testEcho(c(TRUE, FALSE))
+   testEcho("Bool[true]")
+})
+#TODO complex
+
+#TODO raw
+
+# TODO bitstypes
 
 
 juliaEcho(matrix(1:6, nrow = 2))
