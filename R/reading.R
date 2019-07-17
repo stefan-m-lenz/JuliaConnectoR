@@ -97,7 +97,7 @@ readElement <- function(callbacks) {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)
       if (nElements == 1 && length(dimensions) > 0) {
-         theAttributes <- list("JLDIM", dimensions)
+         theAttributes <- list("JLDIM" = dimensions)
       }
 
       if (typeId == TYPE_ID_DOUBLE) {

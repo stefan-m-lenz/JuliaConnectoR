@@ -76,7 +76,6 @@ testEcho <- function(x) {
    }
 }
 
-ret <- juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]")
 
 test_that("Echo: empty R vector", {testEcho(c())})
 test_that("Echo: Float64", {testEcho(juliaEval("1.0"))})
@@ -84,6 +83,7 @@ test_that("Echo: double", {testEcho(1)})
 test_that("Echo: 1-element vector of Float64 in Julia", {testEcho(juliaEval("[1.0]"))})
 test_that("Echo: 2-element vector of Float64 in R", {testEcho("[1.0; 2.0]")})
 test_that("Echo: matrix of Float64 in Julia", {testEcho(juliaEval("[1.0  2.0; 3.0 4.0]"))})
+test_that("Echo: 1-element vector of Float32 in Julia", {testEcho(juliaEval("[1.0f0]"))})
 test_that("Echo: matrix of Float32 in Julia", {testEcho(juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]"))})
 
 test_that("Echo: 1-element vector of String in Julia", {testEcho(juliaEval('String["bla"]'))})
