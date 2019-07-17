@@ -176,8 +176,11 @@ function convert_reshape_element(element, attributes, dimensions)
          type = maineval(typestr)
          if type <: SEND_AS_RAW_TYPES
             element = reinterpret(type, element)
-            if length(element) == 1 && isempty(attributes, "JLDIM", Int[])
-               element = element[1]
+            # adjust dimensions, as the original dimensions are for a UInt8 array
+            if length(element) == 1 && isempty(get(attributes, "JLDIM", Int[]))
+               dimensions = 0
+            else
+               dimensions[1] /= sizeof(type)
             end
          end
          element = convert.(type, element)

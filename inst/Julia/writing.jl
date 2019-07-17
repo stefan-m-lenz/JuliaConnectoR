@@ -99,7 +99,8 @@ function write_element(outputstream, arr::AbstractArray{T},
       callbacks::Vector{Function}) where {T <: Union{Int8, Int16, UInt16}}
 
    if length(arr) == 1
-      # add information, as the dimension only will not be enough to determine that it is an array
+      # add information, as the dimension only will not
+      # be enough to determine that it is an array
       attributes = (("JLTYPE", string(T)), ("JLDIM", 1))
    else
       attributes = (("JLTYPE", string(T)), )
@@ -130,7 +131,11 @@ end
 function write_element(outputstream, arr::AbstractArray{T},
       callbacks::Vector{Function}) where {T <: SEND_AS_RAW_TYPES}
 
-   attributes = (("JLTYPE", string(T)), )
+   if length(arr) == 1
+      attributes = (("JLTYPE", string(T)), ("JLDIM", collect(size(arr))))
+   else
+      attributes = (("JLTYPE", string(T)), )
+   end
    write_element(outputstream, reinterpret(UInt8, arr),
          callbacks, attributes)
 end

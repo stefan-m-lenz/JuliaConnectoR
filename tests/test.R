@@ -127,17 +127,32 @@ test_that("Echo: logical vectors", {
    testEcho(c(TRUE, FALSE))
    testEcho("Bool[true]")
 })
+
 #TODO complex
 
 #TODO raw
 
-# TODO bitstypes
+# TODO Int32
 
+test_that("Echo: Single Int16", {testEcho(juliaEval('Int16(300)'))})
+test_that("Echo: Int16 Vector", {testEcho(juliaEval('Int16[1,2,3]'))})
+test_that("Echo: 1-element Int16 Vector", {
+   expect(juliaCall("string", juliaEval('Int16[300]')) ==
+      "Int16[300]", "Failed")
+})
+
+
+test_that("Echo: Single UInt128", {testEcho(juliaEval('UInt128(2)^100 +1'))})
+test_that("Echo: UInt128 Vector", {testEcho(juliaEval('UInt128[1,2,3]'))})
+test_that("Echo: 1-element UInt128 Vector", {
+   expect(juliaCall("string", juliaEval('UInt128[1]')) ==
+         "UInt128[0x00000000000000000000000000000001]", "Failed")
+})
 
 # Test Let
 juliaLet("print(1)")
 test_that("Let: no named argument", {expect_error(juliaLet("print(x)", 1), "")})
-juliaLet("juliaecho(x)", x=c(2, 3))
+juliaLet("identity(x)", x=c(2, 3))
 
 
 #Test Pairs
@@ -183,7 +198,7 @@ identical(s1, juliaEcho(s1))
 
 # Test types with bitstypes
 juliaUsing("UUIDs")
-juliaCall("string", uuid4()) # TODO does not work!
+juliaCall("string", uuid4())
 
 
 # Test struct with private constructor
