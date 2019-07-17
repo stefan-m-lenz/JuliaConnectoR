@@ -27,7 +27,8 @@ dimensions <- function(x) {
          if (is.null(attr(x, "JLDIM"))) {
             return(0)
          } else {
-            return(attr(x, "JLDIM"))
+            jldim <- attr(x, "JLDIM")
+            return(c(length(jldim), jldim))
          }
       } else {
          return(c(1, length(x)))
