@@ -1,5 +1,6 @@
 library(JuliaConnectoR)
 library(tools)
+library(testthat)
 
 # Should work
 juliaCall("prod", c(1,2,3))
@@ -66,9 +67,37 @@ t <- juliaCall("testNestedAndUnnested",
                list(x = 1, 2, 3)) # TODO try with function with error
 
 
-juliaEval("function juliaecho(x) x end")
-juliaEcho <- function(...) juliaCall("juliaecho", ...) # TODO more tests with all kinds of datatypes
-testEcho <- function(x) {identical(x, juliaEcho(x))}
+juliaEcho <- function(x) juliaCall("identity", x) # TODO more tests with all kinds of datatypes
+testEcho <- function(x) {
+   if(is.list(x)) {
+      expect(identical(x, juliaEcho(x)), "Echo did not work")
+   } else {
+      expect(all(x == juliaEcho(x)), "Echo did not work")
+   }
+}
+
+ret <- juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]")
+
+test_that("Echo: empty R vector", {testEcho(c())})
+test_that("Echo: Float64", {testEcho(juliaEval("1.0"))})
+test_that("Echo: double", {testEcho(1)})
+test_that("Echo: 1-element vector of Float64 in Julia", {testEcho(juliaEval("[1.0]"))})
+test_that("Echo: 2-element vector of Float64 in R", {testEcho("[1.0; 2.0]")})
+test_that("Echo: matrix of Float64 in Julia", {testEcho(juliaEval("[1.0  2.0; 3.0 4.0]"))})
+test_that("Echo: matrix of Float32 in Julia", {testEcho(juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]"))})
+
+test_that("Echo: 1-element vector of String in Julia", {testEcho(juliaEval('String["bla"]'))})
+test_that("Echo: 1-element vector of String in R", {testEcho(c("bla", "blup"))})
+test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
+
+testEcho("bla")
+testEcho(c("bla", "bla"))
+
+juliaEcho(matrix(1:6, nrow = 2))
+
+
+testEcho(matrix(1:6, nrow = 2))
+
 m <- matrix(1:6, nrow = 2)
 all(juliaEcho(m) == m)
 v <- c("bla", "blup", "blip")
@@ -76,7 +105,7 @@ all(juliaEcho(v) == v)
 
 # Test Let
 juliaLet("print(1)")
-assertError(juliaLet("print(x)", 1))
+test_that("Let: no named argument", {expect_error(juliaLet("print(x)", 1), "")})
 juliaLet("juliaecho(x)", x=c(2, 3))
 
 

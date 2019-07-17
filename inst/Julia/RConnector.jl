@@ -18,6 +18,10 @@ const RESULT_INDICATOR = 0x00
 const FAIL_INDICATOR = 0xff
 const BYEBYE = 0xbb
 
+const NO_ATTRIBUTES = Base.ImmutableDict{String, Any}()
+
+const SEND_AS_RAW_TYPES = Union{UInt32, UInt64, Int128, UInt128}
+
 include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")

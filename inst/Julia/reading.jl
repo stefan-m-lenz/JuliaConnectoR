@@ -43,10 +43,23 @@ end
 function emptyfun(args...; kwargs...)
 end
 
+
+function read_attributes(inputstream)
+   nattributes = read_nattributes(inputstream)
+   attributes = Dict{String, Any}()
+   for i in 1:nattributes
+      name = read_string(inputstream)
+      attributes[name] = read_element(inputstream, Vector{Function}())
+   end
+   attributes
+end
+
+
 function read_complexs(inputstream, n::Int)
    doublepairs = reinterpret(Float64, read(inputstream, 16*n))
    map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
 end
+
 
 function read_float64s(inputstream, n::Int)
    reinterpret(Float64, read(inputstream, 8*n))
@@ -59,9 +72,11 @@ end
 
 read_int(inputstream) = read_ints(inputstream, 1)[1]
 
+
 function read_nattributes(inputstream)
    ret = read(inputstream, 1)[1]
 end
+
 
 function read_string(inputstream)
    nbytes = read_int(inputstream)
@@ -118,30 +133,59 @@ function read_element(inputstream, callbacks::Vector{Function})
       dimensions = read_dimensions(inputstream)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)
 
+      attributes = NO_ATTRIBUTES
       if typeid == TYPE_ID_FLOAT64
          ret = read_float64s(inputstream, nelements)
+         attributes = read_attributes(inputstream)
       elseif typeid == TYPE_ID_INT
          ret = read_ints(inputstream, nelements)
+         attributes = read_attributes(inputstream)
       elseif typeid == TYPE_ID_BOOL
          ret = read_bools(inputstream, nelements)
+         return reshape_element(ret, dimensions)
       elseif typeid == TYPE_ID_STRING
          ret = read_strings(inputstream, nelements)
+         attributes = read_attributes(inputstream)
       elseif typeid == TYPE_ID_COMPLEX
          ret = read_complexs(inputstream, nelements)
+         attributes = read_attributes(inputstream)
       elseif typeid == TYPE_ID_RAW
          ret = read(inputstream, nelements)
+         attributes = read_attributes(inputstream)
       else
          return Fail("Invalid type id $typeid of element")
       end
 
-      if dimensions == 0
-         ret = ret[1]
-      else # dimensions > 0
-         ret = Array(reshape(ret, dimensions...))
+      return convert_reshape_element(ret, attributes, dimensions)
+   end
+end
+
+
+function reshape_element(element, dimensions)
+   if dimensions == 0
+      return element[1]
+   else # dimensions > 0
+      return Array(reshape(element, dimensions...))
+   end
+end
+
+function convert_reshape_element(element, attributes, dimensions)
+   typestr = get(attributes, "JLTYPE", "")
+   if typestr != ""
+      try
+         type = maineval(typestr)
+         if type <: SEND_AS_RAW_TYPES
+            element = reinterpret(type, element)
+            if length(element) == 1 && isempty(attributes, "JLDIM", Int[])
+               element = element[1]
+            end
+         end
+         element = convert.(type, element)
+      catch ex
+         return Fail("Conversion to type \"$typestr\" failed. Original error: $ex")
       end
    end
-
-   ret
+   return reshape_element(element, dimensions)
 end
 
 
@@ -182,12 +226,7 @@ function read_list(inputstream, callbacks::Vector{Function})
       end
    end
 
-   nattributes = read_nattributes(inputstream)
-   attributes = Dict{String, Any}()
-   for i in 1:nattributes
-      name = read_string(inputstream)
-      attributes[name] = read_element(inputstream, callbacks)
-   end
+   attributes = read_attributes(inputstream)
 
    ElementList(positionalelements, names, namedelements, attributes, fails)
 end

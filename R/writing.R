@@ -24,7 +24,11 @@ writeNofAttributes <- function(n) {
 dimensions <- function(x) {
    if (is.null(dim(x))) {
       if (length(x) == 1) {
-         return(0)
+         if (is.null(attr(x, "JLDIM"))) {
+            return(0)
+         } else {
+            return(attr(x, "JLDIM"))
+         }
       } else {
          return(c(1, length(x)))
       }
@@ -33,6 +37,21 @@ dimensions <- function(x) {
    }
 }
 
+
+writeAttributes <- function(elem) {
+   theAttributes <- attributes(elem)
+   theAttributes[["dim"]] <- NULL
+   theAttributes[["dimnames"]] <- NULL
+   nAttributes <- length(theAttributes)
+   theAttributes[["names"]] <- NULL # prevents infinite recursion
+   attributeNames <- names(theAttributes)
+   writeNofAttributes(nAttributes)
+
+   for (i in seq_len(nAttributes)) {
+      writeString(attributeNames[i])
+      writeElement(theAttributes[[i]])
+   }
+}
 
 writeElement <- function(elem, callbacks = list()) {
 
@@ -61,14 +80,17 @@ writeElement <- function(elem, callbacks = list()) {
          warning(paste0("Could not coerce type of element ", element, ". Writing NULL."))
       }
 
-      if (typeId <= TYPE_ID_RAW) { # clearly defined number of bytes
+      if (typeId <= TYPE_ID_RAW) {
+         # all types with a clearly defined number of bytes in R
          writeBin(typeId, pkgLocal$con)
          writeInt(dimensions(elem))
          writeBin(as.vector(elem), pkgLocal$con)
+         writeAttributes(elem)
       } else if (typeId == TYPE_ID_INTEGER) {
          writeBin(TYPE_ID_INTEGER, pkgLocal$con)
          writeInt(dimensions(elem))
          writeInt(elem)
+         writeAttributes(elem)
       } else if (typeId == TYPE_ID_LOGICAL) {
          writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
          writeInt(dimensions(elem))
@@ -80,6 +102,7 @@ writeElement <- function(elem, callbacks = list()) {
             for (i in 1:length(elem)) {
                writeString(elem[i])
             }
+            writeAttributes(elem)
          } else {
             writeExpression(elem)
          }
@@ -91,6 +114,7 @@ writeElement <- function(elem, callbacks = list()) {
 
    return(callbacks)
 }
+
 
 writeExpression <- function(str) {
    writeBin(TYPE_ID_EXPRESSION, pkgLocal$con)
@@ -126,16 +150,7 @@ writeList <- function(theList, callbacks = list()) {
       }
    }
 
-   listAttributes <- attributes(theList)
-   listAttributes[["names"]] <- NULL # prevents infinite recursion
-   nAttributes <- length(listAttributes)
-   attributeNames <- names(listAttributes)
-   writeNofAttributes(nAttributes)
-   for (i in seq_len(nAttributes)) {
-      writeString(attributeNames[i])
-      writeElement(listAttributes[[i]])
-   }
-
+   writeAttributes(theList)
    return(callbacks)
 }
 

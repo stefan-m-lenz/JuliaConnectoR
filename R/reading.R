@@ -42,10 +42,29 @@ readStrings <- function(n = 1) {
 }
 
 
+readAttributes <- function() {
+   nAttributes <- readNofAttributes()
+   theAttributes <- list()
+   for (i in seq_len(nAttributes)) {
+      name <- readString()
+      theAttributes[[name]] <- readElement()
+   }
+   theAttributes
+}
+
+
+addAttributes <- function(x, theAttributes) {
+   for (attrKey in names(theAttributes)) {
+      attr(x, attrKey) <- theAttributes[[attrKey]]
+   }
+   x
+}
+
+
 readDimensions <- function() {
    ndimensions <- readInt()
    if (ndimensions == 0) {
-      return(1) # everything is a vector in R
+      return(c())
    } else {
       return(readInts(ndimensions))
    }
@@ -57,6 +76,7 @@ readNofAttributes <- function() {
 
 
 readElement <- function(callbacks) {
+   theAttributes <- list()
    typeId <- readBin(pkgLocal$con, "raw", 1)
    if (typeId == TYPE_ID_LIST) {
       return(readList(callbacks))
@@ -76,27 +96,36 @@ readElement <- function(callbacks) {
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)
+      if (nElements == 1 && length(dimensions) > 0) {
+         theAttributes <- list("JLDIM", dimensions)
+      }
 
       if (typeId == TYPE_ID_DOUBLE) {
          ret <- readBin(pkgLocal$con, "double", nElements)
+         theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_INTEGER) {
          ret <- readInts(nElements)
+         theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_LOGICAL) {
          ret <- readLogical(nElements)
       } else if (typeId == TYPE_ID_STRING) {
          ret <- readStrings(nElements)
+         theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_COMPLEX) {
          ret <- readBin(pkgLocal$con, "complex", nElements)
+         theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_RAW) {
          ret <- readBin(pkgLocal$con, "raw", nElements)
+         theAttributes <- c(theAttributes, readAttributes())
       } else {
          stopJulia()
          stop(paste("Invalid type ID", typeId))
       }
 
-      if (length(dimensions) > 1) {
+      if (length(dimensions) > 1) { # reshape
          ret <- array(ret, dim = dimensions)
       }
+      ret <- addAttributes(ret, theAttributes)
    }
    ret
 }
@@ -116,14 +145,7 @@ readList <- function(callbacks = list()) {
       ret[[name]] <- readElement(callbacks)
    }
 
-   nAttributes <- readNofAttributes()
-   listAttributes <- list()
-   for (i in seq_len(nAttributes)) {
-      name <- readString()
-      listAttributes[[name]] <- readElement()
-   }
-   attributes(ret) <- c(list(names = names(ret)), listAttributes)
-
+   attributes(ret) <- c(list(names = names(ret)), readAttributes())
    ret
 }
 

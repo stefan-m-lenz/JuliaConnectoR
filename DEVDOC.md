@@ -10,12 +10,12 @@
     nattributes -> uint8
     named_element -> string element
     element -> '0x00'
-            | '0x01' dimensions {double}
-            | '0x02' dimensions {complex}
-            | '0x03' dimensions {raw}
-            | '0x04' dimensions {integer}
+            | '0x01' dimensions {double} attributes
+            | '0x02' dimensions {complex} attributes
+            | '0x03' dimensions {raw} attributes
+            | '0x04' dimensions {integer} attributes
             | '0x05' dimensions {boolean}
-            | '0x06' dimensions {string}
+            | '0x06' dimensions {string} attributes
             | '0x07' list
             | '0xcb' callback
             | '0xee' expression
@@ -32,3 +32,12 @@
 
 ### Types
 Lists that have the attribute `JLTYPE` will be coerced to the corresponding Julia type.
+
+## Conversion table for bitstypes:
+
+TODO complete
+
+| Julia type | R type|
+| -----------|-------|
+| `Int8`, `Int16` | `integer` with original type as attribute |
+| `UInt8` | `raw` |
