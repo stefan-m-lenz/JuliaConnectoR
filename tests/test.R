@@ -4,10 +4,10 @@ library(testthat)
 juliaEcho <- function(x) juliaCall("identity", x) # TODO more tests with all kinds of datatypes
 testEcho <- function(x) {
    if(is.list(x)) {
-      expect(identical(x, juliaEcho(x)), "Echo did not work")
+      expect_identical(x, juliaEcho(x))
    } else {
       e = juliaEcho(x)
-      expect(all(x == juliaEcho(x)), "Echo did not work")
+      expect_equivalent(x, juliaEcho(x))
    }
 }
 
