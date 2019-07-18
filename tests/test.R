@@ -1,31 +1,35 @@
 library(JuliaConnectoR)
-library(tools)
 library(testthat)
 
 # Should work
-juliaCall("prod", c(1,2,3))
-juliaCall("show", NULL)
-juliaCall("string", list())
-juliaCall("println", "hello world")
-juliaCall("string", list(as.integer(1), "bla" = 23L))
-juliaEval("String[]")
-juliaCall("eval", "println(22)")
-juliaEval("using Random; Random.seed!(5)")
-juliaEval("Random.seed!(5);") # no return value
+test_that("Some smoke tests", {
+   expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
+   juliaCall("show", NULL)
+   juliaCall("string", list())
+   juliaCall("println", "hello world")
+   juliaCall("string", list(as.integer(1), "bla" = 23L))
+   juliaEval("String[]")
+   juliaCall("eval", "println(22)")
+   expect(!is.null(juliaEval("using Random; Random.seed!(5)")),
+          "Must be able to set random seed")
+   expect(is.null(juliaEval("Random.seed!(5);")),
+          "Eval with semicolon at end returns NULL")
+})
 
-# Package loading
-# If not installed, run
-# juliaEval('using Pkg; Pkg.add("StatsBase")')
-juliaImport("StatsBase")
-StatsBase.mean_and_var(c(1,2,3))
-StatsBase.renyientropy(rnorm(100), 1)
 
-# more exotic data types
-juliaImport("LinearAlgebra", alias = "jla")
-jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
-            matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
-jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
-juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+test_that("Test loading and importing a complex package", {
+   juliaLet('using Pkg;
+             if !haskey(Pkg.installed(), "StatsBase")
+               Pkg.add("StatsBase")
+             end
+             ') # TODO does not work with eval
+   juliaImport("StatsBase")
+   expectedMeanAndVar <- list(2,1)
+   attr(expectedMeanAndVar, "JLTYPE") <- "Tuple{Float64, Float64}"
+   expect(all(as.numeric(StatsBase.mean_and_var(c(1,2,3))) == c(2,1)),
+          "Trivial mean and var calculation")
+   StatsBase.renyientropy(rnorm(100), 1)
+})
 
 
 
@@ -130,6 +134,13 @@ test_that("Echo: logical vectors", {
 
 #TODO complex
 
+# TODO fix
+juliaImport("LinearAlgebra", alias = "jla")
+jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
+            matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
+jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
+juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+
 #TODO raw
 
 # TODO Int32
@@ -150,9 +161,9 @@ test_that("Echo: 1-element UInt128 Vector", {
 })
 
 # Test Let
-juliaLet("print(1)")
-test_that("Let: no named argument", {expect_error(juliaLet("print(x)", 1), "")})
-juliaLet("identity(x)", x=c(2, 3))
+test_that("let: used like eval", {expect(is.null(juliaLet("print(1)")), "Failed")})
+test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
+test_that("Let: basic echo", {expect(juliaLet("identity(x)", x=c(2, 3)) == c(2,3), "Failed")})
 
 
 #Test Pairs
@@ -211,11 +222,14 @@ juliaEval('struct MyPrivateX
 p <- juliaEval("MyPrivateX()")
 testEcho(p)
 
-# Should error
-assertError(juliaCall("sum", c(1,2,3, "bla")))
-assertError(juliaCall("thisisnotarealfunction", 100, 4))
-assertError(juliaCall("RConnector.thisisnotarealfunction", "haha"))
-assertError(juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3)))
+
+test_that("Errors are handled gracefully", {
+   expect_error(juliaCall("sum", c(1,2,3, "bla")))
+   expect_error(juliaCall("thisisnotarealfunction", 100, 4))
+   expect_error(juliaCall("RConnector.thisisnotarealfunction", "haha"))
+   expect_error(juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3)))
+})
+
 
 
 
