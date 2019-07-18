@@ -87,6 +87,10 @@ end
 function write_element(outputstream, arr::AbstractArray{UInt8},
       callbacks::Vector{Function}, attributes = ())
 
+   if length(arr) == 1
+      attributes = tuple(attributes..., ("JLDIM", 1))
+   end
+
    write(outputstream, TYPE_ID_RAW)
    write_dimensions(outputstream, arr)
    for d in arr
@@ -98,19 +102,17 @@ end
 function write_element(outputstream, arr::AbstractArray{T},
       callbacks::Vector{Function}) where {T <: Union{Int8, Int16, UInt16}}
 
-   if length(arr) == 1
-      # add information, as the dimension only will not
-      # be enough to determine that it is an array
-      attributes = (("JLTYPE", string(T)), ("JLDIM", 1))
-   else
-      attributes = (("JLTYPE", string(T)), )
-   end
+   attributes = (("JLTYPE", string(T)), )
    write_element(outputstream, convert(Array{Int32}, arr),
          callbacks, attributes)
 end
 
 function write_element(outputstream, arr::AbstractArray{Int32},
       callbacks::Vector{Function}, attributes = ())
+
+   if length(arr) == 1
+      attributes = tuple(attributes..., ("JLDIM", 1))
+   end
 
    write(outputstream, TYPE_ID_INT)
    write_dimensions(outputstream, arr)
@@ -143,19 +145,24 @@ end
 function write_element(outputstream, arr::AbstractArray{Complex{Float64}},
       callbacks::Vector{Function}, attributes = ())
 
+   if length(arr) == 1
+      attributes = tuple(attributes..., ("JLDIM", 1))
+   end
+
    write(outputstream, TYPE_ID_COMPLEX)
    write_dimensions(outputstream, arr)
    for d in arr
       write(outputstream, real(d))
       write(outputstream, imag(d))
    end
+   write_attributes(outputstream, attributes)
 end
 
 function write_element(outputstream, arr::AbstractArray{Complex{T}},
       callbacks::Vector{Function}
       ) where {T <: Union{Int32, Int64, Float16, Float32}}
 
-   attributes = (("JLTYPE", string(T)), )
+   attributes = (("JLTYPE", string(Complex{T})), )
    write_element(outputstream, convert.(Complex{Float64}, arr),
          callbacks, attributes)
 end
@@ -363,8 +370,8 @@ end
 
 function write_element(outputstream, c::Complex{T}, callbacks::Vector{Function}
       ) where {T <: Union{Int32, Int64, Float16, Float32}}
-   attributes = (("JLTYPE", string(T)), )
-   write_element(outputstream, c, callbacks, attributes)
+   attributes = (("JLTYPE", string(typeof(c))), )
+   write_element(outputstream, convert(Complex{Float64}, c), callbacks, attributes)
 end
 
 function write_element(outputstream, u::UInt8, callbacks::Vector{Function})

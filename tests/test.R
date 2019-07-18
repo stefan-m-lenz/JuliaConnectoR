@@ -1,6 +1,17 @@
 library(JuliaConnectoR)
 library(testthat)
 
+juliaEcho <- function(x) juliaCall("identity", x) # TODO more tests with all kinds of datatypes
+testEcho <- function(x) {
+   if(is.list(x)) {
+      expect(identical(x, juliaEcho(x)), "Echo did not work")
+   } else {
+      e = juliaEcho(x)
+      expect(all(x == juliaEcho(x)), "Echo did not work")
+   }
+}
+
+
 # Should work
 test_that("Some smoke tests", {
    expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
@@ -71,21 +82,11 @@ t <- juliaCall("testNestedAndUnnested",
                list(x = 1, 2, 3)) # TODO try with function with error
 
 
-juliaEcho <- function(x) juliaCall("identity", x) # TODO more tests with all kinds of datatypes
-testEcho <- function(x) {
-   if(is.list(x)) {
-      expect(identical(x, juliaEcho(x)), "Echo did not work")
-   } else {
-      e = juliaEcho(x)
-      expect(all(x == juliaEcho(x)), "Echo did not work")
-   }
-}
-
 
 test_that("Echo: empty R vector", {testEcho(c())})
 
 test_that("Echo: double", {
-   expect(is.integer(juliaEcho(1L)))
+   expect(is.integer(juliaEcho(1L)), "Must be integer")
    testEcho(1L)
 })
 test_that("Echo: Single Int", {
@@ -132,16 +133,24 @@ test_that("Echo: logical vectors", {
    testEcho("Bool[true]")
 })
 
-#TODO complex
+test_that("Complex are handled first class", {
+   testEcho(1i)
+   testEcho(juliaEval("1+im"))
+   testEcho(juliaEval("[1+im]"))
+   testEcho(juliaEval("[1+im; 2+im]"))
+   testEcho(c(1+1i,2 + 2i))
 
-# TODO fix
-juliaImport("LinearAlgebra", alias = "jla")
-jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
-            matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)
-jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0
-juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+   juliaImport("LinearAlgebra", alias = "jla")
+   testEcho(matrix(c(1, 0, 0, -1), ncol = 2))
+   expect(all(jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
+                   matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)),
+          "")
+   expect(all(jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0), "")
+})
+
 
 #TODO raw
+juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
 
 # TODO Int32
 
@@ -163,7 +172,7 @@ test_that("Echo: 1-element UInt128 Vector", {
 # Test Let
 test_that("let: used like eval", {expect(is.null(juliaLet("print(1)")), "Failed")})
 test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
-test_that("Let: basic echo", {expect(juliaLet("identity(x)", x=c(2, 3)) == c(2,3), "Failed")})
+test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c(2,3)), "Failed")})
 
 
 #Test Pairs
