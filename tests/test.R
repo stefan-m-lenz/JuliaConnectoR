@@ -12,7 +12,6 @@ testEcho <- function(x) {
 }
 
 
-# Should work
 test_that("Some smoke tests", {
    expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
    juliaCall("show", NULL)
@@ -149,24 +148,37 @@ test_that("Complex are handled first class", {
 })
 
 
-#TODO raw
-juliaCall("string", c(as.raw(0xca), as.raw(0xfe)))
+test_that("Echo: raw vector", {
+   testEcho(as.raw(c(1,2,3)))
+   testEcho(juliaEval("[0x01]"))
+   testEcho(juliaEval("UInt8[]"))
+   expect_equivalent(juliaEval("[0x01 0x02; 0x03 0x04]"),
+                     matrix(c(1,3,2,4), nrow = 2))
+   expect_equal(juliaCall("string", c(as.raw(0xca), as.raw(0xfe))),
+                "UInt8[0xca, 0xfe]")
+})
 
-# TODO Int32
+
+test_that("Echo: raw vector", {
+   testEcho(juliaEval("Int32[1, 2]"))
+   testEcho(juliaEval("Int32[]"))
+   testEcho(juliaEval("Int32[1]"))
+})
+
 
 test_that("Echo: Single Int16", {testEcho(juliaEval('Int16(300)'))})
 test_that("Echo: Int16 Vector", {testEcho(juliaEval('Int16[1,2,3]'))})
 test_that("Echo: 1-element Int16 Vector", {
-   expect(juliaCall("string", juliaEval('Int16[300]')) ==
-      "Int16[300]", "Failed")
+   expect_equal(juliaCall("string", juliaEval('Int16[300]')),
+                "Int16[300]")
 })
 
 
 test_that("Echo: Single UInt128", {testEcho(juliaEval('UInt128(2)^100 +1'))})
 test_that("Echo: UInt128 Vector", {testEcho(juliaEval('UInt128[1,2,3]'))})
 test_that("Echo: 1-element UInt128 Vector", {
-   expect(juliaCall("string", juliaEval('UInt128[1]')) ==
-         "UInt128[0x00000000000000000000000000000001]", "Failed")
+   expect_equal(juliaCall("string", juliaEval('UInt128[1]')),
+                "UInt128[0x00000000000000000000000000000001]")
 })
 
 # Test Let
@@ -176,60 +188,75 @@ test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c
 
 
 #Test Pairs
-testEcho(juliaEval("(1 => 2.0)"))
-testEcho(juliaEval("1 => 2.0 => 3.0"))
-testEcho(juliaEval("[1 => 2.0, 2 => 3.0]"))
+test_that("Echo: Pairs", {
+   testEcho(juliaEval("(1 => 2.0)"))
+   testEcho(juliaEval("1 => 2.0 => 3.0"))
+   testEcho(juliaEval("[1 => 2.0, 2 => 3.0]"))
+})
+
 
 # Test Tuples
-testEcho(juliaEval("(1, 2.0)"))
-testEcho(juliaEval("((1, 2.0), 3.0)"))
-testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
+test_that("Echo: Tuples", {
+   testEcho(juliaEval("(1, 2.0)"))
+   testEcho(juliaEval("((1, 2.0), 3.0)"))
+   testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
+})
+
 
 # Test Named Tuples
-namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
-identical(juliaEcho(namedTuple), namedTuple)
+test_that("Echo: Named Tuples", {
+   namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+   testEcho(namedTuple)
+})
+
 
 # Test Module
-juliaEval("module TestModule end")
-testEcho(juliaEval("TestModule"))
+test_that("Echo: Module", {
+   juliaEval("module TestModule end")
+   testEcho(juliaEval("TestModule"))
+})
 
 # Test Dictionary
-d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
-d$keys
-d$values
-identical(juliaEcho(d), d)
-d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
-d$keys
-d$values
-identical(juliaEcho(d), d)
-d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
-d$keys
-d$values
-identical(juliaEcho(d), d)
-d <- juliaLet("Dict(zip(x, y))", x = list(), y = list())
-identical(juliaEcho(d), d)
+test_that("Echo: Dictionary", {
+   d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
+   testEcho(d)
+   d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
+   testEcho(d)
+   d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
+   testEcho(d)
+   d <- juliaLet("Dict(zip(x, y))", x = list(), y = list())
+   testEcho(d)
+})
+
 
 # Test Set
-s1 <- juliaEval("Set([1; 2; 3; 4])")
-s2 <- juliaEval("Set([1; 2])")
-length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4))) == 0
-length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4))) == 0
-identical(s1, juliaEcho(s1))
+test_that("Echo: Set", {
+   s1 <- juliaEval("Set([1; 2; 3; 4])")
+   s2 <- juliaEval("Set([1; 2])")
+   expect_length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4)), 0)
+   expect_length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4)), 0)
+   testEcho(s1)
+})
+
 
 # Test types with bitstypes
-juliaUsing("UUIDs")
-juliaCall("string", uuid4())
+test_that("Object with bitstype", {
+   uuidregex <- '^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}$'
+   juliaImport("UUIDs")
+   expect_match(juliaCall("string", UUIDs.uuid4()), uuidregex)
+})
 
 
-# Test struct with private constructor
-juliaEval('struct MyPrivateX
+test_that("Private inner constructor is forged", {
+   juliaEval('struct MyPrivateX
             x::Int
             function MyPrivateX()
                new(5)
             end
           end')
-p <- juliaEval("MyPrivateX()")
-testEcho(p)
+   p <- juliaEval("MyPrivateX()")
+   testEcho(p)
+})
 
 
 test_that("Errors are handled gracefully", {
