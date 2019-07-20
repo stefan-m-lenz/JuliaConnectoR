@@ -1,7 +1,7 @@
 library(JuliaConnectoR)
 library(testthat)
 
-juliaEcho <- function(x) juliaCall("identity", x) # TODO more tests with all kinds of datatypes
+juliaEcho <- function(x) juliaCall("identity", x)
 testEcho <- function(x) {
    if(is.list(x)) {
       expect_identical(x, juliaEcho(x))
@@ -42,52 +42,15 @@ test_that("Test loading and importing a complex package", {
 })
 
 
-
-# Nested callback functions
-juliaEval('struct TestStruct f::Function end')
-juliaEval('function testNestedFun(ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
-t <- juliaCall("testNestedFun",
-               list(juliaCall("TestStruct", function() {print("bla")}),
-                    juliaCall("TestStruct", function() {print("blup")}),
-                    juliaCall("TestStruct", function() {print("blip")})))
-
-juliaEval('function testNestedFunNamed(;ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
-t <- juliaCall("testNestedFunNamed", ts =
-               list(juliaCall("TestStruct", function() {print("bla")}),
-                    juliaCall("TestStruct", function() {print("blup")})))
-
-
-# test repeated call of nested functions
-juliaEval('function testNestedFun2(ts::Vector{TestStruct}) for i = 1:2 map(t -> t.f(), ts) end end')
-t <- juliaCall("testNestedFun2",
-               list(juliaCall("TestStruct", function() {print("bla")}),
-                    juliaCall("TestStruct", function() {print("blup")})))
-
-
-juliaEval('function testNestedFunArgs(ts::Vector{TestStruct}, args...) map(t -> t.f(args...), ts) end')
-t <- juliaCall("testNestedFunArgs",
-               list(juliaCall("TestStruct", function(x) {print(x)}),
-                    juliaCall("TestStruct", function(x, y) {print(x); return(c(5,6,7))})),
-               c(1, 2, 3))
-
-juliaEval('function testNestedAndUnnested(f::Function, ts::Vector{TestStruct}, args...)
-            testNestedFunArgs(ts, args...)
-            f(args...)
-          end')
-t <- juliaCall("testNestedAndUnnested",
-               function(x) {print("1"); print(x)},
-               list(juliaCall("TestStruct", function(x) {print("2"); print(x)}),
-                    juliaCall("TestStruct", function(x, y) {print("3") ;print(x); return(c(5,6,7))})),
-               list(x = 1, 2, 3)) # TODO try with function with error
-
-
-
 test_that("Echo: empty R vector", {testEcho(c())})
+
 
 test_that("Echo: double", {
    expect(is.integer(juliaEcho(1L)), "Must be integer")
    testEcho(1L)
 })
+
+
 test_that("Echo: Single Int", {
    testEcho(1L)
    expect(is.integer(juliaEval("1")), "1 is not integer")
@@ -98,10 +61,12 @@ test_that("Echo: Single Int", {
 test_that("Echo: 1-element vector of Int in Julia", {testEcho(juliaEval("[1]"))})
 test_that("Echo: Matrix of Int", {testEcho(matrix(1:6, nrow = 2))})
 
+
 test_that("Echo: Single Float64", {
    testEcho(juliaEval("1.0"))
    testEcho(1)
 })
+
 
 test_that("Echo: 0-element vector of Float64 in Julia", {testEcho(juliaEval("Float64[]"))})
 test_that("Echo: 1-element vector of Float64 in Julia", {testEcho(juliaEval("[1.0]"))})
@@ -114,6 +79,7 @@ test_that("Echo: matrix of Float64 in Julia", {
    testEcho(matrix(c(1,2,3,4,4,5), nrow = 2))
 })
 
+
 test_that("Echo: 1-element vector of Float32 in Julia", {testEcho(juliaEval("[1.0f0]"))})
 test_that("Echo: matrix of Float32 in Julia", {testEcho(juliaEval("[1.0f0  2.0f0; 3.0f0 4.0f0]"))})
 
@@ -123,6 +89,7 @@ test_that("Echo: 1-element vector of String in R", {testEcho("bla")})
 test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
 
+
 test_that("Echo: logical vectors", {
    testEcho(juliaEval('Bool[]'))
    testEcho(logical())
@@ -131,6 +98,7 @@ test_that("Echo: logical vectors", {
    testEcho(c(TRUE, FALSE))
    testEcho("Bool[true]")
 })
+
 
 test_that("Complex are handled first class", {
    testEcho(1i)
@@ -180,6 +148,7 @@ test_that("Echo: 1-element UInt128 Vector", {
    expect_equal(juliaCall("string", juliaEval('UInt128[1]')),
                 "UInt128[0x00000000000000000000000000000001]")
 })
+
 
 # Test Let
 test_that("let: used like eval", {expect(is.null(juliaLet("print(1)")), "Failed")})
@@ -267,5 +236,61 @@ test_that("Errors are handled gracefully", {
 })
 
 
+test_that("Callback functions", {
 
+   outputenv <- new.env(parent = emptyenv())
+   outputenv$output <- c()
+   doOutput <- function(x) {
+      outputenv$output <- c(outputenv$output, x)
+   }
+
+   # Nested callback functions
+   juliaEval('struct TestStruct f::Function end')
+   juliaEval('function testNestedFun(ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
+   t <- juliaCall("testNestedFun",
+                  list(juliaCall("TestStruct", function() {doOutput("a")}),
+                       juliaCall("TestStruct", function() {doOutput("b")}),
+                       juliaCall("TestStruct", function() {doOutput("c")})))
+   expect_equal(outputenv$output, c("a", "b", "c"))
+
+   # as named arguments
+   outputenv$output <- c()
+   juliaEval('function testNestedFunNamed(;ts::Vector{TestStruct}) map(t -> t.f(), ts) end')
+   t <- juliaCall("testNestedFunNamed", ts =
+                     list(juliaCall("TestStruct", function() {doOutput("x")}),
+                          juliaCall("TestStruct", function() {doOutput("y")})))
+   expect_equal(outputenv$output, c("x", "y"))
+
+
+   # test repeated call of nested functions
+   outputenv$output <- c()
+   juliaEval('function testNestedFun2(ts::Vector{TestStruct}) for i = 1:2 map(t -> t.f(), ts) end end')
+   t <- juliaCall("testNestedFun2",
+                  list(juliaCall("TestStruct", function() {doOutput(1)}),
+                       juliaCall("TestStruct", function() {doOutput(2)})))
+   expect_equal(outputenv$output, c(1,2,1,2))
+
+   # Test multiple arguments
+   outputenv$output <- c()
+   juliaEval('function testNestedFunArgs(ts::Vector{TestStruct}, args...) map(t -> t.f(args...), ts) end')
+   t <- juliaCall("testNestedFunArgs",
+                  list(juliaCall("TestStruct", function(x, y, z) {doOutput(x)}),
+                       juliaCall("TestStruct", function(x, y, z) {doOutput(z); return(c(5,6,7))})),
+                  1, 2, 3)
+   expect_equal(outputenv$output, c(1,3))
+
+
+   outputenv$output <- c()
+   juliaEval('function testNestedAndUnnested(f::Function, ts::Vector{TestStruct}, args...)
+             testNestedFunArgs(ts, args...)
+             f(args...)
+             end')
+
+   t <- juliaCall("testNestedAndUnnested",
+                  function(x, y) {doOutput(x)},
+                  list(juliaCall("TestStruct", function(x,y) {doOutput(x)}),
+                       juliaCall("TestStruct", function(x, y) {doOutput(y); return(list(5,6,7))})),
+                  17,18) # TODO try with function with error
+   expect_equal(outputenv$output, c(17, 18, 17))
+})
 
