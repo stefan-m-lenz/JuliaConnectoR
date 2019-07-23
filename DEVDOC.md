@@ -35,9 +35,13 @@ Lists that have the attribute `JLTYPE` will be coerced to the corresponding Juli
 
 ## Conversion table for bitstypes:
 
-TODO complete
 
 | Julia type | R type|
 | -----------|-------|
-| `Int8`, `Int16` | `integer` with original type as attribute |
 | `UInt8` | `raw` |
+| `Int8`, `Int16`, `UInt16` | `integer` with original type as attribute |
+| `Int32`/`Int64 `|  `integer` or  `double` TODO: concept that works for 32- and 64-bit systems |
+| `UInt32`, `UInt64`, `Int128`, `UInt128` | `raw` with original type as attribute |
+| `Float16`, `Float32` | `double` with original type as attribute |
+| `Float64` | `double` |
+
