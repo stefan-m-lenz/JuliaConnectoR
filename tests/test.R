@@ -219,6 +219,7 @@ test_that("Object with bitstype", {
 # Test complex constructor with all kinds of types
 test_that("Complex Julia object with different member type", {
    juliaEval('struct TestTypeWithAllKindsOfStuff
+               n::Nothing
                f16::Float16
                f32::Float32
                f64::Float64
@@ -250,6 +251,7 @@ test_that("Complex Julia object with different member type", {
              end')
    juliaEval('function TestTypeWithAllKindsOfStuff()
                TestTypeWithAllKindsOfStuff(
+                     nothing,
                      rand(Float16), rand(Float32), rand(Float64),
                      rand(Bool),
                      rand(Int8), rand(UInt8),

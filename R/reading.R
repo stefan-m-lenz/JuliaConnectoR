@@ -136,13 +136,23 @@ readList <- function(callbacks = list()) {
 
    npositional <- readInt()
    for (i in seq_len(npositional)) {
-      ret[[i]] <- readElement(callbacks)
+      listElement <- readElement(callbacks)
+      if (is.null(listElement)) {
+         ret[i] <- list(NULL)
+      } else {
+         ret[[i]] <- listElement
+      }
    }
 
    nnamed <- readInt()
    for (i in seq_len(nnamed)) {
       name <- readString()
-      ret[[name]] <- readElement(callbacks)
+      listElement <- readElement(callbacks)
+      if (is.null(listElement)) {
+         ret[name] <- list(NULL)
+      } else {
+         ret[[name]] <- listElement
+      }
    }
 
    attributes(ret) <- c(list(names = names(ret)), readAttributes())
