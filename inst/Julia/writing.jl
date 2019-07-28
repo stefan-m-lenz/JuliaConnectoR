@@ -100,7 +100,7 @@ function write_element(outputstream, arr::AbstractArray{UInt8},
 end
 
 function write_element(outputstream, arr::AbstractArray{T},
-      callbacks::Vector{Function}) where {T <: Union{Int8, Int16, UInt16}}
+      callbacks::Vector{Function}) where {T <: SEND_AS_INT32}
 
    attributes = (("JLTYPE", string(T)), )
    write_element(outputstream, convert(Array{Int32}, arr),
@@ -329,7 +329,7 @@ function write_element(outputstream, f::Float64, callbacks::Vector{Function},
 end
 
 function write_element(outputstream, i::T, callbacks::Vector{Function}
-      ) where {T <: Union{Int8, Int16, UInt16}}
+      ) where {T <: SEND_AS_INT32}
 
    attributes = (("JLTYPE", string(T)), )
    write_element(outputstream, Int32(i), callbacks, attributes, true)

@@ -230,6 +230,7 @@ test_that("Complex Julia object with different member type", {
                ui16::UInt16
                i32::Int32
                ui32::UInt32
+               ch::Char
                i64::Int64
                ui64::UInt64
                i128::Int128
@@ -244,6 +245,7 @@ test_that("Complex Julia object with different member type", {
                ui16vec::Vector{UInt16}
                i32vec::Vector{Int32}
                ui32vec::Vector{UInt32}
+               chvec::Vector{Char}
                i64vec::Vector{Int64}
                ui64vec::Vector{UInt64}
                i128vec::Vector{Int128}
@@ -257,6 +259,7 @@ test_that("Complex Julia object with different member type", {
                      rand(Int8), rand(UInt8),
                      rand(Int16), rand(UInt16),
                      rand(Int32), rand(UInt32),
+                     rand(Char),
                      rand(Int64), rand(UInt64),
                      rand(Int128), rand(UInt128),
                      rand(Float16, 2), rand(Float32, 2), rand(Float64, 2),
@@ -264,6 +267,7 @@ test_that("Complex Julia object with different member type", {
                      rand(Int8, 2), rand(UInt8, 2),
                      rand(Int16, 2), rand(UInt16, 2),
                      rand(Int32, 2), rand(UInt32, 2),
+                     rand(Char, 2),
                      rand(Int64, 2), rand(UInt64, 2),
                      rand(Int128, 2), rand(UInt128, 2))
              end')
