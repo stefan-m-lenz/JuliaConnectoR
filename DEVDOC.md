@@ -31,17 +31,18 @@
 * The sequence of unnamed/positional elements in a list is preceded by the number of (named) elements that follow.
 
 ### Types
-Lists that have the attribute `JLTYPE` will be coerced to the corresponding Julia type.
+Lists that have the attribute `"JLTYPE"` will be coerced to the corresponding Julia type.
 
 ## Conversion table for bitstypes:
 
+Type attributes are specified via the attribute `"JLTYPE"`.
 
 | Julia type | R type|
 | -----------|-------|
 | `UInt8` | `raw` |
-| `Int8`, `Int16`, `UInt16` | `integer` with original type as attribute |
-| `Int32`/`Int64 `|  `integer` or  `double` TODO: concept that works for 32- and 64-bit systems |
-| `UInt32`, `UInt64`, `Int128`, `UInt128` | `raw` with original type as attribute |
-| `Float16`, `Float32` | `double` with original type as attribute |
+| `Int8`, `Int16`, `UInt16`, `Int32` | `integer` with type attribute |
+| `Int64 `| `integer` if it fits into 32 bits, otherwise `double` with type attribute |
+| `UInt32`, `UInt64`, `Int128`, `UInt128` | `raw` with type attribute |
+| `Float16`, `Float32` | `double` with type attribute |
 | `Float64` | `double` |
 

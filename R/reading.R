@@ -136,7 +136,7 @@ readList <- function(callbacks = list()) {
 
    npositional <- readInt()
    for (i in seq_len(npositional)) {
-      ret <- c(ret, list(readElement(callbacks)))
+      ret[[i]] <- readElement(callbacks)
    }
 
    nnamed <- readInt()

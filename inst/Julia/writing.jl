@@ -104,12 +104,16 @@ function write_element(outputstream, arr::AbstractArray{T},
 
    attributes = (("JLTYPE", string(T)), )
    write_element(outputstream, convert(Array{Int32}, arr),
-         callbacks, attributes)
+         callbacks, attributes, true)
 end
 
 function write_element(outputstream, arr::AbstractArray{Int32},
-      callbacks::Vector{Function}, attributes = ())
+      callbacks::Vector{Function}, attributes = (), isothertype::Bool = false)
 
+   if !isothertype
+      attributes = (("JLTYPE", "Int32"), )
+   end
+   
    if length(arr) == 1
       attributes = tuple(attributes..., ("JLDIM", 1))
    end
@@ -125,9 +129,20 @@ end
 function write_element(outputstream, arr::AbstractArray{Int64},
       callbacks::Vector{Function})
 
-   attributes = (("JLTYPE", "Int64"), )
-   write_element(outputstream, convert(Array{Float64}, arr),
-         callbacks, attributes) #TODO inexactness?
+   arrmin, arrmax = extrema(arr)
+   if arrmin >= typemin(Int32) && arrmax <= typemax(Int32)
+      @static if Int == Int64
+         attributes = ()
+      else
+         attributes = (("JLTYPE", "Int64"), )
+      end
+      write_element(outputstream, convert(Array{Int32}, arr), 
+            callbacks, attributes, true)
+   else
+      attributes = (("JLTYPE", "Int64"), )
+      write_element(outputstream, convert(Array{Float64}, arr),
+            callbacks, attributes) #TODO possible inexactness?
+   end
 end
 
 function write_element(outputstream, arr::AbstractArray{T},
@@ -317,25 +332,34 @@ function write_element(outputstream, i::T, callbacks::Vector{Function}
       ) where {T <: Union{Int8, Int16, UInt16}}
 
    attributes = (("JLTYPE", string(T)), )
-   write_element(outputstream, Int32(i), callbacks, attributes)
+   write_element(outputstream, Int32(i), callbacks, attributes, true)
 end
 
 function write_element(outputstream, i::Int32, callbacks::Vector{Function},
-      attributes = ())
+      attributes = (), isothertype::Bool = false)
+
+   if !isothertype
+      attributes = (("JLTYPE", "Int32"), )
+   end
+
    write(outputstream, TYPE_ID_INT)
    write_int32(outputstream, 0)
    write(outputstream, i)
    write_attributes(outputstream, attributes)
 end
 
-
 function write_element(outputstream, i::Int64, callbacks::Vector{Function})
    if typemin(Int32) <= i <= typemax(Int32)
-      attributes = ()
-      write_element(outputstream, Int32(i), callbacks, attributes)
+      @static if Int == Int64 
+         attributes = ()
+      else
+         attributes = (("JLTYPE", "Int64"), )
+      end
+      write_element(outputstream, Int32(i), callbacks, attributes, true)
    else
-      attributes = (("JLTYPE", "Int64"),)
-      write_element(outputstream, Float64(i), callbacks) # TODO inexactness?
+      attributes = (("JLTYPE", "Int64"), )
+      # TODO inexactness?
+      write_element(outputstream, Float64(i), callbacks, attributes) 
    end
 end
 

@@ -216,6 +216,59 @@ test_that("Object with bitstype", {
 })
 
 
+# Test complex constructor with all kinds of types
+test_that("Complex Julia object with different member type", {
+   juliaEval('struct TestTypeWithAllKindsOfStuff
+               f16::Float16
+               f32::Float32
+               f64::Float64
+               b::Bool
+               i8::Int8
+               ui8::UInt8
+               i16::Int16
+               ui16::UInt16
+               i32::Int32
+               ui32::UInt32
+               i64::Int64
+               ui64::UInt64
+               i128::Int128
+               ui128::UInt128
+               f16vec::Vector{Float16}
+               f32vec::Vector{Float32}
+               f64vec::Vector{Float64}
+               bvec::Vector{Bool}
+               i8vec::Vector{Int8}
+               ui8vec::Vector{UInt8}
+               i16vec::Vector{Int16}
+               ui16vec::Vector{UInt16}
+               i32vec::Vector{Int32}
+               ui32vec::Vector{UInt32}
+               i64vec::Vector{Int64}
+               ui64vec::Vector{UInt64}
+               i128vec::Vector{Int128}
+               ui128vec::Vector{UInt128}
+             end')
+   juliaEval('function TestTypeWithAllKindsOfStuff()
+               TestTypeWithAllKindsOfStuff(
+                     rand(Float16), rand(Float32), rand(Float64),
+                     rand(Bool),
+                     rand(Int8), rand(UInt8),
+                     rand(Int16), rand(UInt16),
+                     rand(Int32), rand(UInt32),
+                     rand(Int64), rand(UInt64),
+                     rand(Int128), rand(UInt128),
+                     rand(Float16, 2), rand(Float32, 2), rand(Float64, 2),
+                     rand(Bool, 2),
+                     rand(Int8, 2), rand(UInt8, 2),
+                     rand(Int16, 2), rand(UInt16, 2),
+                     rand(Int32, 2), rand(UInt32, 2),
+                     rand(Int64, 2), rand(UInt64, 2),
+                     rand(Int128, 2), rand(UInt128, 2))
+             end')
+   testEcho(juliaEval("TestTypeWithAllKindsOfStuff()"))
+})
+
+
 test_that("Private inner constructor is forged", {
    juliaEval('struct MyPrivateX
             x::Int
