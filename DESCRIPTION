@@ -8,10 +8,10 @@ Description: This package provides a functionally oriented interface between R a
     The goal is to use functions from Julia packages directly in R.
     Julia functions imported via the `JuliaConnectoR` can accept and return R variables.
     It is also possible to pass function arguments to enable callbacks from Julia to R.
-	The data structures passed to and returned from Julia are serialized to a custom streaming format,
-	sent via TCP and translated to Julia data structures.
-	Returned results are translated back to R.
-	R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
+    The data structures passed to and returned from Julia are serialized to a custom streaming format,
+    sent via TCP and translated to Julia data structures.
+    Returned results are translated back to R.
+    R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
 License: MIT
 Encoding: UTF-8
 LazyData: true
