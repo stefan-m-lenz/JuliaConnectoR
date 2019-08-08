@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{juliaEval}
 \alias{juliaEval}
-\title{Evaluates a Julia expression and translates the result to R.}
+\title{Evaluate a Julia expression}
 \usage{
 juliaEval(expr)
 }
@@ -13,7 +13,8 @@ juliaEval(expr)
 the value of the expression, translated to R
 }
 \description{
-Evaluates a Julia expression and translates the result to R.
+This function evaluates a Julia expression in Julia
+and translates the result back to R.
 }
 \examples{
 juliaEval("1 + 2")

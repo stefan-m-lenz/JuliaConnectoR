@@ -12,6 +12,7 @@ const TYPE_ID_STRING = 0x06
 const TYPE_ID_LIST = 0x07
 const TYPE_ID_EXPRESSION = 0xee
 const TYPE_ID_CALLBACK = 0xcb
+const TYPE_ID_FUNCTION = 0xfc
 
 const CALL_INDICATOR = 0x01
 const RESULT_INDICATOR = 0x00

@@ -353,3 +353,18 @@ test_that("Callback functions", {
    expect_equal(outputenv$output, c(17, 18, 17))
 })
 
+
+test_that("Julia functions as members are transferred and usable in R", {
+   op1 <- juliaFun("+")
+   juliaEval('struct FunTestStruct f::Function end')
+   funTestStruct <- juliaCall("FunTestStruct", op1)
+   expect_equal(funTestStruct[["f"]](1,2), 3)
+})
+
+
+test_that("Documentation example of juliaFun", {
+   juliaSqrt <- juliaFun("sqrt")
+   expect_equal(juliaSqrt(2), sqrt(2))
+   expect_equal(juliaCall("map", juliaSqrt, c(1,4,9)), c(1,2,3))
+})
+

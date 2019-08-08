@@ -7,17 +7,13 @@ attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix,
 
    if (constructors) {
       funlist <- lapply(funnames, function(funname) {
-         constructor <- function(...) {
-            juliaCall(paste0(juliaPrefix, funname), ...)
-         }
+         constructor <- juliaFun(paste0(juliaPrefix, funname))
          attributes(constructor)$JLTYPE <- funname
          constructor
       })
    } else {
       funlist <- lapply(funnames, function(funname) {
-         function(...) {
-            juliaCall(paste0(juliaPrefix, funname), ...)
-         }
+         juliaFun(paste0(juliaPrefix, funname))
       })
    }
 

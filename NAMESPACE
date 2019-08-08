@@ -1,6 +1,7 @@
 export("juliaCall")
 export("juliaEval")
 export("juliaExpr")
+export("juliaFun")
 export("juliaImport")
 export("juliaLet")
 export("juliaUsing")

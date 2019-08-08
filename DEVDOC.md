@@ -18,8 +18,10 @@
             | '0x06' dimensions {string} attributes
             | '0x07' list
             | '0xcb' callback
+            | '0xfc' named_function
             | '0xee' expression
     callback -> int32
+    named_function -> string
     string -> int32 utf8string
     dimensions -> ndimensions {int32}
     ndimensions -> int32

@@ -113,7 +113,7 @@ function write_element(outputstream, arr::AbstractArray{Int32},
    if !isothertype
       attributes = (("JLTYPE", "Int32"), )
    end
-   
+
    if length(arr) == 1
       attributes = tuple(attributes..., ("JLDIM", 1))
    end
@@ -136,7 +136,7 @@ function write_element(outputstream, arr::AbstractArray{Int64},
       else
          attributes = (("JLTYPE", "Int64"), )
       end
-      write_element(outputstream, convert(Array{Int32}, arr), 
+      write_element(outputstream, convert(Array{Int32}, arr),
             callbacks, attributes, true)
    else
       attributes = (("JLTYPE", "Int64"), )
@@ -231,10 +231,21 @@ function write_element(outputstream, set::AbstractSet,
 end
 
 function write_element(outputstream, f::Function, callbacks::Vector{Function})
-   callbackid = findfirst(isequal(f), callbacks)
 
-   if callbackid == nothing
-      callbackid = 0
+   callbackid = findfirst(isequal(f), callbacks)
+   if callbackid === nothing # it's not a callback function
+      f_as_string = string(f)
+      if endswith(f_as_string, "()")
+         # an anonymous function will have a string representation like
+         # "getfield(Main, Symbol(\"##5#6\"))()".
+         # It cannot be transferred and instead a no-op function is transferred.
+         callbackid = 0
+      else
+         # write an element for a named function
+         write(outputstream, TYPE_ID_FUNCTION)
+         write_string(outputstream, f_as_string)
+         return
+      end
    end
 
    write(outputstream, TYPE_ID_CALLBACK)
@@ -350,7 +361,7 @@ end
 
 function write_element(outputstream, i::Int64, callbacks::Vector{Function})
    if typemin(Int32) <= i <= typemax(Int32)
-      @static if Int == Int64 
+      @static if Int == Int64
          attributes = ()
       else
          attributes = (("JLTYPE", "Int64"), )
@@ -359,7 +370,7 @@ function write_element(outputstream, i::Int64, callbacks::Vector{Function})
    else
       attributes = (("JLTYPE", "Int64"), )
       # TODO inexactness?
-      write_element(outputstream, Float64(i), callbacks, attributes) 
+      write_element(outputstream, Float64(i), callbacks, attributes)
    end
 end
 

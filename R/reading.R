@@ -86,6 +86,9 @@ readElement <- function(callbacks) {
       expr <- readString()
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
+   } else if (typeId == TYPE_ID_FUNCTION) {
+      funname <- readString()
+      return(juliaFun(funname))
    } else if (typeId == TYPE_ID_CALLBACK) {
       callbackId <- readInt()
       if (callbackId == 0) {

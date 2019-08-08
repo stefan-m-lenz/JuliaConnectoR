@@ -10,6 +10,7 @@ TYPE_ID_LOGICAL <- as.raw(0x05)
 TYPE_ID_STRING <- as.raw(0x06)
 TYPE_ID_LIST <- as.raw(0x07)
 TYPE_ID_CALLBACK <- as.raw(0xcb)
+TYPE_ID_FUNCTION <- as.raw(0xfc)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
 
 CALL_INDICATOR <- as.raw(0x01)
@@ -87,7 +88,10 @@ juliaCall <- function(name, ...) {
 }
 
 
-#' Evaluates a Julia expression and translates the result to R.
+#' Evaluate a Julia expression
+#'
+#' This function evaluates a Julia expression in Julia
+#' and translates the result back to R.
 #'
 #' @param expr Julia expression as a one-element character vector
 #'
@@ -103,17 +107,39 @@ juliaEval <- function(expr) {
    juliaCall("RConnector.mainevalcmd", expr)
 }
 
+#' Wrap a Julia function in an R function
+#'
+#' Creates an R function that will call the Julia function with the given name
+#' when it is called. The returned function can also be passed as function argument
+#' to Julia functions.
+#'
+#' @param name the name of the Julia function
+#'
+#' @examples
+#' juliaSqrt <- juliaFun("sqrt")
+#' juliaSqrt(2)
+#' juliaCall("map", juliaSqrt, c(1,4,9))
+juliaFun <- function(name) {
+   f <- function(...) {
+      juliaCall(name, ...)
+   }
+   attr(f, "JLFUN") <- name
+   return(f)
+}
+
 
 juliaExpr <- function(expr) {
    attr(expr, "JLEXPR") <- TRUE
    return(expr)
 }
 
-#' Evaluates a Julia expressions in a `let` block and translates the result to R.
+
+#' Evaluate Julia expressions in a `let` block, using R variables
 #'
 #' R variables can be passed as named arguments, which are inserted
 #' for those variables in the Julia expression that have the same name
 #' as the named arguments.
+#' Returns the value of the `let` block, translated back to R.
 #'
 #' Note that, as the evaluation is done in a `let` block, changes to
 #' global variables in the Julia session are only possible by using

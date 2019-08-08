@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{juliaLet}
 \alias{juliaLet}
-\title{Evaluates a Julia expressions in a `let` block and translates the result to R.}
+\title{Evaluate Julia expressions in a `let` block, using R variables}
 \usage{
 juliaLet(expr, ...)
 }
@@ -15,6 +15,7 @@ juliaLet(expr, ...)
 R variables can be passed as named arguments, which are inserted
 for those variables in the Julia expression that have the same name
 as the named arguments.
+Returns the value of the `let` block, translated back to R.
 }
 \details{
 Note that, as the evaluation is done in a `let` block, changes to

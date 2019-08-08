@@ -63,7 +63,11 @@ writeElement <- function(elem, callbacks = list()) {
 
    elemType <- typeof(elem)
    if (elemType == "closure") {
-      if (is.null(attr(elem, "JLTYPE"))) {
+      if (!is.null(attr(elem, "JLTYPE"))) {
+         writeExpression(attr(elem, "JLTYPE"))
+      } else if (!is.null(attr(elem, "JLFUN"))) {
+         writeExpression(attr(elem, "JLFUN"))
+      } else {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
          if (identical(elem, emptyfun)) {
              writeInt(0L)
@@ -71,8 +75,6 @@ writeElement <- function(elem, callbacks = list()) {
             callbacks <- c(callbacks, elem)
             writeInt(length(callbacks))
          }
-      } else {
-         writeExpression(attr(elem, "JLTYPE"))
       }
    } else {
       typeId <- TYPE_IDS[[typeof(elem)]]
