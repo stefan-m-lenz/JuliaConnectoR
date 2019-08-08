@@ -72,8 +72,8 @@ finalize <- function(env) {
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
-   if (is.null(name)) {
-      stop("Name must be specified")
+   if (is.null(name) || !is.character(name) || length(name) != 1) {
+      stop("Name of Julia function must be specified as one-element character vector")
    }
 
    jlargs <- list(...)

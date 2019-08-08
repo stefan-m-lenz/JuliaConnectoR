@@ -362,6 +362,13 @@ test_that("Julia functions as members are transferred and usable in R", {
 })
 
 
+test_that("juliaCall checks given name before running", {
+   expect_error(juliaCall())
+   expect_error(juliaCall(1))
+   expect_error(juliaCall(c("bla", "bla")))
+})
+
+
 test_that("Documentation example of juliaFun", {
    juliaSqrt <- juliaFun("sqrt")
    expect_equal(juliaSqrt(2), sqrt(2))
