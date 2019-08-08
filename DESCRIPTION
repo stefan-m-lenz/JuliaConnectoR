@@ -1,7 +1,7 @@
 Package: JuliaConnectoR
 Type: Package
 Title: A functional interface to use Julia Packages in R
-Version: 0.2.0
+Version: 0.2.0.9000
 Author: Stefan Lenz
 Maintainer: Stefan Lenz <lenz@imbi.uni-freiburg.de>
 Description: This package provides a functionally oriented interface between R and Julia.
