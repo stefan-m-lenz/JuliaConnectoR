@@ -16,6 +16,10 @@ the value of the expression, translated to R
 This function evaluates a Julia expression in Julia
 and translates the result back to R.
 }
+\details{
+If the expression needs arguments, consider using \code{juliaLet}
+instead.
+}
 \examples{
 juliaEval("1 + 2")
 juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')

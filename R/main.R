@@ -72,6 +72,10 @@ finalize <- function(env) {
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
+   if (is.null(name)) {
+      stop("Name must be specified")
+   }
+
    jlargs <- list(...)
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
@@ -92,6 +96,9 @@ juliaCall <- function(name, ...) {
 #'
 #' This function evaluates a Julia expression in Julia
 #' and translates the result back to R.
+#'
+#' If the expression needs arguments, consider using \code{juliaLet}
+#' instead.
 #'
 #' @param expr Julia expression as a one-element character vector
 #'
