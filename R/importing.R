@@ -110,11 +110,15 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 #' @examples
 #' juliaUsing("UUIDs")
 #' juliaCall("string", uuid4())
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
    attachJuliaPackage(pkgName, alias,
                       mode = LOAD_MODE_USING,
                       importInternal = importInternal)
 }
+
 
 #' Load and import a Julia package via \code{import} statement
 #'
@@ -136,6 +140,9 @@ juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
 #' @examples
 #' juliaImport("UUIDs")
 #' juliaCall("string", UUIDs.uuid4())
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaImport <- function(pkgName, alias = pkgName, importInternal = FALSE) {
    attachJuliaPackage(pkgName, alias,
                       mode = LOAD_MODE_IMPORT,

@@ -1,6 +1,3 @@
-library(JuliaConnectoR)
-library(testthat)
-
 juliaEcho <- function(x) juliaCall("identity", x)
 testEcho <- function(x) {
    if(is.list(x)) {

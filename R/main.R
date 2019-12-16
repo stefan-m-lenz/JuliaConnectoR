@@ -108,7 +108,9 @@ juliaCall <- function(name, ...) {
 #' juliaEval("1 + 2")
 #' juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
 #' juliaEval('using Random; Random.seed!(5);')
-#'
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaEval <- function(expr) {
    ensureJuliaConnection()
    juliaCall("RConnector.mainevalcmd", expr)
@@ -123,9 +125,13 @@ juliaEval <- function(expr) {
 #' @param name the name of the Julia function
 #'
 #' @examples
+#' # Wrap a Julia function and use it
 #' juliaSqrt <- juliaFun("sqrt")
 #' juliaSqrt(2)
 #' juliaCall("map", juliaSqrt, c(1,4,9))
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaFun <- function(name) {
    f <- function(...) {
       juliaCall(name, ...)
@@ -149,6 +155,9 @@ juliaFun <- function(name) {
 #' v1 <- juliaExpr('v"1.0.1"')
 #' v2 <- juliaExpr('v"1.2.0"')
 #' juliaCall("<", v1, v2)
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaExpr <- function(expr) {
    attr(expr, "JLEXPR") <- TRUE
    return(expr)
@@ -175,6 +184,9 @@ juliaExpr <- function(expr) {
 #' juliaEval("x")
 #'
 #' juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaLet <- function(expr, ...) {
    args <- list(...)
    if(length(which(names(args) == "")) > 0) {
