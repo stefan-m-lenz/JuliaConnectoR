@@ -42,11 +42,11 @@ Type attributes are specified via the attribute `"JLTYPE"`.
 | Julia type | R type|
 | -----------|-------|
 | `Float64` | `double` |
-| `Float16`, `Float32` | `double` with type attribute |
+| `Float16`, `Float32`, `UInt32` | `double` with type attribute |
 | `Int64 `| `integer` if it fits into 32 bits, otherwise `double` with type attribute |
 | `Int8`, `Int16`, `UInt16`, `Int32`, `Char` | `integer` with type attribute |
 | `UInt8` | `raw` |
-| `UInt32`, `UInt64`, `Int128`, `UInt128` | `raw` with type attribute |
+| `UInt64`, `Int128`, `UInt128` | `raw` with type attribute |
 
 
 

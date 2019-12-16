@@ -21,8 +21,9 @@ const BYEBYE = 0xbb
 
 const NO_ATTRIBUTES = Base.ImmutableDict{String, Any}()
 
-const SEND_AS_RAW_TYPES = Union{UInt32, UInt64, Int128, UInt128}
+const SEND_AS_RAW_TYPES = Union{UInt64, Int128, UInt128}
 const SEND_AS_INT32 = Union{Int8, Int16, UInt16, Char}
+const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 
 include("reading.jl")
 include("evaluating.jl")

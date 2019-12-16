@@ -67,6 +67,14 @@ test_that("Echo: Single Float64", {
    testEcho(1)
 })
 
+test_that("UInt32, Float16, and Float32 translated to doubles in R", {
+   toTest <- c("Float16(1.5)", "Float16[]", "Float16[1.5]",
+               "Float32(1.5)", "Float32[]", "Float32[1.5]",
+               "UInt32(32)", "UInt32[]", "UInt32[32]")
+   for (expr in toTest) {
+      expect(is.double(juliaEval(expr)), "Must be double")
+   }
+})
 
 test_that("Echo: 0-element vector of Float64 in Julia", {testEcho(juliaEval("Float64[]"))})
 test_that("Echo: 1-element vector of Float64 in Julia", {testEcho(juliaEval("[1.0]"))})
@@ -110,7 +118,7 @@ test_that("Complex are handled first class", {
    juliaImport("LinearAlgebra", alias = "jla")
    testEcho(matrix(c(1, 0, 0, -1), ncol = 2))
    expect(all(jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
-                   matrix(c(0, 1, 1, 0), ncol = 2)) == c(1i, -1i)),
+                   matrix(c(0, 1, 1, 0), ncol = 2)) %in% c(1i, -1i)),
           "")
    expect(all(jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0), "")
 })

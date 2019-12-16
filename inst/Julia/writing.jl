@@ -66,7 +66,7 @@ function write_element(outputstream, arr::AbstractArray{String},
 end
 
 function write_element(outputstream, arr::AbstractArray{F},
-      callbacks::Vector{Function}) where {F <: Union{Float16, Float32}}
+      callbacks::Vector{Function}) where {F <: SEND_AS_DOUBLE}
 
    attributes = (("JLTYPE", string(F)), )
    write_element(outputstream, convert(Array{Float64}, arr),
@@ -324,7 +324,7 @@ function write_element(outputstream, obj::T,
 end
 
 function write_element(outputstream, f::F, callbacks::Vector{Function}
-      ) where {F <: Union{Float16, Float32}}
+      ) where {F <: SEND_AS_DOUBLE}
 
    attributes = (("JLTYPE", string(F)), )
    write_element(outputstream, Float64(f), callbacks, attributes)
@@ -373,7 +373,6 @@ function write_element(outputstream, i::Int64, callbacks::Vector{Function})
       write_element(outputstream, Float64(i), callbacks, attributes)
    end
 end
-
 
 function write_element(outputstream, i::T, callbacks::Vector{Function}
       ) where {T <: SEND_AS_RAW_TYPES}
