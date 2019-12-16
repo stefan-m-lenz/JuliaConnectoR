@@ -1,6 +1,6 @@
 Package: JuliaConnectoR
 Type: Package
-Title: A functional interface to use Julia Packages in R
+Title: A Functional Interface to Use Julia Packages in R
 Version: 0.2.0.9000
 Author: Stefan Lenz
 Maintainer: Stefan Lenz <lenz@imbi.uni-freiburg.de>
@@ -12,7 +12,7 @@ Description: This package provides a functionally oriented interface between R a
     sent via TCP and translated to Julia data structures.
     Returned results are translated back to R.
     R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
-License: MIT
+License: MIT + file LICENCE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1

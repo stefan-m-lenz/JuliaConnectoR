@@ -134,7 +134,21 @@ juliaFun <- function(name) {
    return(f)
 }
 
-
+#' Mark a string as Julia expression
+#'
+#' A given R character vector is marked as a Julia expression.
+#' It will be executed and evaluated when passed to Julia.
+#' This allows to pass a Julia object that is defined by complex Julia syntax
+#' as an argument without needing the round-trip to R via \code{\link{juliaEval}}
+#' or \code{\link{juliaLet}}.
+#'
+#' @param expr a character vector which should contain one string
+#'
+#' @examples
+#' # Create complicated objects like version strings in Julia and compare them
+#' v1 <- juliaExpr('v"1.0.1"')
+#' v2 <- juliaExpr('v"1.2.0"')
+#' juliaCall("<", v1, v2)
 juliaExpr <- function(expr) {
    attr(expr, "JLEXPR") <- TRUE
    return(expr)

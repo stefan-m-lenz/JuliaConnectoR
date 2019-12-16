@@ -6,7 +6,6 @@ testEcho <- function(x) {
    if(is.list(x)) {
       expect_identical(x, juliaEcho(x))
    } else {
-      e = juliaEcho(x)
       expect_equivalent(x, juliaEcho(x))
    }
 }
@@ -39,6 +38,13 @@ test_that("Test loading and importing a complex package", {
    expect(all(as.numeric(StatsBase.mean_and_var(c(1,2,3))) == c(2,1)),
           "Trivial mean and var calculation")
    StatsBase.renyientropy(rnorm(100), 1)
+})
+
+
+test_that("Example for juliaEval runs", {
+   v1 <- juliaExpr('v"1.0.5"')
+   v2 <- juliaExpr('v"1.3.0"')
+   expect(juliaCall("<", v1, v2), "Comparison must work")
 })
 
 
