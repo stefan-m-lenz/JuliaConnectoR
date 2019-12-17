@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 DEVDOC.md
 LICENSE
+.travis.yml
