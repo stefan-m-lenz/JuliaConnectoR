@@ -35,11 +35,18 @@ attachFunctionList <- function(funnames, name, rPrefix, juliaPrefix,
 }
 
 
-attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
+attachJuliaPackage <- function(modulePath, alias, mode,
+                               importInternal = FALSE) {
    ensureJuliaConnection()
 
-   if (length(pkgName) != 1) {
-      stop("Expected exactly one package name")
+   if (length(modulePath) != 1) {
+      stop("Expected exactly one package name or module path")
+   }
+
+   moduleName <- gsub(".*\\.", "", modulePath)
+   absoluteModulePath <- gsub("^\\.*", "", modulePath)
+   if (is.null(alias)) {
+      alias <- absoluteModulePath
    }
 
    if (mode == LOAD_MODE_USING) {
@@ -48,42 +55,40 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
       rPrefixExported <- ""
    } else if (mode == LOAD_MODE_IMPORT) {
       loadMode <- "import"
-      juliaPrefixExported <- paste0(pkgName, ".")
+      juliaPrefixExported <- paste0(absoluteModulePath, ".")
       rPrefixExported <- paste0(alias, ".")
    } else {
       stop(paste("Unknown mode:", mode))
    }
 
-   juliaEval(paste(loadMode, pkgName))
+   juliaEval(paste(loadMode, modulePath))
 
-   pkgContent <- juliaCall("RConnector.moduleinfo", pkgName, all = importInternal)
+   pkgContent <- juliaCall("RConnector.moduleinfo", absoluteModulePath, all = importInternal)
    if (!is.list(pkgContent)) {
-      # must be an error
-      stop(paste0("Could not load Julia package \"",  pkgName,
-                  "\" (is it installed?): ", pkgContent))
+      stop(paste0("Could not find Julia package or module \"",  modulePath, "\"."))
    }
 
-   attachFunctionList(pkgContent$exportedFunctions, pkgName,
+   attachFunctionList(pkgContent$exportedFunctions, absoluteModulePath,
                       rPrefixExported, juliaPrefixExported)
-   attachFunctionList(pkgContent$exportedDataTypes, pkgName,
+   attachFunctionList(pkgContent$exportedDataTypes, absoluteModulePath,
                       rPrefixExported, juliaPrefixExported,
                       constructors = TRUE)
 
-   juliaPrefixInternal <- paste0(pkgName, ".")
+   juliaPrefixInternal <- paste0(absoluteModulePath, ".")
    rPrefixInternal <- paste0(alias, ".")
 
    if (mode == LOAD_MODE_USING) {
-      attachFunctionList(pkgContent$exportedFunctions, pkgName,
+      attachFunctionList(pkgContent$exportedFunctions, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal)
-      attachFunctionList(pkgContent$exportedDataTypes, pkgName,
+      attachFunctionList(pkgContent$exportedDataTypes, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal,
                          constructors = TRUE)
    }
 
    if (importInternal) {
-      attachFunctionList(pkgContent$internalFunctions, pkgName,
+      attachFunctionList(pkgContent$internalFunctions, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal)
-      attachFunctionList(pkgContent$internalDataTypes, pkgName,
+      attachFunctionList(pkgContent$internalDataTypes, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal,
                          constructors = TRUE)
    }
@@ -95,12 +100,15 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 #' The specified package/module is loaded via \code{using} in Julia
 #' and its functions are attached to the R search path.
 #' This way, all functions (including constructors) exported by the
-#' package are available in R under their name and under the name
-#' prefixed with the module name plus "\code{.}", like in Julia.
+#' package are available in R under their name, and under the name
+#' prefixed with the module name (or module path for submodules)
+#' plus "\code{.}", like in Julia.
 #'
-#' @param pkgName name of the package/module that is to be used
+#' @param modulePath name of the package/module that is to be used
 #' @param alias alternative prefix for the package
 #' (useful e.g. to avoid naming collisions or for brevity)
+#' If an alias is not explicitly specified, the name of the package/module
+#' or its absolute module path is used.
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
@@ -108,13 +116,40 @@ attachJuliaPackage <- function(pkgName, alias, mode, importInternal = FALSE) {
 #' @export
 #'
 #' @examples
+#' # Using a package and one of its functions
 #' juliaUsing("UUIDs")
 #' juliaCall("string", uuid4())
+#'
+#' # Using a module without a package
+#' testModule <- system.file("examples", "TestModule1.jl",
+#'                           package = "JuliaConnectoR", mustWork = TRUE)
+#' # take a look at the file
+#' writeLines(readLines(testModule))
+#' # load in Julia
+#' juliaCall("include", testModule)
+#' # import via "using" in R
+#' juliaUsing(".TestModule1")
+#' # call exported function
+#' test1()
+#' # execute exported function via module name
+#' TestModule1.test1()
+#'
+#' # Using a submodule
+#' testModule <- system.file("examples", "TestModule1.jl",
+#'                           package = "JuliaConnectoR", mustWork = TRUE)
+#' juliaCall("include", testModule)
+#' juliaUsing(".TestModule1.SubModule1")
+#' # call exported function of submodule
+#' test2()
+#' # call exported function of submodule via module path
+#' TestModule1.SubModule1.test2()
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
-juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
-   attachJuliaPackage(pkgName, alias,
+juliaUsing <- function(modulePath, alias = NULL,
+                       importInternal = FALSE) {
+   attachJuliaPackage(modulePath, alias,
                       mode = LOAD_MODE_USING,
                       importInternal = importInternal)
 }
@@ -126,11 +161,21 @@ juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
 #' and its functions are attached to the R search path.
 #' This way, all functions (including constructors) exported by the
 #' package are available in R under their name
-#' prefixed with the module name plus "\code{.}", like in Julia.
+#' prefixed with the module name (or module path for submodules)
+#' plus "\code{.}", like in Julia.
 #'
-#' @param pkgName name of the package/module that is to be used
+#' @param modulePath name of the package/module that is to be used,
+#' or a relative module path.
+#' Using a module path in Julia like \code{.MyModule}
+#' allows to import a module which does not correspond to a package,
+#' but has been loaded in the \code{Main} module.
+#' Additionally, via a path such as \code{SomePkg.SubModule}
+#' a submodule of a package can be imported.
+#' (See the examples.)
 #' @param alias alternative prefix for the package
-#' (useful e.g. to avoid naming collisions or for brevity)
+#' (useful e.g. to avoid naming collisions or for brevity).
+#' If an alias is not explicitly specified, the name of the package/module
+#' or its absolute module path is used.
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
@@ -138,13 +183,38 @@ juliaUsing <- function(pkgName, alias = pkgName, importInternal = FALSE) {
 #' @export
 #'
 #' @examples
+#' # Importing a package and use one of its functions
 #' juliaImport("UUIDs")
 #' juliaCall("string", UUIDs.uuid4())
+#'
+#' # Importing a module without a package
+#' testModule <- system.file("examples", "TestModule1.jl",
+#'                           package = "JuliaConnectoR", mustWork = TRUE)
+#' # take a look at the file
+#' writeLines(readLines(testModule))
+#' # load in Julia
+#' juliaCall("include", testModule)
+#' # import in R
+#' juliaImport(".TestModule1")
+#' TestModule1.test1()
+#'
+#' # Importing a submodule
+#' testModule <- system.file("examples", "TestModule1.jl",
+#'                           package = "JuliaConnectoR", mustWork = TRUE)
+#' juliaCall("include", testModule)
+#' juliaImport(".TestModule1.SubModule1")
+#' # call exported function of submodule via module path
+#' TestModule1.SubModule1.test2()
+#' juliaImport(".TestModule1.SubModule1", alias = "Sub1")
+#' # call exported function of submodule via alias
+#' Sub1.test2()
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
-juliaImport <- function(pkgName, alias = pkgName, importInternal = FALSE) {
-   attachJuliaPackage(pkgName, alias,
+juliaImport <- function(modulePath, alias = NULL,
+                        importInternal = FALSE) {
+   attachJuliaPackage(modulePath, alias,
                       mode = LOAD_MODE_IMPORT,
                       importInternal = importInternal)
 }

@@ -88,8 +88,8 @@ end
 
 
 """ Lists the content of a package for import in R"""
-function moduleinfo(pkgname::AbstractString; all::Bool = false)
-   themodule = RConnector.maineval(pkgname)::Module
+function moduleinfo(modulename::AbstractString; all::Bool = false)
+   themodule = RConnector.maineval(modulename)::Module
 
    function symbolisa(sym::Symbol, type)
       if isdefined(themodule, sym)

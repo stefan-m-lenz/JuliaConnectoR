@@ -4,13 +4,15 @@
 \alias{juliaUsing}
 \title{Load and import a Julia package via \code{using} statement}
 \usage{
-juliaUsing(pkgName, alias = pkgName, importInternal = FALSE)
+juliaUsing(modulePath, alias = NULL, importInternal = FALSE)
 }
 \arguments{
-\item{pkgName}{name of the package/module that is to be used}
+\item{modulePath}{name of the package/module that is to be used}
 
 \item{alias}{alternative prefix for the package
-(useful e.g. to avoid naming collisions or for brevity)}
+(useful e.g. to avoid naming collisions or for brevity)
+If an alias is not explicitly specified, the name of the package/module
+or its absolute module path is used.}
 
 \item{importInternal}{\code{logical} value, default \code{FALSE}.
 Specifies whether unexported functions shall be imported.}
@@ -22,12 +24,39 @@ Specifies whether unexported functions shall be imported.}
 The specified package/module is loaded via \code{using} in Julia
 and its functions are attached to the R search path.
 This way, all functions (including constructors) exported by the
-package are available in R under their name and under the name
-prefixed with the module name plus "\code{.}", like in Julia.
+package are available in R under their name, and under the name
+prefixed with the module name (or module path for submodules)
+plus "\code{.}", like in Julia.
 }
 \examples{
+# Using a package and one of its functions
 juliaUsing("UUIDs")
 juliaCall("string", uuid4())
+
+# Using a module without a package
+testModule <- system.file("examples", "TestModule1.jl",
+                          package = "JuliaConnectoR", mustWork = TRUE)
+# take a look at the file
+writeLines(readLines(testModule))
+# load in Julia
+juliaCall("include", testModule)
+# import via "using" in R
+juliaUsing(".TestModule1")
+# call exported function
+test1()
+# execute exported function via module name
+TestModule1.test1()
+
+# Using a submodule
+testModule <- system.file("examples", "TestModule1.jl",
+                          package = "JuliaConnectoR", mustWork = TRUE)
+juliaCall("include", testModule)
+juliaUsing(".TestModule1.SubModule1")
+# call exported function of submodule
+test2()
+# call exported function of submodule via module path
+TestModule1.SubModule1.test2()
+
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }

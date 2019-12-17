@@ -38,6 +38,14 @@ test_that("Test loading and importing a complex package", {
 })
 
 
+test_that("Error when trying to import a non-existent package or module", {
+   expect_error(juliaImport("NonExistingPkg"))
+   expect_error(juliaUsing("NonExistingPkg"))
+   expect_error(juliaImport(".NonExistingModule"))
+   expect_error(juliaUsing(".NonExistingModule"))
+})
+
+
 test_that("Example for juliaEval runs", {
    v1 <- juliaExpr('v"1.0.5"')
    v2 <- juliaExpr('v"1.3.0"')
