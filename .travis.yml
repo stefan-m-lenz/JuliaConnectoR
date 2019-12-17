@@ -27,4 +27,6 @@ r_packages:
   - covr
 
 after_success:
-  - test $TRAVIS_R_VERSION_STRING = 'release' && Rscript -e 'covr::codecov()'
+  - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.0.5"* ]]; then
+      Rscript -e 'covr::coveralls()';
+    fi
