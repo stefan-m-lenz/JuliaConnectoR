@@ -28,4 +28,7 @@ prefixed with the module name plus "\code{.}", like in Julia.
 \examples{
 juliaUsing("UUIDs")
 juliaCall("string", uuid4())
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

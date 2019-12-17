@@ -28,4 +28,7 @@ juliaLet("global x = xval", xval = rnorm(10))
 juliaEval("x")
 
 juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

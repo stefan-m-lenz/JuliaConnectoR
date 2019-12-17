@@ -21,4 +21,7 @@ or \code{\link{juliaLet}}.
 v1 <- juliaExpr('v"1.0.1"')
 v2 <- juliaExpr('v"1.2.0"')
 juliaCall("<", v1, v2)
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

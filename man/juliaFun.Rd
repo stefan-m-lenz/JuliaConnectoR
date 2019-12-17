@@ -15,7 +15,11 @@ when it is called. The returned function can also be passed as function argument
 to Julia functions.
 }
 \examples{
+# Wrap a Julia function and use it
 juliaSqrt <- juliaFun("sqrt")
 juliaSqrt(2)
 juliaCall("map", juliaSqrt, c(1,4,9))
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }
