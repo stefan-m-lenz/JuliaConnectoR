@@ -34,7 +34,9 @@ TYPE_IDS <- list(
 # support versions lower than 3.3.0
 endsWithChar <- (function() {
    if (exists("endsWith")) {
-      endsWithChar <- endsWith
+      endsWithChar <- function(str, suffix) {
+         endsWith(str, suffix)
+      }
    } else {
       endsWithChar <- function(str, suffix) {
          substring(str, nchar(str), nchar(str)) == suffix
