@@ -1,16 +1,16 @@
 function write_message(outputstream, result, callbacks::Vector{Function})
-   write(outputstream, RESULT_INDICATOR)
+   write_bin(outputstream, RESULT_INDICATOR)
    write_element(outputstream, result, callbacks)
 end
 
 function write_message(outputstream, fail::Fail, callbacks::Vector{Function})
-   write(outputstream, FAIL_INDICATOR)
+   write_bin(outputstream, FAIL_INDICATOR)
    write_string(outputstream, fail.message)
 end
 
 
 function write_callback_message(outputstream, callbackid::Int, args::ElementList)
-   write(outputstream, CALL_INDICATOR)
+   write_bin(outputstream, CALL_INDICATOR)
    write_string(outputstream, string(callbackid))
    callbacks = Vector{Function}()
    write_list(outputstream, args, callbacks)
@@ -28,7 +28,7 @@ end
 
 
 function write_int32(outputstream, i::Int)
-   write(outputstream, Int32(i))
+   write_bin(outputstream, Int32(i))
 end
 
 function write_int32s(outputstream, intarr::AbstractArray{Int})
@@ -38,12 +38,12 @@ function write_int32s(outputstream, intarr::AbstractArray{Int})
 end
 
 function write_nattributes(outputstream, nattributes::Int)
-   write(outputstream, convert(UInt8, nattributes))
+   write_bin(outputstream, convert(UInt8, nattributes))
 end
 
 function write_string(outputstream, str::String)
    write_int32(outputstream, ncodeunits(str))
-   write(outputstream, str)
+   write_bin(outputstream, str)
 end
 
 function write_dimensions(outputstream, arr::AbstractArray)
@@ -56,13 +56,13 @@ end
 function write_element(outputstream, arr::AbstractArray{String},
       callbacks::Vector{Function})
 
-   write(outputstream, TYPE_ID_STRING)
+   write_bin(outputstream, TYPE_ID_STRING)
    write_dimensions(outputstream, arr)
    for str in arr
       write_string(outputstream, str)
    end
    # no attributes implemented yet (TODO implement undef)
-   write(outputstream, 0x00)
+   write_bin(outputstream, 0x00)
 end
 
 function write_element(outputstream, arr::AbstractArray{F},
@@ -76,10 +76,10 @@ end
 function write_element(outputstream, arr::AbstractArray{Float64},
       callbacks::Vector{Function}, attributes = ())
 
-   write(outputstream, TYPE_ID_FLOAT64)
+   write_bin(outputstream, TYPE_ID_FLOAT64)
    write_dimensions(outputstream, arr)
    for f in arr
-      write(outputstream, f)
+      write_bin(outputstream, f)
    end
    write_attributes(outputstream, attributes)
 end
@@ -91,10 +91,10 @@ function write_element(outputstream, arr::AbstractArray{UInt8},
       attributes = tuple(attributes..., ("JLDIM", 1))
    end
 
-   write(outputstream, TYPE_ID_RAW)
+   write_bin(outputstream, TYPE_ID_RAW)
    write_dimensions(outputstream, arr)
    for d in arr
-      write(outputstream, d)
+      write_bin(outputstream, d)
    end
    write_attributes(outputstream, attributes)
 end
@@ -118,10 +118,10 @@ function write_element(outputstream, arr::AbstractArray{Int32},
       attributes = tuple(attributes..., ("JLDIM", 1))
    end
 
-   write(outputstream, TYPE_ID_INT)
+   write_bin(outputstream, TYPE_ID_INT)
    write_dimensions(outputstream, arr)
    for i in arr
-      write(outputstream, i)
+      write_bin(outputstream, i)
    end
    write_attributes(outputstream, attributes)
 end
@@ -164,11 +164,11 @@ function write_element(outputstream, arr::AbstractArray{Complex{Float64}},
       attributes = tuple(attributes..., ("JLDIM", 1))
    end
 
-   write(outputstream, TYPE_ID_COMPLEX)
+   write_bin(outputstream, TYPE_ID_COMPLEX)
    write_dimensions(outputstream, arr)
    for d in arr
-      write(outputstream, real(d))
-      write(outputstream, imag(d))
+      write_bin(outputstream, real(d))
+      write_bin(outputstream, imag(d))
    end
    write_attributes(outputstream, attributes)
 end
@@ -185,10 +185,10 @@ end
 function write_element(outputstream, arr::AbstractArray{Bool},
       callbacks::Vector{Function})
 
-   write(outputstream, TYPE_ID_BOOL)
+   write_bin(outputstream, TYPE_ID_BOOL)
    write_dimensions(outputstream, arr)
    for d in arr
-      write(outputstream, d)
+      write_bin(outputstream, d)
    end
 end
 
@@ -242,18 +242,18 @@ function write_element(outputstream, f::Function, callbacks::Vector{Function})
          callbackid = 0
       else
          # write an element for a named function
-         write(outputstream, TYPE_ID_FUNCTION)
+         write_bin(outputstream, TYPE_ID_FUNCTION)
          write_string(outputstream, f_as_string)
          return
       end
    end
 
-   write(outputstream, TYPE_ID_CALLBACK)
+   write_bin(outputstream, TYPE_ID_CALLBACK)
    write_int32(outputstream, callbackid)
 end
 
 function write_element(outputstream, t::Tuple, callbacks::Vector{Function})
-   write(outputstream, TYPE_ID_LIST)
+   write_bin(outputstream, TYPE_ID_LIST)
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
    ellist = ElementList(
          Vector{Any}(collect(t)),
@@ -265,7 +265,7 @@ end
 function write_element(outputstream, ellist::ElementList,
       callbacks::Vector{Function})
 
-   write(outputstream, TYPE_ID_LIST)
+   write_bin(outputstream, TYPE_ID_LIST)
    write_list(outputstream, ellist, callbacks)
 end
 
@@ -308,7 +308,7 @@ function write_element(outputstream, obj::T,
       if isempty(names) # type without members
          write_expression(outputstream, string(T) * "()")
       else
-         write(outputstream, TYPE_ID_LIST)
+         write_bin(outputstream, TYPE_ID_LIST)
          fieldvalues = map(name -> getfield(obj, name), names)
          attributes = Dict{String, Any}("JLTYPE" => string(T))
          ellist = ElementList(
@@ -333,9 +333,9 @@ end
 function write_element(outputstream, f::Float64, callbacks::Vector{Function},
       attributes = ())
 
-   write(outputstream, TYPE_ID_FLOAT64)
+   write_bin(outputstream, TYPE_ID_FLOAT64)
    write_int32(outputstream, 0)
-   write(outputstream, f)
+   write_bin(outputstream, f)
    write_attributes(outputstream, attributes)
 end
 
@@ -353,9 +353,9 @@ function write_element(outputstream, i::Int32, callbacks::Vector{Function},
       attributes = (("JLTYPE", "Int32"), )
    end
 
-   write(outputstream, TYPE_ID_INT)
+   write_bin(outputstream, TYPE_ID_INT)
    write_int32(outputstream, 0)
-   write(outputstream, i)
+   write_bin(outputstream, i)
    write_attributes(outputstream, attributes)
 end
 
@@ -381,24 +381,24 @@ function write_element(outputstream, i::T, callbacks::Vector{Function}
 end
 
 function write_element(outputstream, b::Bool, callbacks::Vector{Function})
-   write(outputstream, TYPE_ID_BOOL)
+   write_bin(outputstream, TYPE_ID_BOOL)
    write_int32(outputstream, 0)
-   write(outputstream, b)
+   write_bin(outputstream, b)
 end
 
 function write_element(outputstream, str::String, callbacks::Vector{Function})
-   write(outputstream, TYPE_ID_STRING)
+   write_bin(outputstream, TYPE_ID_STRING)
    write_int32(outputstream, 0)
    write_string(outputstream, str)
-   write(outputstream, 0x00) # no attributes
+   write_bin(outputstream, 0x00) # no attributes
 end
 
 function write_element(outputstream, c::Complex{Float64}, callbacks::Vector{Function},
       attributes = ())
-   write(outputstream, TYPE_ID_COMPLEX)
+   write_bin(outputstream, TYPE_ID_COMPLEX)
    write_int32(outputstream, 0)
-   write(outputstream, Float64(real(c)))
-   write(outputstream, Float64(imag(c)))
+   write_bin(outputstream, Float64(real(c)))
+   write_bin(outputstream, Float64(imag(c)))
    write_attributes(outputstream, attributes)
 end
 
@@ -409,19 +409,19 @@ function write_element(outputstream, c::Complex{T}, callbacks::Vector{Function}
 end
 
 function write_element(outputstream, u::UInt8, callbacks::Vector{Function})
-   write(outputstream, TYPE_ID_RAW)
+   write_bin(outputstream, TYPE_ID_RAW)
    write_int32(outputstream, 0)
-   write(outputstream, u)
-   write(outputstream, 0x00) # no attributes
+   write_bin(outputstream, u)
+   write_bin(outputstream, 0x00) # no attributes
 end
 
 function write_element(outputstream, n::Nothing, callbacks::Vector{Function})
-   write(outputstream, TYPE_ID_NOTHING)
+   write_bin(outputstream, TYPE_ID_NOTHING)
 end
 
 
 function write_expression(outputstream, str::AbstractString)
-   write(outputstream, TYPE_ID_EXPRESSION)
+   write_bin(outputstream, TYPE_ID_EXPRESSION)
    write_string(outputstream, str)
 end
 

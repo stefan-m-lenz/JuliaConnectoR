@@ -25,6 +25,7 @@ const SEND_AS_RAW_TYPES = Union{UInt64, Int128, UInt128}
 const SEND_AS_INT32 = Union{Int8, Int16, UInt16, Char}
 const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 
+include("communicator.jl")
 include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")
@@ -58,15 +59,16 @@ end
 
 
 function serve_repl(sock)
+   communicator = CommunicatoR(sock)
    while isopen(sock)
+
       call = Call()
       callbacks = Vector{Function}()
-
       try
-         firstbyte = read(sock, 1)
+         firstbyte = read_bin(communicator, 1)
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
-            call = read_call(sock, callbacks)
+            call = read_call(communicator, callbacks)
          else
             if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
                close(sock)
@@ -82,7 +84,7 @@ function serve_repl(sock)
       end
 
       result = evaluate!(call)
-      write_message(sock, result, callbacks)
+      write_message(communicator, result, callbacks)
    end
 end
 
@@ -145,18 +147,18 @@ function moduleinfo(modulename::AbstractString; all::Bool = false)
 end
 
 
-function callbackfun(callbackid::Int, io)
+function callbackfun(callbackid::Int, communicator::CommunicatoR)
    (args...; kwargs...) -> begin
       posargs = isempty(args) ? Vector{Any}() : collect(Any, args)
       callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
-      write_callback_message(io, callbackid, callbackargs)
+      write_callback_message(communicator, callbackid, callbackargs)
 
       # read, parse and return answer
       while true
-         firstbyte = read(io, 1)[1]
+         firstbyte = read_bin(communicator, 1)[1]
          if firstbyte == RESULT_INDICATOR
             callbacks = Vector{Function}()
-            answer = read_element(io, callbacks)
+            answer = read_element(communicator, callbacks)
             fails = collectfails(answer)
             if isempty(fails)
                ret =  evaluate!(answer)
@@ -166,11 +168,11 @@ function callbackfun(callbackid::Int, io)
             end
          elseif firstbyte == CALL_INDICATOR
             callbacks = Vector{Function}()
-            call = read_call(io, callbacks)
+            call = read_call(communicator, callbacks)
             result = evaluate!(call)
-            write_message(io, result, callbacks)
+            write_message(communicator, result, callbacks)
          elseif firstbyte == FAIL_INDICATOR
-            return Fail(read_string(io))
+            return Fail(read_string(communicator))
          else
             error("Unexpected leading byte: " * string(firstbyte))
          end

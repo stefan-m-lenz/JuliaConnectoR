@@ -56,32 +56,32 @@ end
 
 
 function read_complexs(inputstream, n::Int)
-   doublepairs = reinterpret(Float64, read(inputstream, 16*n))
+   doublepairs = reinterpret(Float64, read_bin(inputstream, 16*n))
    map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
 end
 
 
 function read_float64s(inputstream, n::Int)
-   reinterpret(Float64, read(inputstream, 8*n))
+   reinterpret(Float64, read_bin(inputstream, 8*n))
 end
 
 
 function read_ints(inputstream, n::Int)
-   map(Int, reinterpret(Int32, read(inputstream, 4*n)))
+   map(Int, reinterpret(Int32, read_bin(inputstream, 4*n)))
 end
 
 read_int(inputstream) = read_ints(inputstream, 1)[1]
 
 
 function read_nattributes(inputstream)
-   ret = read(inputstream, 1)[1]
+   ret = read_bin(inputstream, 1)[1]
 end
 
 
 function read_string(inputstream)
    nbytes = read_int(inputstream)
    if nbytes > 0
-      return String(read(inputstream, nbytes))
+      return String(read_bin(inputstream, nbytes))
    else
       return ""
    end
@@ -97,7 +97,7 @@ end
 
 
 function read_bools(inputstream, n::Int)
-   reinterpret(Bool, read(inputstream, n))
+   reinterpret(Bool, read_bin(inputstream, n))
 end
 
 
@@ -112,7 +112,7 @@ end
 
 
 function read_element(inputstream, callbacks::Vector{Function})
-   typeid = read(inputstream, UInt8)
+   typeid = read_bin(inputstream, UInt8)
 
    if typeid == TYPE_ID_LIST
       return read_list(inputstream, callbacks)
@@ -150,7 +150,7 @@ function read_element(inputstream, callbacks::Vector{Function})
          ret = read_complexs(inputstream, nelements)
          attributes = read_attributes(inputstream)
       elseif typeid == TYPE_ID_RAW
-         ret = read(inputstream, nelements)
+         ret = read_bin(inputstream, nelements)
          attributes = read_attributes(inputstream)
       else
          return Fail("Invalid type id $typeid of element")
