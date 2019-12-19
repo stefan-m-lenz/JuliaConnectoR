@@ -15,6 +15,8 @@ TYPE_ID_EXPRESSION <- as.raw(0xee)
 
 CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
+STDOUT_INDICATOR <- as.raw(0x50)
+STDERR_INDICATOR <- as.raw(0x5e)
 FAIL_INDICATOR <- as.raw(0xff)
 BYEBYE <- as.raw(0xbb)
 
@@ -82,7 +84,7 @@ juliaCall <- function(name, ...) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    callbacks <- writeList(jlargs)
-   messageType <- handleCallbacks(callbacks)
+   messageType <- handleCallbacksAndOutput(callbacks)
    if (messageType == RESULT_INDICATOR) {
       return(readElement(callbacks))
    } else if (messageType == FAIL_INDICATOR) {
@@ -200,7 +202,7 @@ juliaLet <- function(expr, ...) {
 }
 
 
-handleCallbacks <- function(callbacks) {
+handleCallbacksAndOutput <- function(callbacks) {
    repeat {
       messageType <- readMessageType()
       if (messageType == CALL_INDICATOR) {
@@ -212,6 +214,10 @@ handleCallbacks <- function(callbacks) {
                     warning(e)
                     writeFailMessage(as.character(e))
                   })
+      } else if (messageType == STDOUT_INDICATOR) {
+         readOutput(writeTo = stdout())
+      } else if (messageType == STDERR_INDICATOR) {
+         readOutput(writeTo = stderr())
       } else {
          return(messageType)
       }

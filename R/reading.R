@@ -168,3 +168,14 @@ readCall <- function(callbacks = list()) {
    args <- readList(callbacks)
    list(name = name, args = args)
 }
+
+
+readOutput <- function(writeTo) {
+   outputLength <- readInt()
+   output <- readBin(pkgLocal$con, "raw", outputLength)
+   # interpret as string
+   output <- rawToChar(output)
+   Encoding(output) <- "UTF-8"
+   # TODO: check if valid UTF-8? binary output possible?
+   write(output, writeTo)
+}
