@@ -1,19 +1,25 @@
 function write_message(communicator, result, callbacks::Vector{Function})
+   start_result_message(communicator)
    write_bin(communicator, RESULT_INDICATOR)
    write_element(communicator, result, callbacks)
+   end_result_message(communicator)
 end
 
 function write_message(communicator, fail::Fail, callbacks::Vector{Function})
+   start_fail_message(communicator)
    write_bin(communicator, FAIL_INDICATOR)
    write_string(communicator, fail.message)
+   end_fail_message(communicator)
 end
 
 
 function write_callback_message(communicator, callbackid::Int, args::ElementList)
+   start_callback_message(communicator)
    write_bin(communicator, CALL_INDICATOR)
    write_string(communicator, string(callbackid))
    callbacks = Vector{Function}()
    write_list(communicator, args, callbacks)
+   end_callback_message(communicator)
 end
 
 

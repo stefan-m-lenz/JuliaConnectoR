@@ -16,6 +16,8 @@ const TYPE_ID_FUNCTION = 0xfc
 
 const CALL_INDICATOR = 0x01
 const RESULT_INDICATOR = 0x00
+const STDOUT_INDICATOR = 0x50
+const STDERR_INDICATOR = 0x5e
 const FAIL_INDICATOR = 0xff
 const BYEBYE = 0xbb
 
@@ -60,8 +62,10 @@ end
 
 function serve_repl(sock)
    communicator = CommunicatoR(sock)
-   while isopen(sock)
+   redirect_outputstream(communicator, redirect_stdout()[1], STDOUT_INDICATOR)
+   redirect_outputstream(communicator, redirect_stderr()[1], STDERR_INDICATOR)
 
+   while isopen(sock)
       call = Call()
       callbacks = Vector{Function}()
       try

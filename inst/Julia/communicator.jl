@@ -9,13 +9,50 @@ function CommunicatoR(io)
    CommunicatoR(ReentrantLock(), io)
 end
 
-# Redirect to members
-write_bin(c::CommunicatoR, x) = write(c.io, x)
-read_bin(c::CommunicatoR, x) = read(c.io, x)
-message_start(c::CommunicatoR) = lock(c.lock)
-message_end(c::CommunicatoR) = unlock(c.lock)
+
+function write_bin(c::CommunicatoR, x)
+   write(c.io, x)
+end
 
 
+function read_bin(c::CommunicatoR, x)
+   read(c.io, x)
+end
+
+
+function start_result_message(c::CommunicatoR)
+   # ensure that output is transferred before the result
+   flush(c.io)
+   # let task redirecting the outputstream take over
+   # (see function redirect_outputstream)
+   yield()
+   # lock the outputstream
+   lock(c.lock)
+end
+
+start_fail_message = start_result_message
+start_callback_message = start_result_message
+
+
+function end_result_message(c::CommunicatoR)
+   unlock(c.lock)
+end
+
+end_fail_message = end_result_message
+end_callback_message = end_result_message
+
+
+function start_output_message(c::CommunicatoR)
+   lock(c.lock)
+end
+
+
+function end_output_message(c::CommunicatoR)
+   unlock(c.lock)
+end
+
+
+# Starts an asynchronous task that sends the output to R
 function redirect_outputstream(communicator::CommunicatoR, reader,
       output_type_indicator::UInt8)
 
@@ -29,9 +66,9 @@ end
 function write_output_message(communicator::CommunicatoR, msg::Vector{UInt8},
       output_type_indicator::UInt8)
 
-   lock(communicator)
-   write(communicator, output_type_indicator)
-   write(communicator, Int32(length(msg)))
-   write(communicator, msg)
-   unlock(communicator)
+   start_output_message(communicator)
+   write_bin(communicator, output_type_indicator)
+   write_bin(communicator, Int32(length(msg)))
+   write_bin(communicator, msg)
+   end_output_message(communicator)
 end
