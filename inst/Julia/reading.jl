@@ -44,114 +44,114 @@ function emptyfun(args...; kwargs...)
 end
 
 
-function read_attributes(inputstream)
-   nattributes = read_nattributes(inputstream)
+function read_attributes(communicator)
+   nattributes = read_nattributes(communicator)
    attributes = Dict{String, Any}()
    for i in 1:nattributes
-      name = read_string(inputstream)
-      attributes[name] = read_element(inputstream, Vector{Function}())
+      name = read_string(communicator)
+      attributes[name] = read_element(communicator, Vector{Function}())
    end
    attributes
 end
 
 
-function read_complexs(inputstream, n::Int)
-   doublepairs = reinterpret(Float64, read_bin(inputstream, 16*n))
+function read_complexs(communicator, n::Int)
+   doublepairs = reinterpret(Float64, read_bin(communicator, 16*n))
    map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
 end
 
 
-function read_float64s(inputstream, n::Int)
-   reinterpret(Float64, read_bin(inputstream, 8*n))
+function read_float64s(communicator, n::Int)
+   reinterpret(Float64, read_bin(communicator, 8*n))
 end
 
 
-function read_ints(inputstream, n::Int)
-   map(Int, reinterpret(Int32, read_bin(inputstream, 4*n)))
+function read_ints(communicator, n::Int)
+   map(Int, reinterpret(Int32, read_bin(communicator, 4*n)))
 end
 
-read_int(inputstream) = read_ints(inputstream, 1)[1]
+read_int(communicator) = read_ints(communicator, 1)[1]
 
 
-function read_nattributes(inputstream)
-   ret = read_bin(inputstream, 1)[1]
+function read_nattributes(communicator)
+   ret = read_bin(communicator, 1)[1]
 end
 
 
-function read_string(inputstream)
-   nbytes = read_int(inputstream)
+function read_string(communicator)
+   nbytes = read_int(communicator)
    if nbytes > 0
-      return String(read_bin(inputstream, nbytes))
+      return String(read_bin(communicator, nbytes))
    else
       return ""
    end
 end
 
-function read_strings(inputstream, n::Int)
+function read_strings(communicator, n::Int)
    ret = Vector{String}(undef, n)
    for i = 1:n
-      ret[i] = read_string(inputstream)
+      ret[i] = read_string(communicator)
    end
    ret
 end
 
 
-function read_bools(inputstream, n::Int)
-   reinterpret(Bool, read_bin(inputstream, n))
+function read_bools(communicator, n::Int)
+   reinterpret(Bool, read_bin(communicator, n))
 end
 
 
-function read_dimensions(inputstream)
-   ndims = read_int(inputstream)
+function read_dimensions(communicator)
+   ndims = read_int(communicator)
    if ndims == 0
       return 0
    else
-      return read_ints(inputstream, ndims)
+      return read_ints(communicator, ndims)
    end
 end
 
 
-function read_element(inputstream, callbacks::Vector{Function})
-   typeid = read_bin(inputstream, UInt8)
+function read_element(communicator, callbacks::Vector{Function})
+   typeid = read_bin(communicator, UInt8)
 
    if typeid == TYPE_ID_LIST
-      return read_list(inputstream, callbacks)
+      return read_list(communicator, callbacks)
    elseif typeid == TYPE_ID_NOTHING
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
-      return read_expression(inputstream)
+      return read_expression(communicator)
    elseif  typeid == TYPE_ID_CALLBACK
-      callbackid = read_int(inputstream)
+      callbackid = read_int(communicator)
       if callbackid == 0
          return emptyfun
       else
-         callback = callbackfun(callbackid, inputstream)
+         callback = callbackfun(callbackid, communicator)
          push!(callbacks, callback)
          return callback
       end
    else
-      dimensions = read_dimensions(inputstream)
+      dimensions = read_dimensions(communicator)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)
 
       attributes = NO_ATTRIBUTES
       if typeid == TYPE_ID_FLOAT64
-         ret = read_float64s(inputstream, nelements)
-         attributes = read_attributes(inputstream)
+         ret = read_float64s(communicator, nelements)
+         attributes = read_attributes(communicator)
       elseif typeid == TYPE_ID_INT
-         ret = read_ints(inputstream, nelements)
-         attributes = read_attributes(inputstream)
+         ret = read_ints(communicator, nelements)
+         attributes = read_attributes(communicator)
       elseif typeid == TYPE_ID_BOOL
-         ret = read_bools(inputstream, nelements)
+         ret = read_bools(communicator, nelements)
          return reshape_element(ret, dimensions)
       elseif typeid == TYPE_ID_STRING
-         ret = read_strings(inputstream, nelements)
-         attributes = read_attributes(inputstream)
+         ret = read_strings(communicator, nelements)
+         attributes = read_attributes(communicator)
       elseif typeid == TYPE_ID_COMPLEX
-         ret = read_complexs(inputstream, nelements)
-         attributes = read_attributes(inputstream)
+         ret = read_complexs(communicator, nelements)
+         attributes = read_attributes(communicator)
       elseif typeid == TYPE_ID_RAW
-         ret = read_bin(inputstream, nelements)
-         attributes = read_attributes(inputstream)
+         ret = read_bin(communicator, nelements)
+         attributes = read_attributes(communicator)
       else
          return Fail("Invalid type id $typeid of element")
       end
@@ -192,8 +192,8 @@ function convert_reshape_element(element, attributes, dimensions)
 end
 
 
-function read_expression(inputstream)
-   exprstr = read_string(inputstream)
+function read_expression(communicator)
+   exprstr = read_string(communicator)
    try
       return maineval(exprstr)
    catch ex
@@ -202,23 +202,23 @@ function read_expression(inputstream)
 end
 
 
-function read_list(inputstream, callbacks::Vector{Function})
+function read_list(communicator, callbacks::Vector{Function})
 
-   npositional = read_int(inputstream)
+   npositional = read_int(communicator)
    positionalelements = Vector{Any}(undef, npositional)
    for i in 1:npositional
-      positionalelements[i] = read_element(inputstream, callbacks)
+      positionalelements[i] = read_element(communicator, callbacks)
    end
 
    fails = Vector{Fail}(
          positionalelements[isa.(positionalelements, Fail)])
 
-   nnamed = read_int(inputstream)
+   nnamed = read_int(communicator)
    names = Vector{Symbol}(undef, nnamed)
    namedelements = Dict{Symbol, Any}()
    for i in 1:nnamed
-      name = read_string(inputstream)
-      namedelement = read_element(inputstream, callbacks)
+      name = read_string(communicator)
+      namedelement = read_element(communicator, callbacks)
       try
          sym = Symbol(name)
          namedelements[sym] = namedelement
@@ -229,7 +229,7 @@ function read_list(inputstream, callbacks::Vector{Function})
       end
    end
 
-   attributes = read_attributes(inputstream)
+   attributes = read_attributes(communicator)
 
    ElementList(positionalelements, names, namedelements, attributes, fails)
 end
@@ -242,8 +242,8 @@ function findfield(name::AbstractString)
 end
 
 
-function read_call(inputstream, callbacks::Vector{Function})
-   name = read_string(inputstream)
+function read_call(communicator, callbacks::Vector{Function})
+   name = read_string(communicator)
    fails = Vector{Fail}()
    fun = () -> nothing
    try
@@ -251,6 +251,6 @@ function read_call(inputstream, callbacks::Vector{Function})
    catch ex
       push!(fails, Fail("Unable to identify function: $ex"))
    end
-   args = read_list(inputstream, callbacks)
+   args = read_list(communicator, callbacks)
    Call(fun, args, fails)
 end
