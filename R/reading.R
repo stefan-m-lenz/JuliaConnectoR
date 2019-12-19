@@ -177,5 +177,5 @@ readOutput <- function(writeTo) {
    output <- rawToChar(output)
    Encoding(output) <- "UTF-8"
    # TODO: check if valid UTF-8? binary output possible?
-   write(output, writeTo)
+   cat(output, file = writeTo)
 }
