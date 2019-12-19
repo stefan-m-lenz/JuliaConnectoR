@@ -10,16 +10,44 @@ testEcho <- function(x) {
 
 test_that("Some smoke tests", {
    expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
-   juliaCall("show", NULL)
    juliaCall("string", list())
-   juliaCall("println", "hello world")
    juliaCall("string", list(as.integer(1), "bla" = 23L))
    juliaEval("String[]")
-   juliaCall("eval", "println(22)")
    expect(!is.null(juliaEval("using Random; Random.seed!(5)")),
           "Must be able to set random seed")
    expect(is.null(juliaEval("Random.seed!(5);")),
           "Eval with semicolon at end returns NULL")
+})
+
+
+test_that("Output is transferred", {
+   output <- capture_output({
+      juliaCall("println", as.integer(22))
+   })
+   expect_match(output, "^[\n]*22[\n]*$")
+
+   output <- capture_output({
+      juliaCall("println", "hello world")
+   })
+   expect_match(output, "^[\n]*hello world[\n]*$")
+})
+
+# TODO
+test_that("Warnings are transferred", {
+   output <- capture_output({
+      juliaEval('@warn "This might be serious"')
+   })
+   expect_match(output, "This might be serious")
+})
+
+
+test_that("A return value of nothing is not printed", {
+   output <- capture_output({
+      juliaEval("nothing")
+      juliaCall("identity", NULL)
+      juliaLet("x = y", y = NULL)
+   })
+   expect_match(output, "^[\n]*$")
 })
 
 
@@ -41,7 +69,7 @@ test_that("Test loading and importing a complex package", {
 test_that("Error when trying to import a non-existent package or module", {
    expect_error(juliaImport("NonExistingPkg"))
    expect_error(juliaUsing("NonExistingPkg"))
-   expect_error(juliaImport(".NonExistingModule"))
+   expect_error(capture.output({juliaImport(".NonExistingModule")}, type = "message"))
    expect_error(juliaUsing(".NonExistingModule"))
 })
 
