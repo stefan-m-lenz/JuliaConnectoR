@@ -9,7 +9,13 @@ juliaLet(expr, ...)
 \arguments{
 \item{expr}{a Julia expression which may contain}
 
-\item{...}{the arguments to use in the let block. The names are}
+\item{...}{the arguments to use in the let block.
+The names of the arguments are used in place of the variables in
+the Julia expression with the same name.}
+}
+\value{
+The value returned from Julia, translated to an R data structure.
+If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
 R variables can be passed as named arguments, which are inserted

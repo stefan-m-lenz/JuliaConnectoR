@@ -71,8 +71,8 @@ finalize <- function(env) {
 #' @param ... parameters handed to the function. Will be translated
 #' to Julia data structures
 #'
-#' @return the value returned from Julia,
-#' translated to an R data structure
+#' @return The value returned from Julia, translated to an R data structure.
+#' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
@@ -86,7 +86,12 @@ juliaCall <- function(name, ...) {
    callbacks <- writeList(jlargs)
    messageType <- handleCallbacksAndOutput(callbacks)
    if (messageType == RESULT_INDICATOR) {
-      return(readElement(callbacks))
+      ret <- readElement(callbacks)
+      if (is.null(ret)) {
+         return(invisible(NULL))
+      } else {
+         return(ret)
+      }
    } else if (messageType == FAIL_INDICATOR) {
       stop(readString())
    } else {
@@ -106,7 +111,8 @@ juliaCall <- function(name, ...) {
 #'
 #' @param expr Julia expression as a one-element character vector
 #'
-#' @return the value of the expression, translated to R
+#' @return The value returned from Julia, translated to an R data structure.
+#' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 #'
 #' @examples
 #' juliaEval("1 + 2")
@@ -180,7 +186,12 @@ juliaExpr <- function(expr) {
 #' the keyword `global` in front of the Julia variables.
 #'
 #' @param expr a Julia expression which may contain
-#' @param ... the arguments to use in the let block. The names are
+#' @param ... the arguments to use in the let block.
+#'   The names of the arguments are used in place of the variables in
+#'   the Julia expression with the same name.
+#'
+#' @return The value returned from Julia, translated to an R data structure.
+#' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 #'
 #' @examples
 #' # Assign a global variable (although not recommended for a functional style)

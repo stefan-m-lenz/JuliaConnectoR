@@ -13,8 +13,8 @@ juliaCall(name, ...)
 to Julia data structures}
 }
 \value{
-the value returned from Julia,
-translated to an R data structure
+The value returned from Julia, translated to an R data structure.
+If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
 Calls a Julia function.

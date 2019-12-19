@@ -10,7 +10,8 @@ juliaEval(expr)
 \item{expr}{Julia expression as a one-element character vector}
 }
 \value{
-the value of the expression, translated to R
+The value returned from Julia, translated to an R data structure.
+If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
 This function evaluates a Julia expression in Julia
