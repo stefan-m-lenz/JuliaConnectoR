@@ -32,12 +32,24 @@ test_that("Output is transferred", {
    expect_match(output, "^[\n]*hello world[\n]*$")
 })
 
-# TODO
+
 test_that("Warnings are transferred", {
-   output <- capture_output({
+   output <- capture.output(type = "message", {
       juliaEval('@warn "This might be serious"')
    })
-   expect_match(output, "This might be serious")
+   expect_match(output[1], "This might be serious")
+})
+
+
+test_that("Warnings and normal output are both transferred", {
+   stdoutput <- capture_output({
+      stderroutput <- capture.output(type = "message", {
+         ret <- juliaLet('println(22); @warn "This might be serious"; 17')
+      })
+   })
+   expect_equal(ret, 17)
+   expect_match(stdoutput[1], "^[\n]*22[\n]*$")
+   expect_match(output[1], "This might be serious")
 })
 
 
@@ -198,7 +210,10 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 
 # Test Let
-test_that("let: used like eval", {expect(is.null(juliaLet("print(1)")), "Failed")})
+test_that("let: used like eval", {
+   output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})
+   expect_equal(output, "1")
+})
 test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
 test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c(2,3)), "Failed")})
 
@@ -231,6 +246,7 @@ test_that("Echo: Module", {
    juliaEval("module TestModule end")
    testEcho(juliaEval("TestModule"))
 })
+
 
 # Test Dictionary
 test_that("Echo: Dictionary", {
@@ -331,6 +347,17 @@ test_that("Private inner constructor is forged", {
           end')
    p <- juliaEval("MyPrivateX()")
    testEcho(p)
+})
+
+
+test_that("Empty module does not cause problems", {
+   juliaEval("module EmptyTestModule end")
+   expect_invisible(juliaImport(".EmptyTestModule"))
+   expect_invisible(juliaUsing(".EmptyTestModule"))
+   # TODO
+   skip("Skipping: importInternal returns visible NULL")
+   expect_invisible(juliaImport(".EmptyTestModule", importInternal = TRUE))
+   expect_invisible(juliaUsing(".EmptyTestModule", importInternal = TRUE))
 })
 
 

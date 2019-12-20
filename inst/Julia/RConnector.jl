@@ -1,6 +1,7 @@
 module RConnector
 
 using Sockets
+using Logging
 
 const TYPE_ID_NOTHING = 0x00
 const TYPE_ID_FLOAT64 = 0x01
@@ -62,8 +63,7 @@ end
 
 function serve_repl(sock)
    communicator = CommunicatoR(sock)
-   redirect_outputstream(communicator, redirect_stdout()[1], STDOUT_INDICATOR)
-   redirect_outputstream(communicator, redirect_stderr()[1], STDERR_INDICATOR)
+   capture_outputstreams(communicator)
 
    while isopen(sock)
       call = Call()

@@ -52,6 +52,14 @@ function end_output_message(c::CommunicatoR)
 end
 
 
+function capture_outputstreams(communicator::CommunicatoR)
+   redirect_outputstream(communicator, redirect_stdout()[1], STDOUT_INDICATOR)
+   rd, wr = redirect_stderr()
+   global_logger(SimpleLogger(wr))
+   redirect_outputstream(communicator, rd, STDERR_INDICATOR)
+end
+
+
 # Starts an asynchronous task that sends the output to R
 function redirect_outputstream(communicator::CommunicatoR, reader,
       output_type_indicator::UInt8)
