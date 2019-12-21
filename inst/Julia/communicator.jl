@@ -21,12 +21,17 @@ end
 
 
 function start_result_message(c::CommunicatoR)
-   # ensure that output is transferred before the result
-   flush(c.io)
-   # let task redirecting the outputstream take over
+   # Ensure that output is transferred before the result:
+   # Let the tasks redirecting the outputstreams take over
    # (see function redirect_outputstream)
+   flush(c.io)
+   flush(stdout)
    yield()
-   # lock the outputstream
+   flush(stderr)
+   yield()
+   
+   # after the output is handled,
+   # take control of the outputstream to send the result
    lock(c.lock)
 end
 

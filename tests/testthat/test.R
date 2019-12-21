@@ -41,7 +41,20 @@ test_that("Warnings are transferred", {
 })
 
 
-test_that("Warnings and normal output are both transferred", {
+test_that("Warnings and normal output are both transferred and stable", {
+   stdoutput <- capture_output({
+      stderroutput <- capture.output(type = "message", {
+         juliaLet('for i = 1:100
+                  println(join(rand(["1", "ä", "ö"], rand(1:100))));
+                  println(stderr,join(rand(["2", "ü", "a"], rand(1:100))));
+                  end')
+         ret <- juliaLet('println(22);  17')
+      })
+   })
+   expect_match(stdoutput, "[1äö\n]+")
+   expect_match(stderroutput, "[2üa\n]+")
+
+
    stdoutput <- capture_output({
       stderroutput <- capture.output(type = "message", {
          ret <- juliaLet('println(22); @warn "This might be serious"; 17')
@@ -49,7 +62,7 @@ test_that("Warnings and normal output are both transferred", {
    })
    expect_equal(ret, 17)
    expect_match(stdoutput[1], "^[\n]*22[\n]*$")
-   expect_match(output[1], "This might be serious")
+   expect_match(stderroutput[1], "This might be serious")
 })
 
 
