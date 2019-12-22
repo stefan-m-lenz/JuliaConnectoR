@@ -230,6 +230,11 @@ test_that("let: used like eval", {
 test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
 test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c(2,3)), "Failed")})
 
+test_that("Simple example from documentation works", {
+   expect_equal(capture_output({juliaLet('println(x)', x = 1)}),
+                capture_output({juliaEval('let x = 1.0; println(x) end')}))
+})
+
 
 #Test Pairs
 test_that("Echo: Pairs", {

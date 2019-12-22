@@ -174,31 +174,48 @@ juliaExpr <- function(expr) {
 }
 
 
-#' Evaluate Julia expressions in a `let` block, using R variables
+#' Evaluate Julia code in a \code{let} block using values of R variables
 #'
 #' R variables can be passed as named arguments, which are inserted
 #' for those variables in the Julia expression that have the same name
-#' as the named arguments.
-#' Returns the value of the `let` block, translated back to R.
+#' as the named arguments. The given Julia code is executed in Julia
+#' inside a \code{let} block and the result is translated back to R.
 #'
-#' Note that, as the evaluation is done in a `let` block, changes to
-#' global variables in the Julia session are only possible by using
-#' the keyword `global` in front of the Julia variables.
+#' A simple, nonsensical example for explaining the principle:
 #'
-#' @param expr a Julia expression which may contain
-#' @param ... the arguments to use in the let block.
-#'   The names of the arguments are used in place of the variables in
-#'   the Julia expression with the same name.
+#' \code{juliaLet('println(x)', x = 1)}
+#'
+#' This is the same as
+#'
+#' \code{juliaEval('let x = 1.0; println(x) end')}
+#'
+#' More complex objects cannot be simply represented in a string like in
+#' this simple example any more.
+#' That is the problem that \code{juliaLet} solves.
+#'
+#' Note that, as the evaluation is done in a \code{let} block. Therefore,
+#' changes to global variables in the Julia session are only possible by
+#' using the keyword \code{global} in front of the Julia variables
+#' (see examples).
+#'
+#' @param expr Julia code
+#' @param ...  arguments that will be introduced as variables in the
+#'   \code{let} block. The values are transferred to Julia and
+#'   assigned to the variables introduced in the \code{let} block.
 #'
 #' @return The value returned from Julia, translated to an R data structure.
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 #'
 #' @examples
-#' # Assign a global variable (although not recommended for a functional style)
+#' # Intended use: Create a complex Julia object
+#' # using Julia syntax and data from the R workspace
+#' juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
+#'
+#' # Assign a global variable
+#' # (although not recommended for a functional style)
 #' juliaLet("global x = xval", xval = rnorm(10))
 #' juliaEval("x")
 #'
-#' juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
