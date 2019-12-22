@@ -24,9 +24,6 @@ or its absolute module path is used.}
 \item{importInternal}{\code{logical} value, default \code{FALSE}.
 Specifies whether unexported functions shall be imported.}
 }
-\value{
-\code{NULL} on success
-}
 \description{
 The specified package/module is loaded via \code{import} in Julia
 and its functions are attached to the R search path.
@@ -36,9 +33,14 @@ prefixed with the module name (or module path for submodules)
 plus "\code{.}", like in Julia.
 }
 \examples{
-# Importing a package and use one of its functions
+# Importing a package and using one of its exported functions
 juliaImport("UUIDs")
 juliaCall("string", UUIDs.uuid4())
+
+# Functions that are not exported can be imported
+# by specifying the argument "importInternal":
+juliaImport("Pkg", importInternal = TRUE)
+Pkg.status()
 
 # Importing a module without a package
 testModule <- system.file("examples", "TestModule1.jl",

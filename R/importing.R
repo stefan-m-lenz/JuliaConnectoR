@@ -112,13 +112,17 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
-#' @return \code{NULL} on success
 #' @export
 #'
 #' @examples
-#' # Using a package and one of its functions
+#' # Using a package and one of its exported functions
 #' juliaUsing("UUIDs")
 #' juliaCall("string", uuid4())
+#'
+#' # Functions that are not exported can be imported
+#' # by specifying the argument "importInternal":
+#' juliaUsing("Pkg", importInternal = TRUE)
+#' Pkg.status()
 #'
 #' # Using a module without a package
 #' testModule <- system.file("examples", "TestModule1.jl",
@@ -152,6 +156,7 @@ juliaUsing <- function(modulePath, alias = NULL,
    attachJuliaPackage(modulePath, alias,
                       mode = LOAD_MODE_USING,
                       importInternal = importInternal)
+   invisible()
 }
 
 
@@ -179,13 +184,17 @@ juliaUsing <- function(modulePath, alias = NULL,
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
-#' @return \code{NULL} on success
 #' @export
 #'
 #' @examples
-#' # Importing a package and use one of its functions
+#' # Importing a package and using one of its exported functions
 #' juliaImport("UUIDs")
 #' juliaCall("string", UUIDs.uuid4())
+#'
+#' # Functions that are not exported can be imported
+#' # by specifying the argument "importInternal":
+#' juliaImport("Pkg", importInternal = TRUE)
+#' Pkg.status()
 #'
 #' # Importing a module without a package
 #' testModule <- system.file("examples", "TestModule1.jl",
@@ -217,4 +226,5 @@ juliaImport <- function(modulePath, alias = NULL,
    attachJuliaPackage(modulePath, alias,
                       mode = LOAD_MODE_IMPORT,
                       importInternal = importInternal)
+   invisible()
 }

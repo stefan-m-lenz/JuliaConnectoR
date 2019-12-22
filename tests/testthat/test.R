@@ -372,10 +372,10 @@ test_that("Empty module does not cause problems", {
    juliaEval("module EmptyTestModule end")
    expect_invisible(juliaImport(".EmptyTestModule"))
    expect_invisible(juliaUsing(".EmptyTestModule"))
-   # TODO
-   skip("Skipping: importInternal returns visible NULL")
-   expect_invisible(juliaImport(".EmptyTestModule", importInternal = TRUE))
-   expect_invisible(juliaUsing(".EmptyTestModule", importInternal = TRUE))
+   juliaEval("module EmptyTestModule2 end")
+   expect_invisible(juliaImport(".EmptyTestModule2", importInternal = TRUE))
+   juliaEval("module EmptyTestModule3 end")
+   expect_invisible(juliaUsing(".EmptyTestModule3", importInternal = TRUE))
 })
 
 
