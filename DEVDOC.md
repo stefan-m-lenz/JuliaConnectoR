@@ -2,6 +2,8 @@
 
     message -> '0x01' call
             | '0x00' element
+            | '0x50' output
+            | '0x5e' output
             | '0xff' fail
             | byebye
     call -> string list
@@ -25,12 +27,16 @@
     string -> int32 utf8string
     dimensions -> ndimensions {int32}
     ndimensions -> int32
+    output -> int32 {byte}
     fail -> string
     byebye -> '0xbb'
 
 ### Meaning of the int32 numbers
 * A string is preceded by the number of bytes to UTF-8-encode the string.
-* The sequence of unnamed/positional elements in a list is preceded by the number of (named) elements that follow.
+* The sequence of unnamed/positional elements in a list is preceded by 
+  the number of (named) elements that follow.
+* Standard output (after '0x50') or standard error output (after '0x5e') 
+  is preceded by the number of bytes that are sent.
 
 ### Types
 Lists that have the attribute `"JLTYPE"` will be coerced to the corresponding Julia type.
