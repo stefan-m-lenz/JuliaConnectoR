@@ -221,7 +221,8 @@ juliaExpr <- function(expr) {
 #' }
 juliaLet <- function(expr, ...) {
    args <- list(...)
-   if(length(which(names(args) == "")) > 0) {
+   if ((length(args) != 0 && is.null(names(args))) ||
+       length(which(names(args) == "")) > 0) {
       stop("Arguments must have names")
    } else {
       args <- c("RConnector.mainevallet", expr, args)

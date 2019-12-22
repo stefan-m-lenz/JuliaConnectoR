@@ -98,6 +98,11 @@ test_that("Error when trying to import a non-existent package or module", {
    expect_error(juliaUsing(".NonExistingModule"))
 })
 
+test_that("Error when passing multiple strings to import or using", {
+   expect_error(juliaImport(c("Pkg", "UUID")), regexp = "exactly one")
+   expect_error(juliaUsing(c("Pkg", "UUID")), regexp = "exactly one")
+})
+
 
 test_that("Example for juliaEval runs", {
    v1 <- juliaExpr('v"1.0.5"')
@@ -223,16 +228,21 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 
 # Test Let
-test_that("let: used like eval", {
+test_that("Let: used like eval", {
    output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})
    expect_equal(output, "1")
 })
 test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
 test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c(2,3)), "Failed")})
 
-test_that("Simple example from documentation works", {
+test_that("Let: Simple example from documentation works", {
    expect_equal(capture_output({juliaLet('println(x)', x = 1)}),
                 capture_output({juliaEval('let x = 1.0; println(x) end')}))
+})
+
+test_that("Let: arguments without names not accepted", {
+   expect_error(juliaLet("println(1)", 1), regexp = "names")
+   expect_error(juliaLet("println(1)", x=1, 1, y=2), regexp = "names")
 })
 
 
