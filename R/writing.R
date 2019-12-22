@@ -9,10 +9,6 @@ writeInt <- function(n) {
    writeBin(as.integer(n), pkgLocal$con, size = 4)
 }
 
-writeFloat64 <- function(x) {
-   writeBin(x, pkgLocal$con)
-}
-
 writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
