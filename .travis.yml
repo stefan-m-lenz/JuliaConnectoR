@@ -3,6 +3,7 @@ cache:
   packages: true
   directories:
     - $HOME/julia
+    - $HOME/.julia
 
 env:
  - JULIA_BINDIR=$HOME/julia/julia-1.0.5/bin
