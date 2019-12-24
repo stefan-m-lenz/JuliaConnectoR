@@ -77,11 +77,13 @@ test_that("A return value of nothing is not printed", {
 
 
 test_that("Test loading and importing a complex package", {
-   juliaLet('using Pkg;
-             if !haskey(Pkg.installed(), "StatsBase")
-               Pkg.add("StatsBase")
-             end
-             ') # TODO does not work with eval
+   skip_on_cran()
+   juliaEval('begin
+                 using Pkg;
+                 if !haskey(Pkg.installed(), "StatsBase")
+                    Pkg.add("StatsBase")
+                 end
+             end')
    juliaImport("StatsBase")
    expectedMeanAndVar <- list(2,1)
    attr(expectedMeanAndVar, "JLTYPE") <- "Tuple{Float64, Float64}"

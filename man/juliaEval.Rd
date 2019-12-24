@@ -14,12 +14,16 @@ The value returned from Julia, translated to an R data structure.
 If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
-This function evaluates a Julia expression in Julia
+This function evaluates a Julia expression, given as a string, in Julia
 and translates the result back to R.
 }
 \details{
 If the expression needs arguments, consider using \code{juliaLet}
 instead.
+
+If the Julia expression consists in fact of multiple expressions separated
+by semicolons or newlines and a parsing error is shown,
+consider wrapping it with \code{begin} ... \code{end}.
 }
 \examples{
 juliaEval("1 + 2")

@@ -103,11 +103,15 @@ juliaCall <- function(name, ...) {
 
 #' Evaluate a Julia expression
 #'
-#' This function evaluates a Julia expression in Julia
+#' This function evaluates a Julia expression, given as a string, in Julia
 #' and translates the result back to R.
 #'
 #' If the expression needs arguments, consider using \code{juliaLet}
 #' instead.
+#'
+#' If the Julia expression consists in fact of multiple expressions separated
+#' by semicolons or newlines and a parsing error is shown,
+#' consider wrapping it with \code{begin} ... \code{end}.
 #'
 #' @param expr Julia expression as a one-element character vector
 #'
