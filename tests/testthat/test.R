@@ -229,6 +229,15 @@ test_that("Echo: 1-element UInt128 Vector", {
 })
 
 
+test_that("Echo: List with NULL elements", {
+   testEcho(juliaEval('[1, nothing, 3]'))
+   x <- list("bla", NULL)
+   expect_equivalent(x, juliaEcho(x))
+   x <- list(NULL, NULL)
+   expect_equivalent(x, juliaEcho(x))
+})
+
+
 # Test Let
 test_that("Let: used like eval", {
    output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})
