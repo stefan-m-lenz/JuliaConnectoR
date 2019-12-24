@@ -1,5 +1,8 @@
 # JuliaConnectoR
 
+[![Build Status](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR.svg?branch=master)](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR)
+[![Coverage Status](https://coveralls.io/repos/github/stefan-m-lenz/JuliaConnectoR/badge.svg?branch=master)](https://coveralls.io/github/stefan-m-lenz/JuliaConnectoR?branch=master)
+
 This R-package provides a functionally oriented interface between R and Julia.
 The goal is to call functions from Julia packages directly as R functions.
 Julia functions imported via the `JuliaConnectoR` can accept and return R variables.
