@@ -150,4 +150,4 @@ rbm2 <- BMs.fitrbm(x, epochs = 5L)
 BMs.samples(rbm2, 5L)
 ```
 
-For more abstract examples, see the [tests](tests/test.R).
+For more abstract examples, see the [tests](tests/testthat/test.R).
