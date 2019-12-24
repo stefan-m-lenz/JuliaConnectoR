@@ -238,6 +238,28 @@ test_that("Echo: List with NULL elements", {
 })
 
 
+test_that("Multidimensional object arrays keep their dimensions", {
+   juliaEval("struct MultiTestStruct
+                f::Float64
+              end")
+
+   content <- juliaEval("rand(1,2,3)")
+   testEcho(content)
+   x <- juliaLet("map(MultiTestStruct, c)", c = content)
+   testEcho(x)
+   expect_equivalent(juliaCall("size", x), list(1,2,3))
+   attr(x, "JLDIM") <- c(1L, 2L, 4L)
+   expect_error(juliaEcho(x), regexp = "Incorrect dimensions")
+
+   # Must also work with dimensions of zero
+   testEcho(juliaEval("Matrix{MultiTestStruct}(undef, 0, 0)"))
+
+   x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
+   testEcho(x)
+   expect_equivalent(juliaCall("size", x), list(0,0,0))
+})
+
+
 # Test Let
 test_that("Let: used like eval", {
    output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})

@@ -201,10 +201,17 @@ end
 function write_element(communicator, arr::AbstractArray,
       callbacks::Vector{Function})
 
-   arr = arr[:] # TODO support multidimensional arrays
+   arrsize = size(arr)
+   arr2 = arr[:] # R lists support only 1 dimension
 
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
-   ellist = ElementList(Vector{Any}(arr), Vector{Symbol}(),
+   if length(arrsize) > 1
+      # we have a multidimensional array:
+      # add the dimensions as attribute to be able to reconstruct it
+      attributes["JLDIM"] = collect(arrsize)
+   end
+
+   ellist = ElementList(Vector{Any}(arr2), Vector{Symbol}(),
          Dict{Symbol, Any}(), attributes)
    write_element(communicator, ellist, callbacks)
 end

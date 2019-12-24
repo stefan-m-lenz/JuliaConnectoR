@@ -94,8 +94,13 @@ function evaluate!(list::ElementList)
                return Base.invokelatest(constructor, list.positionalelements)
             else
                # array type or AbstractSet
-               return Base.invokelatest(constructor,
-                     collect(list.positionalelements))
+               if haskey(list.attributes, "JLDIM")
+                  return reconstruct_multidimensional_array(constructor, 
+                        list.positionalelements, list.attributes["JLDIM"])
+               else
+                  return Base.invokelatest(constructor,
+                        collect(list.positionalelements))
+               end
             end
          end
       catch ex
@@ -149,4 +154,20 @@ function mainevallet(str::String; kwargs...)
       e = Expr(:let, Expr(:block), Expr(:block, Meta.parse(str)))
    end
    Main.eval(e)
+end
+
+
+function reconstruct_multidimensional_array(constructor, arr::Vector, 
+         dims::Vector{Int})
+
+   if prod(dims) != length(arr)
+      error("Incorrect dimensions of array. Dimensions are" * 
+            " $dims but number of elements is $(length(arr)).\n" * 
+            " If the array has been modified, the attribute \"JLDIM\"" *
+            " (and perhaps the attribute \"JLTYPE\") must be set accordingly.")
+   else
+      ret = Base.invokelatest(constructor, undef, dims...)
+      ret .= reshape(collect(arr), dims...)
+      return(ret)
+   end
 end
