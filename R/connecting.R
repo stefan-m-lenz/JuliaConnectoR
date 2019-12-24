@@ -55,16 +55,13 @@ startJulia <- function() {
 
 
 getJuliaExecutablePath <- function() {
-   juliaexe <- Sys.getenv("JULIA_EXE")
-   if (juliaexe == "") {
-      juliaBindir <- Sys.getenv("JULIA_BINDIR")
-      if (juliaBindir == "") {
-         juliaexe <- "julia" # assume julia is in the path
-      } else {
-         juliaexe <- file.path(juliaBindir, "julia")
-      }
+   juliaBindir <- Sys.getenv("JULIA_BINDIR")
+   if (juliaBindir == "") {
+      juliaCmd <- "julia" # assume julia is in the path
+   } else {
+      juliaCmd <- file.path(juliaBindir, "julia")
    }
-   return(juliaexe)
+   return(juliaCmd)
 }
 
 
