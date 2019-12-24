@@ -176,7 +176,8 @@ function callbackfun(callbackid::Int, communicator::CommunicatoR)
             result = evaluate!(call)
             write_message(communicator, result, callbacks)
          elseif firstbyte == FAIL_INDICATOR
-            return Fail(read_string(communicator))
+            r_errormsg = read_string(communicator)
+            throw(ErrorException("Error in R callback: "* r_errormsg))
          else
             error("Unexpected leading byte: " * string(firstbyte))
          end

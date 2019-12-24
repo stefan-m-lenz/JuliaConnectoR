@@ -458,6 +458,21 @@ test_that("Callback functions", {
 })
 
 
+test_that("Callback function might have error in R", {
+
+   fOK <- function(x) { return(x+1) }
+   fnotOK <- function(x) {
+      if (x == 2) {
+         stop("No even numbers please")
+      } else {
+         return(1)
+      }
+   }
+   expect_equal(juliaCall("map", fOK, c(1,2,3)), c(2,3,4))
+   expect_error(juliaCall("map", fnotOK, c(1,2,3)), class = "error")
+})
+
+
 test_that("Julia functions as members are transferred and usable in R", {
    op1 <- juliaFun("+")
    juliaEval('struct FunTestStruct f::Function end')
