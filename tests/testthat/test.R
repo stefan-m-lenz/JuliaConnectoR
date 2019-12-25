@@ -231,6 +231,8 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 
 test_that("Echo: List with NULL elements", {
+   x <- list(1, NULL, 3)
+   expect_equivalent(juliaEcho(x), x)
    testEcho(juliaEval('[1, nothing, 3]'))
    x <- list("bla", NULL)
    expect_equivalent(x, juliaEcho(x))
@@ -258,6 +260,36 @@ test_that("Multidimensional object arrays keep their dimensions", {
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
    expect_equivalent(juliaCall("size", x), list(0,0,0))
+})
+
+
+test_that("Arrays with undef entries are translated", {
+   juliaEval("mutable struct MutableTestStruct
+                f::Float64
+             end")
+
+   # all undefs
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+
+   # undefs and values
+   juliaLet("x = Vector{MutableTestStruct}(undef, 3);
+             x[1] = MutableTestStruct(x1);
+             x[2] = MutableTestStruct(x2);
+            x", x1 = 1.0, x2 = 2.0)
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+
+   # multidimensional arrays with undefs and values
+   x <- juliaLet("x = Array{MutableTestStruct}(undef, 2, 3, 4);
+             x[1,1,1] = MutableTestStruct(x1);
+            x[2,2,2] = MutableTestStruct(x2);
+            x", x1 = 1.0, x2 = 2.0)
+   testEcho(x)
+   expect_equal(x[[1]]$f, 1)
+})
+
+
+test_that("Undefined strings are transferred as empty strings", {
+   expect_equal(juliaEval("Vector{String}(undef, 3)"), c("", "", ""))
 })
 
 

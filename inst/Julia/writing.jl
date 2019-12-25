@@ -64,8 +64,12 @@ function write_element(communicator, arr::AbstractArray{String},
 
    write_bin(communicator, TYPE_ID_STRING)
    write_dimensions(communicator, arr)
-   for str in arr
-      write_string(communicator, str)
+   for i in eachindex(arr)
+      if isassigned(arr, i)
+         write_string(communicator, arr[i])
+      else
+         write_string(communicator, "")
+      end
    end
    # no attributes implemented yet (TODO implement undef)
    write_bin(communicator, 0x00)
@@ -202,16 +206,16 @@ function write_element(communicator, arr::AbstractArray,
       callbacks::Vector{Function})
 
    arrsize = size(arr)
-   arr2 = arr[:] # R lists support only 1 dimension
-
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
+
+   arr2 = arr[:] # R lists support only 1 dimension
    if length(arrsize) > 1
       # we have a multidimensional array:
       # add the dimensions as attribute to be able to reconstruct it
       attributes["JLDIM"] = collect(arrsize)
    end
 
-   ellist = ElementList(Vector{Any}(arr2), Vector{Symbol}(),
+   ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
          Dict{Symbol, Any}(), attributes)
    write_element(communicator, ellist, callbacks)
 end

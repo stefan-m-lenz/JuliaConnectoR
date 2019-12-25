@@ -29,6 +29,7 @@ const SEND_AS_INT32 = Union{Int8, Int16, UInt16, Char}
 const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 
 include("communicator.jl")
+include("handling_undefined.jl")
 include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")

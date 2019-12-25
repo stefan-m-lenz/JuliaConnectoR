@@ -93,14 +93,9 @@ function evaluate!(list::ElementList)
             if constructor <: Tuple
                return Base.invokelatest(constructor, list.positionalelements)
             else
-               # array type or AbstractSet
-               if haskey(list.attributes, "JLDIM")
-                  return reconstruct_multidimensional_array(constructor, 
-                        list.positionalelements, list.attributes["JLDIM"])
-               else
-                  return Base.invokelatest(constructor,
-                        collect(list.positionalelements))
-               end
+               # array type (or AbstractSet)
+               return reconstruct_array(constructor, list.positionalelements,
+                     list.attributes)
             end
          end
       catch ex
@@ -158,6 +153,20 @@ function mainevallet(str::String; kwargs...)
 end
 
 
+function reconstruct_array(constructor, arr::Vector, attributes)
+   if haskey(attributes, "JLDIM")
+      return reconstruct_multidimensional_array(constructor, 
+            arr, attributes["JLDIM"])
+   elseif any(isequal(JLUNDEF()), arr)
+      ret = Base.invokelatest(constructor, undef, size(arr))
+      copy_defined!(ret, arr)
+      return ret
+   else
+      return Base.invokelatest(constructor, arr)
+   end
+end
+
+
 function reconstruct_multidimensional_array(constructor, arr::Vector, 
          dims::Vector{Int})
 
@@ -168,7 +177,7 @@ function reconstruct_multidimensional_array(constructor, arr::Vector,
             " (and perhaps the attribute \"JLTYPE\") must be set accordingly.")
    else
       ret = Base.invokelatest(constructor, undef, dims...)
-      ret .= reshape(collect(arr), dims...)
-      return(ret)
+      copy_defined!(ret, arr)
+      return ret
    end
 end
