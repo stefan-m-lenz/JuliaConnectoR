@@ -119,14 +119,15 @@ end
 
 
 """ Evaluates Julia code, passed as String, in the Main module """
-function maineval(str::String)
+function maineval(str::AbstractString)
    Main.eval(Meta.parse(str))
 end
 
 
 function mainevalcmd(str::String)
-   ret = maineval(str)
-   if str[end] == ';'
+   strippedstr = strip(str)
+   ret = maineval(strippedstr)
+   if strippedstr[end] == ';'
       return nothing
    else
       return ret

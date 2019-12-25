@@ -83,7 +83,8 @@ test_that("Test loading and importing a complex package", {
                  if !haskey(Pkg.installed(), "StatsBase")
                     Pkg.add("StatsBase")
                  end
-             end')
+             end
+             ') # tests also trailing whitespace
    juliaImport("StatsBase")
    expectedMeanAndVar <- list(2,1)
    attr(expectedMeanAndVar, "JLTYPE") <- "Tuple{Float64, Float64}"
