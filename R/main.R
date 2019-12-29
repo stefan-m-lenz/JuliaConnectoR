@@ -1,5 +1,3 @@
-JULIA_PORTS <- 11980:11989
-
 # Constants
 TYPE_ID_NULL <- as.raw(0x00)
 TYPE_ID_DOUBLE <- as.raw(0x01)
@@ -50,7 +48,9 @@ endsWithChar <- (function() {
 emptyfun <- function(...) {}
 
 
-# for holding local package variables (the Julia connection object)
+# for holding local package variables:
+# - the Julia connection object ("con")
+# - the port where Julia is listening ("port")
 pkgLocal <- new.env(parent = emptyenv())
 
 
@@ -81,6 +81,14 @@ juliaCall <- function(name, ...) {
    }
 
    jlargs <- list(...)
+   # problem: tryCatch has different environment and can't access pkgLocal
+   #tryCatch({
+      doCallJulia(name, jlargs)#},
+    #        interrupt =  killJulia())
+}
+
+
+doCallJulia <- function(name, jlargs){
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    callbacks <- writeList(jlargs)
@@ -130,6 +138,7 @@ juliaEval <- function(expr) {
    juliaCall("RConnector.mainevalcmd", expr)
 }
 
+
 #' Wrap a Julia function in an R function
 #'
 #' Creates an R function that will call the Julia function with the given name
@@ -153,6 +162,7 @@ juliaFun <- function(name) {
    attr(f, "JLFUN") <- name
    return(f)
 }
+
 
 #' Mark a string as Julia expression
 #'
@@ -263,10 +273,3 @@ answerCallback <- function(fun, args) {
    writeResultMessage(ret)
 }
 
-
-
-# juliaObj <- function(type, x) {
-#    if (length(x) > 26) stop("So many members need a more sophisticated implementation.")
-#    attributes(x) <- list(JLTYPE = type, names = letters[length(x)])
-#    x
-# }

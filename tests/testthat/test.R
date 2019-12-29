@@ -558,3 +558,9 @@ test_that("Documentation example of juliaFun", {
    expect_equal(juliaCall("map", juliaSqrt, c(1,4,9)), c(1,2,3))
 })
 
+# # takes very long:
+# test_that("Flux model can be transferred", {
+#    juliaUsing("Flux")
+#    juliaImport("Flux.NNlib")
+#    juliaEval("Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)")
+# })

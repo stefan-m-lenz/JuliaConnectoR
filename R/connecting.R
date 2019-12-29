@@ -9,11 +9,12 @@ juliaConnection <- function() {
          stop("Environment variable JULIACONNECTOR_SERVER must be of form <host>:<port>")
       }
       message(paste("Connecting to Julia TCP server at", juliaSocketAdress, "..."))
-      return(socketConnection(host = host_port[1],
-                              port = juliaPort,
-                              blocking = TRUE,
-                              server = FALSE,
-                              open="r+b", timeout = 10))
+      return(list(port = juliaPort,
+                  con = socketConnection(host = host_port[1],
+                                         port = juliaPort,
+                                         blocking = TRUE,
+                                         server = FALSE,
+                                         open="r+b", timeout = 10)))
    }
 
    # If there is no Julia server specified, start a new one:
@@ -41,16 +42,19 @@ juliaConnection <- function() {
    close(portfile)
    file.remove(portfilename)
 
-   return(socketConnection(host = "localhost",
-                           port = realJuliaPort,
-                           blocking = TRUE,
-                           server = FALSE,
-                           open="r+b", timeout = 2))
+   return(list(port = realJuliaPort,
+               con = socketConnection(host = "localhost",
+                                      port = realJuliaPort,
+                                      blocking = TRUE,
+                                      server = FALSE,
+                                      open="r+b", timeout = 2)))
 }
 
 
 startJulia <- function() {
-   pkgLocal$con <- juliaConnection()
+   jlc <- juliaConnection()
+   pkgLocal$con <- jlc$con
+   pkgLocal$port <- jlc$port
 }
 
 
@@ -72,6 +76,7 @@ stopJulia <- function() {
          close(pkgLocal$con)
       }, error = function(e) {})
       pkgLocal$con <- NULL
+      pkgLocal$port <- NULL
    }
 }
 
@@ -79,5 +84,40 @@ stopJulia <- function() {
 ensureJuliaConnection <- function() {
    if (is.null(pkgLocal$con)) {
       startJulia()
+   }
+}
+
+
+killJulia <- function() {
+   os <- Sys.info()['sysname']
+   juliaPort <- pkgLocal$port
+   stopJulia()
+   if (os == "Windows") {
+      juliaPid <- killJuliaWindows(juliaPort)
+   } else {
+      juliaPid <- killJuliaUnix(juliaPort)
+   }
+}
+
+
+killJuliaWindows <- function(juliaPort) {
+   netstatOut <- system2(command = "netstat", args = "-on", stdout = TRUE)
+   juliaLineRegex <- paste0("^\\s*TCP\\s+\\S*:", juliaPort)
+   juliaLine <- netstatOut[grep(juliaLineRegex, netstatOut)]
+   juliaPid <- substring(juliaLine,
+                         regexpr("[0-9]+$", juliaLine))
+   juliaPid <- as.integer(juliaPid)
+   if (length(juliaPid) == 1) {
+      system2(command = "taskkill", args = paste("/F /PID", juliaPid),
+              stdout = FALSE)
+   }
+}
+
+# should work on Linux, MacOS and FreeBSD
+killJuliaUnix <- function(juliaPort) {
+   lsofArgs <- paste0("-t -iTCP:", juliaPort, " -sTCP:LISTEN")
+   juliaPid <- system2(command = "lsof", args = lsofArgs, stdout = TRUE)
+   if (length(juliaPid) == 1) {
+      system2(command = "kill", c("-9", juliaPid))
    }
 }
