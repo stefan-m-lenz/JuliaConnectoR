@@ -44,7 +44,7 @@ Pkg.status()
 
 # Importing a module without a package
 testModule <- system.file("examples", "TestModule1.jl",
-                          package = "JuliaConnectoR", mustWork = TRUE)
+                          package = "JuliaConnectoR")
 # take a look at the file
 writeLines(readLines(testModule))
 # load in Julia
@@ -55,7 +55,7 @@ TestModule1.test1()
 
 # Importing a submodule
 testModule <- system.file("examples", "TestModule1.jl",
-                          package = "JuliaConnectoR", mustWork = TRUE)
+                          package = "JuliaConnectoR")
 juliaCall("include", testModule)
 juliaImport(".TestModule1.SubModule1")
 # call exported function of submodule via module path
