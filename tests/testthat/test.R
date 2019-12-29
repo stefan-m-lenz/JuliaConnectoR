@@ -567,7 +567,7 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
 
    # test with wrong variable
    Sys.setenv("JULIACONNECTOR_SERVER" = "wrong form")
-   expect_error(JuliaConnectoR::startJulia(), regexp = "<host>:<port>")
+   expect_error(JuliaConnectoR:::startJulia(), regexp = "<host>:<port>")
 
    # now for real
    Sys.setenv("JULIACONNECTOR_SERVER" = paste("localhost", port, sep = ":"))
