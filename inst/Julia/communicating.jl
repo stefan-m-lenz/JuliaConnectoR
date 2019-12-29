@@ -155,7 +155,13 @@ end
 function capture_outputstreams(communicator::CommunicatoR)
    redirect_outputstream(communicator, redirect_stdout()[1], STDOUT_INDICATOR)
    rd, wr = redirect_stderr()
+
+   # Also redirect the logger.
+   # For debugging, comment the following line out, use @debug lines and 
+   # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
+   # $env:JULIA_DEBUG = "all".
    global_logger(SimpleLogger(wr))
+
    redirect_outputstream(communicator, rd, STDERR_INDICATOR)
 end
 
