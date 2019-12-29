@@ -564,9 +564,16 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
    port <- JuliaConnectoR:::runJuliaServer(12980)
-   Sys.setenv("JULIACONNECTOR_SERVER" = paste("localhost", port, sep = ":"))
 
-   expect_equal(juliaCall("prod", c(1,2)), 2) # test some command, if it works
+   # test with wrong variable
+   Sys.setenv("JULIACONNECTOR_SERVER" = "wrong form")
+   expect_error(JuliaConnectoR::startJulia(), regexp = "<host>:<port>")
+
+   # now for real
+   Sys.setenv("JULIACONNECTOR_SERVER" = paste("localhost", port, sep = ":"))
+   # test some command, if it works
+   expect_equal(juliaCall("prod", c(1,2)), 2)
+   # test killing
    JuliaConnectoR:::killJulia()
    Sys.setenv("JULIACONNECTOR_SERVER" = oldJuliaConnectorServer)
 })
