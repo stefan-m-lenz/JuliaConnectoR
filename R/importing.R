@@ -63,10 +63,8 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 
    juliaEval(paste(loadMode, modulePath))
 
-   pkgContent <- juliaCall("RConnector.moduleinfo", absoluteModulePath, all = importInternal)
-   if (!is.list(pkgContent)) {
-      stop(paste0("Could not find Julia package or module \"",  modulePath, "\"."))
-   }
+   pkgContent <- juliaCall("RConnector.moduleinfo", absoluteModulePath,
+                           all = importInternal)
 
    attachFunctionList(pkgContent$exportedFunctions, absoluteModulePath,
                       rPrefixExported, juliaPrefixExported)
