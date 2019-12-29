@@ -558,7 +558,20 @@ test_that("Documentation example of juliaFun", {
    expect_equal(juliaCall("map", juliaSqrt, c(1,4,9)), c(1,2,3))
 })
 
-# # takes very long:
+
+test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
+   JuliaConnectoR:::stopJulia()
+   oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
+   # start new JuliaConnectoR server
+   port <- JuliaConnectoR:::runJuliaServer(12980)
+   Sys.setenv("JULIACONNECTOR_SERVER" = paste("localhost", port, sep = ":"))
+
+   expect_equal(juliaCall("prod", c(1,2)), 2) # test some command, if it works
+   JuliaConnectoR:::killJulia()
+   Sys.setenv("JULIACONNECTOR_SERVER" = oldJuliaConnectorServer)
+})
+
+# # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
 #    juliaImport("Flux.NNlib")

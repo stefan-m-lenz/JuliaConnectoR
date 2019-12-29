@@ -82,13 +82,13 @@ juliaCall <- function(name, ...) {
 
    jlargs <- list(...)
    # problem: tryCatch has different environment and can't access pkgLocal
-   #tryCatch({
-      doCallJulia(name, jlargs)#},
-    #        interrupt =  killJulia())
+   con <- pkgLocal$con
+   tryCatch(doCallJulia(name, jlargs),
+            interrupt = function(e) {killJulia()})
 }
 
 
-doCallJulia <- function(name, jlargs){
+doCallJulia <- function(name, jlargs) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
    callbacks <- writeList(jlargs)

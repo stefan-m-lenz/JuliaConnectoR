@@ -17,12 +17,28 @@ juliaConnection <- function() {
                                          open="r+b", timeout = 10)))
    }
 
+   port <- runJuliaServer()
+
+   return(list(port = port,
+               con = socketConnection(host = "localhost",
+                                      port = realJuliaPort,
+                                      blocking = TRUE,
+                                      server = FALSE,
+                                      open="r+b", timeout = 2)))
+}
+
+
+# Starts a Julia process in the background that listens on a port.
+# A port hint is given by the argument "port".
+# The return value is the port where Julia is actually listening.
+# This port might be different than the port hint, if the given "port"
+# is e. g. already in use.
+runJuliaServer <- function(port = 11980) {
    # If there is no Julia server specified, start a new one:
    mainJuliaFile <- system.file("Julia", "main.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
 
    portfilename <- tempfile(paste0("juliaPort", Sys.getpid()))
-   port <- 11980 # default port
 
    # workaround for https://github.com/rstudio/rstudio/issues/2446
    stdoutfile <- tempfile('stdout'); stderrfile <- tempfile('stderr')
@@ -41,13 +57,7 @@ juliaConnection <- function() {
    realJuliaPort <- as.integer(readLines(con = portfile, n = 1L, ok = FALSE, encoding = "UTF-8"))
    close(portfile)
    file.remove(portfilename)
-
-   return(list(port = realJuliaPort,
-               con = socketConnection(host = "localhost",
-                                      port = realJuliaPort,
-                                      blocking = TRUE,
-                                      server = FALSE,
-                                      open="r+b", timeout = 2)))
+   return(realJuliaPort)
 }
 
 
