@@ -21,7 +21,7 @@ juliaConnection <- function() {
 
    return(list(port = port,
                con = socketConnection(host = "localhost",
-                                      port = realJuliaPort,
+                                      port = port,
                                       blocking = TRUE,
                                       server = FALSE,
                                       open="r+b", timeout = 2)))
