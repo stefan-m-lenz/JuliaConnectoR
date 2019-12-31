@@ -53,6 +53,8 @@ Type attributes are specified via the attribute `"JLTYPE"`.
 | `Int8`, `Int16`, `UInt16`, `Int32`, `Char` | `integer` with type attribute |
 | `UInt8` | `raw` |
 | `UInt64`, `Int128`, `UInt128` | `raw` with type attribute |
+| `Complex{Float64}` | `complex` |
+| `Complex{T}` with T being IntX (X &le; 64) or FloatY (Y &le; 32) | `complex` with type attribute |
 
 
 

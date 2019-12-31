@@ -193,6 +193,21 @@ test_that("Complex are handled first class", {
                    matrix(c(0, 1, 1, 0), ncol = 2)) %in% c(1i, -1i)),
           "")
    expect(all(jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0), "")
+
+   complexTypeParameters = c("Int8", "Int16", "Int32", "Int64",
+                             "Float16", "Float32", "Float64")
+   for (complexPar in complexTypeParameters) {
+      juliaComplexType <- paste0("Complex{", complexPar, "}")
+      c <- juliaEval(paste0(juliaComplexType, "(5-3im)"))
+      expect_equivalent(c, 5 - 3i)
+      carr <- juliaEval(paste0(juliaComplexType, "[4+4im, 2-2im]"))
+      expect_equivalent(carr, c(4+4i, 2-2i))
+      if (complexPar == "Float64") {
+         expect_null(attr(c, "JLTYPE"))
+      } else {
+         expect_equal(attr(c, "JLTYPE"), juliaComplexType)
+      }
+   }
 })
 
 

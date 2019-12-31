@@ -183,11 +183,10 @@ function write_element(communicator, arr::AbstractArray{Complex{Float64}},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Complex{T}},
-      callbacks::Vector{Function}
-      ) where {T <: Union{Int32, Int64, Float16, Float32}}
+function write_element(communicator, arr::AbstractArray{C},
+      callbacks::Vector{Function}) where {C <: SEND_AS_COMPLEX}
 
-   attributes = (("JLTYPE", string(Complex{T})), )
+   attributes = (("JLTYPE", string(C)), )
    write_element(communicator, convert.(Complex{Float64}, arr),
          callbacks, attributes)
 end
@@ -419,9 +418,9 @@ function write_element(communicator, c::Complex{Float64}, callbacks::Vector{Func
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, c::Complex{T}, callbacks::Vector{Function}
-      ) where {T <: Union{Int32, Int64, Float16, Float32}}
-   attributes = (("JLTYPE", string(typeof(c))), )
+function write_element(communicator, c::C, callbacks::Vector{Function}
+      ) where {C <: SEND_AS_COMPLEX}
+   attributes = (("JLTYPE", string(C)), )
    write_element(communicator, convert(Complex{Float64}, c), callbacks, attributes)
 end
 
