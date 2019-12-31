@@ -34,6 +34,8 @@ juliaConnection <- function() {
 # This port might be different than the port hint, if the given "port"
 # is e. g. already in use.
 runJuliaServer <- function(port = 11980) {
+   message("Starting Julia ...")
+
    # If there is no Julia server specified, start a new one:
    mainJuliaFile <- system.file("Julia", "main.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
@@ -71,8 +73,16 @@ startJulia <- function() {
 getJuliaExecutablePath <- function() {
    juliaBindir <- Sys.getenv("JULIA_BINDIR")
    if (juliaBindir == "") {
-      juliaCmd <- "julia" # assume julia is in the path
+      if (nchar(Sys.which("julia")) == 0) {
+         stop("Julia not found in path. Please check your Julia setup.")
+      }
+      juliaCmd <- "julia"
    } else {
+      juliaExe <- list.files(path = juliaBindir, pattern = "^julia.*")
+      if (length(juliaExe) == 0) {
+         stop(paste0("No Julia executable file found in supposed bin directory \"" ,
+                     juliaBindir, "\""))
+      }
       juliaCmd <- file.path(juliaBindir, "julia")
    }
    return(juliaCmd)
@@ -101,6 +111,7 @@ ensureJuliaConnection <- function() {
 killJulia <- function() {
    os <- Sys.info()['sysname']
    juliaPort <- pkgLocal$port
+   message("Stopping Julia ...")
    stopJulia()
    if (os == "Windows") {
       juliaPid <- killJuliaWindows(juliaPort)

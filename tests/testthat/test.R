@@ -593,6 +593,15 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    Sys.setenv("JULIACONNECTOR_SERVER" = oldJuliaConnectorServer)
 })
 
+
+test_that("Error if Julia is not setup properly", {
+   oldJuliaBindir <- Sys.getenv("JULIA_BINDIR")
+   Sys.setenv("JULIA_BINDIR" = "/this/isnot/a/directory/")
+   expect_error(JuliaConnectoR:::runJuliaServer(16752), "No Julia executable file found")
+   Sys.setenv("JULIA_BINDIR" = oldJuliaBindir)
+})
+
+
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
