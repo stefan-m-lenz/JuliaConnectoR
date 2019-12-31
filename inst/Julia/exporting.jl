@@ -12,11 +12,11 @@ function moduleinfo(modulename::AbstractString; all::Bool = false)
    end
 
    isafunction(sym) = symbolisa(sym, Function)
-   isadatatype(sym) = symbolisa(sym, DataType)
+   isatype(sym) = symbolisa(sym, Type)
 
    exportedsyms = names(themodule, all = false)
    exportedfunctions = map(string, filter(isafunction, exportedsyms))
-   exporteddatatypes = map(string, filter(isadatatype, exportedsyms))
+   exportedtypes = map(string, filter(isatype, exportedsyms))
 
    if all
       allsyms = names(themodule, all = true)
@@ -24,15 +24,15 @@ function moduleinfo(modulename::AbstractString; all::Bool = false)
       exportedSymSet = Set(exportedsyms)
       internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
       internalfunctions = map(string, filter(isafunction, internalsyms))
-      internaldatatypes = map(string, filter(isadatatype, internalsyms))
+      internaltypes = map(string, filter(isatype, internalsyms))
       return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
-                  :exportedDataTypes => exporteddatatypes,
+                  :exportedTypes => exportedtypes,
                   :internalFunctions => internalfunctions,
-                  :internalDataTypes => internaldatatypes))
+                  :internalTypes => internaltypes))
    else
       return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
-                  :exportedDataTypes => exporteddatatypes))
+                  :exportedTypes => exportedtypes))
    end
 end

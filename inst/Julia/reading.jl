@@ -26,11 +26,11 @@ end
 
 
 struct Call
-   fun::Union{Function, DataType, Module}
+   fun::Union{Function, Type, Module}
    args::ElementList
    parsingfails::Vector{Fail}
 
-   function Call(fun::Union{Function, DataType} = () -> nothing,
+   function Call(fun::Union{Function, Type} = () -> nothing,
       args::ElementList = ElementList(),
       parsingfails::Vector{Fail} = Vector{Fail}())
 
@@ -238,7 +238,7 @@ end
 function findfield(name::AbstractString)
    # The use of eval here brings a potential security risk if one wants
    # to restrict the functions that can be called somehow
-   maineval(name)::Union{Function, DataType, Module}
+   maineval(name)::Union{Function, Type, Module}
 end
 
 

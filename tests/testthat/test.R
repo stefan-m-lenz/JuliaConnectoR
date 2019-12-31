@@ -574,6 +574,19 @@ test_that("Documentation example of juliaFun", {
 })
 
 
+test_that("Parametric types are imported", {
+   juliaEval("module ParametricTypeTestModule
+               export MyParametricType
+               struct MyParametricType{T}
+                  i::T
+               end
+             end")
+   juliaImport(".ParametricTypeTestModule")
+   expect_equal(ParametricTypeTestModule.MyParametricType(2)$i, 2)
+   expect_equal(ParametricTypeTestModule.MyParametricType("bla")$i, "bla")
+})
+
+
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
@@ -605,6 +618,7 @@ test_that("Error if Julia is not setup properly", {
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
-#    juliaImport("Flux.NNlib")
-#    juliaEval("Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)")
+#    juliaImport("Flux.NNlib", alias = "NNlib", importInternal = TRUE)
+#    c <- Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)
+#    c$layers[[1]]$s(0)
 # })

@@ -68,7 +68,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 
    attachFunctionList(pkgContent$exportedFunctions, absoluteModulePath,
                       rPrefixExported, juliaPrefixExported)
-   attachFunctionList(pkgContent$exportedDataTypes, absoluteModulePath,
+   attachFunctionList(pkgContent$exportedTypes, absoluteModulePath,
                       rPrefixExported, juliaPrefixExported,
                       constructors = TRUE)
 
@@ -78,7 +78,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
    if (mode == LOAD_MODE_USING) {
       attachFunctionList(pkgContent$exportedFunctions, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal)
-      attachFunctionList(pkgContent$exportedDataTypes, absoluteModulePath,
+      attachFunctionList(pkgContent$exportedTypes, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal,
                          constructors = TRUE)
    }
@@ -86,7 +86,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
    if (importInternal) {
       attachFunctionList(pkgContent$internalFunctions, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal)
-      attachFunctionList(pkgContent$internalDataTypes, absoluteModulePath,
+      attachFunctionList(pkgContent$internalTypes, absoluteModulePath,
                          rPrefixInternal, juliaPrefixInternal,
                          constructors = TRUE)
    }
