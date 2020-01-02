@@ -1,20 +1,14 @@
 Package: JuliaConnectoR
 Type: Package
-Title: A Functional Interface to Use Julia Packages in R
+Title: A Functionally Oriented Interface for Integrating Julia with R
 Version: 0.2.0.9000
 Author: Stefan Lenz, Harald Binder
 Maintainer: Stefan Lenz <lenz@imbi.uni-freiburg.de>
-Description: This package provides a functionally oriented interface between R and Julia.
-    The goal is to use functions from Julia packages directly in R.
-    Julia functions imported via the `JuliaConnectoR` can accept and return R variables.
-    It is also possible to pass function arguments to enable callbacks from Julia to R.
-    The data structures passed to and returned from Julia are serialized to a custom streaming format,
-    sent via TCP and translated to Julia data structures.
-    Returned results are translated back to R.
-    R functions can be passed as arguments and will be invoked by Julia in place of Julia functions.
+Description: This package provides a functionally oriented interface linking R and Julia.
+    It allows to import and call Julia functions directly as R functions.
 License: MIT + file LICENCE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Suggests: 
     testthat (>= 2.1.0)
