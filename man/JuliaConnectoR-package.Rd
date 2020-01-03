@@ -9,7 +9,7 @@ This package provides a functionally oriented interface between R and Julia.
 The goal is to call functions from Julia packages directly as R functions.
 }
 \details{
-Julia functions imported via the \emph{JuliaConnectoR} can accept and return R variables.
+Julia functions imported via the \pkg{JuliaConnectoR} can accept and return R variables.
 The data structures passed to and returned from Julia are serialized,
 sent via TCP and translated to Julia data structures.
 Returned results are translated back to R.
@@ -29,10 +29,29 @@ and that the Julia executable is in the system search \env{PATH} or that the
 the Julia installation.
 }
 
+\section{Function overview}{
+
+The functions \code{\link{juliaImport}} and \code{\link{juliaUsing}}
+can be used to make functions and types of entire packages directly
+available in R.
+
+If only a single Julia function needs to be importedR, \code{\link{juliaFun}}
+can do this. The simplest way to call a Julia function without any importing
+is to use \code{\link{juliaCall}} with the function name given
+as character string.
+
+For evaluating expressions in Julia, \code{\link{juliaEval}} and
+\code{\link{juliaLet}} can be used. With \code{\link{juliaLet}} one can use
+R variables in a expression.
+
+\code{\link{juliaExpr}} makes it possible to refer to a Julia object
+with a string in R.
+}
+
 \section{Translation}{
 
 From a technical perspective, R data structures are serialized with an
-optimized custom streaming format,
+optimized, custom streaming format,
 sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
 The results of function calls are likewise translated back to R.
 
@@ -73,7 +92,13 @@ call is translated to a Julia callback function that will call the given R funct
 The type system of Julia is richer than that of R. Therefore, to be able to turn
 the Julia data structures that have been translated to R back to the original Julia
 data structures, the original Julia types are added to the translated Julia objects
-in R via the attribute \code{"JLTYPE"}. The following table shows how the primitive types
+in R via the attribute \code{"JLTYPE"}.
+
+It should not be necessary to worry too much
+about the translations from Julia to R because the resulting R objects should be
+intuitive to handle.
+
+The following table shows how the primitive types
 of Julia are translated to R:
 \tabular{lcl}{
 \strong{Julia} \tab  \tab \strong{R} \cr
@@ -88,12 +113,23 @@ of Julia are translated to R:
  \code{Complex{Int\var{X}}} with \var{X} \eqn{\leq}{<=} 64 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
 }
-Julia \code{Array}s of these primitive types are translated to R as
-vectors or arrays of the types shown in the table above.
 
-Julia \code{structs} are translated to lists
+Composite types and containers are translated as follows:
+\tabular{lcl}{
+\strong{Julia} \tab  \tab \strong{R} \cr
+ \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{array} of corresponding type \cr
+ \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
+ \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
+ \code{Dict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
+ named function \tab \eqn{\rightarrow}{-->} \tab string with attribute \code{"JLEXPR"} \cr
+}
 
-\code{Array}s of \code{struct}s are translated to lists
+Lists with a \code{"JLTYPE"} attribute will be coerced to the respective type in Julia.
+
+Strings with attribute \code{"JLEXPR"} will be evaluated, and the value is used in their place.
+(see \code{\link{juliaExpr}}).
+
+It is not possible to translate anonymous functions from Julia to R.
 
 }
 }
