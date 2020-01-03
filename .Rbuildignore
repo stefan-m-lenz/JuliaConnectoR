@@ -3,3 +3,4 @@
 DEVDOC.md
 LICENSE
 .travis.yml
+make-manual.R
