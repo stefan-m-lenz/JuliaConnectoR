@@ -24,12 +24,12 @@ Julia in place of Julia functions.
 
 The package requires that
 \href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 0.7) is installed}
-and that the Julia executable is in the system search \code{PATH} or that the
-\code{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
+and that the Julia executable is in the system search \env{PATH} or that the
+\env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 the Julia installation.
 }
 
-\section{Translation from Julia to R and vice versa}{
+\section{Translation}{
 
 From a technical perspective, R data structures are serialized with an
 optimized custom streaming format,
@@ -39,10 +39,62 @@ The results of function calls are likewise translated back to R.
 Since Julia is more type-sensitive than R,
 it is important to know the translations of the data structures.
 
-The translations from Julia to R are shown in the following table:
+\subsection{Translation from R to Julia}{
+The type correspondence of the basic R data types in Julia are the following:
 
-\tabular{ll}{
-\strong{bla} \tab \strong{bla}\cr
-\itemize{ \item blup \item z} \tab blup \cr}
+\tabular{lcl}{
+\strong{R} \tab  \tab \strong{Julia}\cr
+\code{integer} \tab \eqn{\rightarrow}{-->} \tab \code{Int} \cr
+\code{double}  \tab \eqn{\rightarrow}{-->} \tab \code{Float64} \cr
+\code{logical}   \tab \eqn{\rightarrow}{-->} \tab \code{Bool} \cr
+\code{character} \tab \eqn{\rightarrow}{-->} \tab \code{String} \cr
+\code{complex} \tab \eqn{\rightarrow}{-->} \tab \code{Complex{Float64}} \cr
+\code{raw}  \tab \eqn{\rightarrow}{-->} \tab \code{UInt8} \cr
+}
+
+R vectors of length 1 of the types in the table above will be translated to the types shown.
+
+R arrays with more than one element will be translated to Julia \code{Array}s of the corresponding types.
+The dimensions of the array, as returned by (\code{dim()}), will also be respected.
+For example, the R integer vector \code{c(1L, 2L)} will be of type \code{Vector{Int}},
+or \code{Array{Int,1}}, in Julia.
+A double matrix such as \code{matrix(c(1,2,3,4), nrow = 2)}
+will be of type \code{Array{Float64,2}}.
+
+
+R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
+the most specific supertype of the list elements after translation to Julia.
+
+An R function (type \code{closure}) that is handed to Julia as argument in a function
+call is translated to a Julia callback function that will call the given R function.
+}
+
+\subsection{Translation from Julia to R}{
+The type system of Julia is richer than that of R. Therefore, to be able to turn
+the Julia data structures that have been translated to R back to the original Julia
+data structures, the original Julia types are added to the translated Julia objects
+in R via the attribute \code{"JLTYPE"}. The following table shows how the primitive types
+of Julia are translated to R:
+\tabular{lcl}{
+\strong{Julia} \tab  \tab \strong{R} \cr
+ \code{Float64}\tab \eqn{\rightarrow}{-->} \tab\code{double} \cr
+ \code{Float16}, \code{Float32}, \code{UInt32} \tab \eqn{\rightarrow}{-->} \tab\code{double} with type attribute \cr
+ \code{Int64} that fits in 32 bits \tab \eqn{\rightarrow}{-->} \tab \code{integer} \cr
+ \code{Int64} not fitting in 32 bits \tab \eqn{\rightarrow}{-->} \tab \code{double} with type attribute \cr
+ \code{Int8}, \code{Int16}, \code{UInt16}, \code{Int32}, \code{Char}\tab \eqn{\rightarrow}{-->} \tab\code{integer} with type attribute \cr
+ \code{UInt8}\tab \eqn{\rightarrow}{-->} \tab\code{raw} \cr
+ \code{UInt64}, \code{Int128}, \code{UInt128}\tab \eqn{\rightarrow}{-->} \tab\code{raw} with type attribute \cr
+ \code{Complex{Float64}}\tab \eqn{\rightarrow}{-->} \tab\code{complex} \cr
+ \code{Complex{Int\var{X}}} with \var{X} \eqn{\leq}{<=} 64 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
+ \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
+}
+Julia \code{Array}s of these primitive types are translated to R as
+vectors or arrays of the types shown in the table above.
+
+Julia \code{structs} are translated to lists
+
+\code{Array}s of \code{struct}s are translated to lists
+
+}
 }
 
