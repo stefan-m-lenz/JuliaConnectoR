@@ -124,6 +124,18 @@
 #'
 #' }
 #'
+#' @section Limitations:
+#'
+#' The current version does not translate data frames into a useful
+#' format in Julia. Also, \code{NA}s in R are not translated to \code{missing}
+#' values in Julia. The behaviour regarding data frames and missing values
+#' can change in future versions of the package.
+#'
+#' If Julia objects contain external references such as pointers, saving
+#' the translated objects in R in a file, reloading the R session and
+#' and reviving the objects in Julia might lead to crashes.
+#'
+#'
 #' @docType package
 #' @name JuliaConnectoR-package
 NULL
