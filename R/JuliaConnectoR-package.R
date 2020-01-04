@@ -10,7 +10,8 @@
 #' Even complex Julia data structures are translated to R in a way that
 #' they can be translated back and passed to Julia again.
 #'
-#' It is also possible to pass function arguments to enable \emph{callbacks} from Julia to R.
+#' It is also possible to pass function arguments to enable
+#' \emph{callbacks} from Julia to R:
 #' R functions can be passed as arguments and will be invoked by
 #' Julia in place of Julia functions.
 #'
@@ -50,7 +51,7 @@
 #' it is important to know the translations of the data structures.
 #'
 #' \subsection{Translation from R to Julia}{
-#' The type correspondence of the basic R data types in Julia are the following:
+#' The type correspondences of the basic R data types in Julia are the following:
 #'
 #' \tabular{lcl}{
 #' \strong{R} \tab  \tab \strong{Julia}\cr
@@ -65,7 +66,7 @@
 #' R vectors of length 1 of the types in the table above will be translated to the types shown.
 #'
 #' R arrays with more than one element will be translated to Julia \code{Array}s of the corresponding types.
-#' The dimensions of the array, as returned by (\code{dim()}), will also be respected.
+#' The dimensions of the array, as returned by \code{dim()}, will also be respected.
 #' For example, the R integer vector \code{c(1L, 2L)} will be of type \code{Vector{Int}},
 #' or \code{Array{Int,1}}, in Julia.
 #' A double matrix such as \code{matrix(c(1,2,3,4), nrow = 2)}
@@ -84,6 +85,10 @@
 #' the Julia data structures that have been translated to R back to the original Julia
 #' data structures, the original Julia types are added to the translated Julia objects
 #' in R via the attribute \code{"JLTYPE"}.
+#' When passed to Julia, R variables with this
+#' attribute will be coerced to the respective type.
+#' This allows the reconstruction of the original objects
+#' with their original type.
 #'
 #' It should not be necessary to worry too much
 #' about the translations from Julia to R because the resulting R objects should be
@@ -111,16 +116,13 @@
 #'  \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{array} of corresponding type \cr
 #'  \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
 #'  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
-#'  \code{Dict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
+#'  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
+#'  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
 #'  named function \tab \eqn{\rightarrow}{-->} \tab string with attribute \code{"JLEXPR"} \cr
 #' }
 #'
-#' Lists with a \code{"JLTYPE"} attribute will be coerced to the respective type in Julia.
-#'
-#' Strings with attribute \code{"JLEXPR"} will be evaluated, and the value is used in their place.
-#' (see \code{\link{juliaExpr}}).
-#'
-#' It is not possible to translate anonymous functions from Julia to R.
+#' Strings with attribute \code{"JLEXPR"} will be evaluated,
+#' and the value is used in their place (see \code{\link{juliaExpr}}).
 #'
 #' }
 #'
@@ -134,6 +136,15 @@
 #' If Julia objects contain external references such as pointers, saving
 #' the translated objects in R in a file, reloading the R session and
 #' and reviving the objects in Julia might lead to crashes.
+#'
+#' It is not possible to translate anonymous functions from Julia to R.
+#'
+#' Numbers of type \code{Int64} that are too big to be expressed as 32-bit
+#' \code{integer} values in R will be translated to \code{double} numbers.
+#' This may lead to a inaccurate results for very large numbers,
+#' when they are translated back to Julia, since, e. g.,
+#' \code{(2^53 + 1) - 2^53 == 0} holds for double-precision
+#' floating point numbers.
 #'
 #'
 #' @docType package
