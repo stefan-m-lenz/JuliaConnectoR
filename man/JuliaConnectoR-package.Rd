@@ -97,7 +97,7 @@ in R via the attribute \code{"JLTYPE"}.
 When passed to Julia, R variables with this
 attribute will be coerced to the respective type.
 This allows the reconstruction of the original objects
-with their original type..
+with their original type.
 
 It should not be necessary to worry too much
 about the translations from Julia to R because the resulting R objects should be
@@ -153,7 +153,7 @@ It is not possible to translate anonymous functions from Julia to R.
 Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 \code{integer} values in R will be translated to \code{double} numbers.
 This may lead to a inaccurate results for very large numbers,
-when they are translated back to Julia since, e. g.,
+when they are translated back to Julia, since, e. g.,
 \code{(2^53 + 1) - 2^53 == 0} holds for double-precision
 floating point numbers.
 }
