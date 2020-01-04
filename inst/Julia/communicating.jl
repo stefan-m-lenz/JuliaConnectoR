@@ -1,12 +1,25 @@
+struct SharedObject
+   obj::Any
+   refcount::UInt32
+end
+
+const sharedheap = Dict{UInt64, SharedObject}()
+
+struct CircularReference
+   objref::UInt64
+end
+
+
 # Encapsulate the io stream and a lock to prevent concurrent writing
 # by multiple Tasks because this would mess up the messages
 struct CommunicatoR{T}
-   lock::ReentrantLock
-   io::T
+   lock::ReentrantLock   # for synchronizing the communication
+   io::T                 # the iostream for communicating with R
+   objrefs::Set{UInt64}  # used to detect circular references
 end
 
 function CommunicatoR(io)
-   CommunicatoR(ReentrantLock(), io)
+   CommunicatoR(ReentrantLock(), io, Set{UInt64}())
 end
 
 
@@ -17,6 +30,14 @@ end
 
 function read_bin(c::CommunicatoR, x)
    read(c.io, x)
+end
+
+
+function shareref!(communicator::CommunicatoR, obj)
+   ref = UInt64(pointer_from_objref(obj))
+   refexists = ref in communicator.objrefs
+   push!(communicator.objrefs, ref)
+   ref, refexists
 end
 
 
@@ -135,6 +156,10 @@ start_callback_message = start_result_message
 
 
 function end_result_message(c::CommunicatoR)
+   # end of circular reference detection
+   empty!(c.objrefs)
+
+   # release lock of outputstream for next call
    unlock(c.lock)
 end
 

@@ -615,6 +615,15 @@ test_that("Error if Julia is not setup properly", {
 })
 
 
+test_that("Circular references do not lead to a crash", {
+   tryCatch({juliaEval("mutable struct TestRecur
+                  r::Union{TestRecur, Int}
+             end")}, error = JuliaConnectoR:::emptyfun)
+   r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
+   expect_error(juliaEcho(r), regex = "Circular reference")
+})
+
+
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")

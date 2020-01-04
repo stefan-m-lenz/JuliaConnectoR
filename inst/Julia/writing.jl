@@ -320,6 +320,14 @@ function write_element(communicator, obj::T,
       callbacks::Vector{Function}) where T
 
    if isstructtype(T)
+      if !isimmutable(obj)
+         ref, refknown = shareref!(communicator, obj)
+         if refknown # recursion detected
+            write_element(communicator, CircularReference(ref), callbacks)
+            return
+         end
+      end
+
       names = fieldnames(T)
       if isempty(names) # type without members
          write_expression(communicator, string(T) * "()")

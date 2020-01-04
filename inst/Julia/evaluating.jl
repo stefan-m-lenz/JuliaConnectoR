@@ -82,6 +82,8 @@ function evaluate!(list::ElementList)
                return Symbol(list.namedelements[:name])
             elseif constructor <: Module
                return Module(Symbol(list.namedelements[:name]))
+            elseif constructor <: CircularReference
+               error("Circular references cannot be reconstructed")
             else
                # normal composite type:
                # forge call to inner constructor (which may be private)
