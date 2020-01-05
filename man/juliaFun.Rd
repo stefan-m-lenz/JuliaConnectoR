@@ -9,13 +9,13 @@ juliaFun(name, ...)
 \arguments{
 \item{name}{the name of the Julia function}
 
-\item{...}{arguments for currying:
+\item{...}{optional arguments for currying:
 The resulting function will be called using these arguments.}
 }
 \description{
 Creates an R function that will call the Julia function with the given name
-when it is called. The returned function can also be passed as function argument
-to Julia functions.
+when it is called. Like any R function, the returned function can
+also be passed as a function argument to Julia functions.
 }
 \examples{
 # Wrap a Julia function and use it
