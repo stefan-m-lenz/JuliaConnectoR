@@ -556,7 +556,7 @@ test_that("Callback functions", {
                   function(x, y) {doOutput(x)},
                   list(juliaCall("TestStruct", function(x,y) {doOutput(x)}),
                        juliaCall("TestStruct", function(x, y) {doOutput(y); return(list(5,6,7))})),
-                  17,18) # TODO try with function with error
+                  17,18)
    expect_equal(outputenv$output, c(17, 18, 17))
 })
 

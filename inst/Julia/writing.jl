@@ -71,7 +71,6 @@ function write_element(communicator, arr::AbstractArray{String},
          write_string(communicator, "")
       end
    end
-   # no attributes implemented yet (TODO implement undef)
    write_bin(communicator, 0x00)
 end
 
@@ -347,6 +346,7 @@ function write_element(communicator, obj::T,
          if refknown # recursion detected
             write_struct_element(communicator, 
                   CircularReference(ref), callbacks)
+            # TODO write reference as attribute
             return
          end
       end
