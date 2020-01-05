@@ -39,24 +39,3 @@
   the number of (named) elements that follow.
 * Standard output (after '0x50') or standard error output (after '0x5e') 
   is preceded by the number of bytes that are sent.
-
-### Types
-Lists that have the attribute `"JLTYPE"` will be coerced to the corresponding Julia type.
-
-## Conversion table for bitstypes:
-
-Type attributes are specified via the attribute `"JLTYPE"`.
-
-| Julia type | R type|
-| -----------|-------|
-| `Float64` | `double` |
-| `Float16`, `Float32`, `UInt32` | `double` with type attribute |
-| `Int64 `| `integer` if it fits into 32 bits, otherwise `double` with type attribute |
-| `Int8`, `Int16`, `UInt16`, `Int32`, `Char` | `integer` with type attribute |
-| `UInt8` | `raw` |
-| `UInt64`, `Int128`, `UInt128` | `raw` with type attribute |
-| `Complex{Float64}` | `complex` |
-| `Complex{T}` with T being IntX (X &le; 64) or FloatY (Y &le; 32) | `complex` with type attribute |
-
-
-
