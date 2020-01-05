@@ -627,6 +627,7 @@ test_that("Circular references do not lead to a crash", {
 test_that("Anonymous functions can be transferred", {
    af1 <- juliaEval("() -> 17")
    expect_equal(af1(), 17)
+   expect_equal(juliaEcho(af1)(), 17)
    rm(af1)
 
    af2 <- juliaEval("(args...; kwargs...) -> 19")

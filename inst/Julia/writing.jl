@@ -251,9 +251,11 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
    callbackid = findfirst(isequal(f), callbacks)
    if callbackid === nothing # it's not a callback function
       f_as_string = string(f)
-      if endswith(f_as_string, "()")
-         # an anonymous function will have a string representation like
-         # "getfield(Main, Symbol(\"##5#6\"))()".
+      if endswith(f_as_string, "()") || startswith(f_as_string, '#')
+         # Detect an anonymous function:
+         # An anonymous function will have a string representation like
+         # "getfield(Main, Symbol(\"##5#6\"))()" in Julia 1.0.
+         # In Julia 1.3 it is something like "#3".
          ref = sharedheapref!(AnonymousFunctionReference(f))
          write_bin(communicator, TYPE_ID_ANONYMOUS_FUNCTION)
          write_bin(communicator, ref)
