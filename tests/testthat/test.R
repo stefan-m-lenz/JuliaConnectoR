@@ -180,6 +180,23 @@ test_that("Echo: logical vectors", {
 })
 
 
+test_that("Echo: Pointers", {
+   arrPtr <- juliaFun("Base.pointer", list(1,2,3))
+   ptr <- arrPtr(2L)
+   expect_type(ptr, "raw")
+   testEcho(ptr)
+   ptrs <- juliaCall("map", arrPtr, as.integer(1:3))
+   testEcho(ptrs)
+})
+
+
+test_that("Echo: Ref", {
+   testEcho(juliaCall("Ref", list(1,2,3), 2L))
+   r <- juliaEval("global reftestvar = 1; Ref(reftestvar)")
+   testEcho(r)
+})
+
+
 test_that("Complex are handled first class", {
    testEcho(1i)
    testEcho(juliaEval("1+im"))
@@ -253,6 +270,13 @@ test_that("Echo: List with NULL elements", {
    expect_equivalent(x, juliaEcho(x))
    x <- list(NULL, NULL)
    expect_equivalent(x, juliaEcho(x))
+})
+
+
+test_that("Currying in juliaFun works", {
+   plus1 <- juliaFun("+", 1)
+   plus1(2)
+   expect_equal(juliaCall("map", plus1, c(1,2,3)), c(2,3,4))
 })
 
 

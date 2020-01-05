@@ -116,9 +116,9 @@ of Julia are translated to R:
  \code{Float16}, \code{Float32}, \code{UInt32} \tab \eqn{\rightarrow}{-->} \tab\code{double} with type attribute \cr
  \code{Int64} that fits in 32 bits \tab \eqn{\rightarrow}{-->} \tab \code{integer} \cr
  \code{Int64} not fitting in 32 bits \tab \eqn{\rightarrow}{-->} \tab \code{double} with type attribute \cr
- \code{Int8}, \code{Int16}, \code{UInt16}, \code{Int32}, \code{Char}\tab \eqn{\rightarrow}{-->} \tab\code{integer} with type attribute \cr
+ \code{Int8}, \code{Int16}, \code{UInt16}, \code{Int32}, \code{Char} \tab \eqn{\rightarrow}{-->} \tab\code{integer} with type attribute \cr
  \code{UInt8}\tab \eqn{\rightarrow}{-->} \tab\code{raw} \cr
- \code{UInt64}, \code{Int128}, \code{UInt128}\tab \eqn{\rightarrow}{-->} \tab\code{raw} with type attribute \cr
+ \code{UInt64}, \code{Int128}, \code{UInt128}, \code{Ptr} \tab \eqn{\rightarrow}{-->} \tab\code{raw} with type attribute \cr
  \code{Complex{Float64}}\tab \eqn{\rightarrow}{-->} \tab\code{complex} \cr
  \code{Complex{Int\var{X}}} with \var{X} \eqn{\leq}{<=} 64 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
@@ -132,7 +132,7 @@ Non-primitive objects are translated as follows:
  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
- function \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
+ \code{Function} \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
 }
 
 }

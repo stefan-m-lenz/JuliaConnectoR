@@ -164,11 +164,11 @@ juliaEval <- function(expr) {
 #' Wrap a Julia function in an R function
 #'
 #' Creates an R function that will call the Julia function with the given name
-#' when it is called. The returned function can also be passed as function argument
-#' to Julia functions.
+#' when it is called. Like any R function, the returned function can
+#' also be passed as a function argument to Julia functions.
 #'
 #' @param name the name of the Julia function
-#' @param ... arguments for currying:
+#' @param ... optional arguments for currying:
 #'    The resulting function will be called using these arguments.
 #'
 #' @examples
@@ -190,13 +190,17 @@ juliaFun <- function(name, ...) {
       f <- function(...) {
          juliaCall(name, ...)
       }
+      # If passed to Julia, this function
+      # can directly be translated to a Julia function.
+      attr(f, "JLFUN") <- name
    } else {
+      # This will be treated as a callback function,
+      # if it is passed to Julia.
       f <- function(...) {
          do.call(juliaCall, c(name, args, list(...)))
       }
    }
 
-   attr(f, "JLFUN") <- name
    return(f)
 }
 
