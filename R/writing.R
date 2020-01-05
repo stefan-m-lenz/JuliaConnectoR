@@ -66,13 +66,11 @@ writeElement <- function(elem, callbacks = list()) {
       if (!is.null(attr(elem, "JLTYPE"))) {
          writeExpression(attr(elem, "JLTYPE"))
       } else if (!is.null(attr(elem, "JLFUN"))) {
-         if (!is.null(attr(elem, "JLREF"))) {
-            # it's an anonymous function
-            writeBin(TYPE_ID_ANONYMOUS_FUNCTION, pkgLocal$con)
-            writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
-         } else {
-            writeExpression(attr(elem, "JLFUN"))
-         }
+         writeExpression(attr(elem, "JLFUN"))
+      } else if (!is.null(attr(elem, "JLREF"))) {
+         # it's an anonymous function
+         writeBin(TYPE_ID_ANONYMOUS_FUNCTION, pkgLocal$con)
+         writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
       } else {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
          callbacks <- c(callbacks, elem)
