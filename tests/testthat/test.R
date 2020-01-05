@@ -618,9 +618,33 @@ test_that("Error if Julia is not setup properly", {
 test_that("Circular references do not lead to a crash", {
    tryCatch({juliaEval("mutable struct TestRecur
                   r::Union{TestRecur, Int}
-             end")}, error = JuliaConnectoR:::emptyfun)
+             end")}, error = function(e) {}) # ignore redefinition error
    r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
    expect_error(juliaEcho(r), regex = "Circular reference")
+})
+
+
+test_that("Anonymous functions can be transferred", {
+   af1 <- juliaEval("() -> 17")
+   expect_equal(af1(), 17)
+   rm(af1)
+
+   af2 <- juliaEval("(args...; kwargs...) -> 19")
+   expect_equal(af2(list(), 3, bla = 2), 19)
+   rm(af2)
+
+   # Test cleaning of references
+   invisible(gc(verbose = FALSE))
+   expect_gt(length(JuliaConnectoR:::pkgLocal$finalizedRefs), 0)
+   juliaEval("1")
+   expect_null(JuliaConnectoR:::pkgLocal$finalizedRefs)
+
+
+   juliaEval("struct TestAnonFunStruct
+               f::Function
+             end")
+   afs <- juliaEval("TestAnonFunStruct(() -> 20)")
+   expect_equal(afs[[1]](), 20)
 })
 
 

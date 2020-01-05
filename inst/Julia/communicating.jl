@@ -1,9 +1,42 @@
-struct SharedObject
+mutable struct SharedObject
    obj::Any
-   refcount::UInt32
+   refcount::UInt64
 end
 
+function SharedObject(obj)
+   SharedObject(obj, UInt32(1))
+end
+
+mutable struct AnonymousFunctionReference
+   f::Function
+end
+
+
 const sharedheap = Dict{UInt64, SharedObject}()
+
+function sharedheapref!(obj)
+   ref = UInt64(pointer_from_objref(obj))
+   sharedheap[ref] = SharedObject(obj)
+   ref
+end
+
+
+function parseheapref(ref::Vector{UInt8})
+   UInt64(reinterpret(UInt64, ref)[1])
+end
+
+
+function decrefcounts(refs::Vector{UInt8})
+   for ref in reinterpret(UInt64, refs)
+      newrefcount = sharedheap[ref].refcount - 1
+      if newrefcount == 0
+         delete!(sharedheap, ref)
+      else
+         sharedheap[ref].refcount = newrefcount
+      end
+   end
+end
+
 
 struct CircularReference
    objref::UInt64
@@ -34,7 +67,7 @@ end
 
 
 function shareref!(communicator::CommunicatoR, obj)
-   ref = UInt64(pointer_from_objref(obj))
+   ref = sharedheapref!(obj)
    refexists = ref in communicator.objrefs
    push!(communicator.objrefs, ref)
    ref, refexists
@@ -133,6 +166,14 @@ function callbackfun(callbackid::Int, communicator::CommunicatoR)
          end
       end
    end
+end
+
+
+function callanonymous(functionref::Vector{UInt8}, args...; kwargs...)
+   anofunref::AnonymousFunctionReference = 
+         sharedheap[parseheapref(functionref)].obj
+   ret = anofunref.f(args...; kwargs...)
+   ret
 end
 
 

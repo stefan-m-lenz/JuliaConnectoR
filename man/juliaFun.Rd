@@ -4,10 +4,13 @@
 \alias{juliaFun}
 \title{Wrap a Julia function in an R function}
 \usage{
-juliaFun(name)
+juliaFun(name, ...)
 }
 \arguments{
 \item{name}{the name of the Julia function}
+
+\item{...}{arguments for currying:
+The resulting function will be called using these arguments.}
 }
 \description{
 Creates an R function that will call the Julia function with the given name
@@ -19,6 +22,11 @@ to Julia functions.
 juliaSqrt <- juliaFun("sqrt")
 juliaSqrt(2)
 juliaCall("map", juliaSqrt, c(1,4,9))
+
+# may also be used with arguments
+plus1 <- juliaFun("+", 1)
+plus1(2)
+
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }

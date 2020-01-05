@@ -8,7 +8,8 @@ TYPE_ID_LOGICAL <- as.raw(0x05)
 TYPE_ID_STRING <- as.raw(0x06)
 TYPE_ID_LIST <- as.raw(0x07)
 TYPE_ID_CALLBACK <- as.raw(0xcb)
-TYPE_ID_FUNCTION <- as.raw(0xfc)
+TYPE_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
+TYPE_ID_NAMED_FUNCTION <- as.raw(0xfc)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
 
 CALL_INDICATOR <- as.raw(0x01)
@@ -83,8 +84,23 @@ juliaCall <- function(name, ...) {
    jlargs <- list(...)
    # problem: tryCatch has different environment and can't access pkgLocal
    con <- pkgLocal$con
-   tryCatch(doCallJulia(name, jlargs),
-            interrupt = function(e) {killJulia()})
+
+   ret <- NULL
+
+   tryCatch(
+      {
+         # the function call
+         ret <- doCallJulia(name, jlargs)
+
+         releaseFinalizedRefs()
+
+      }, interrupt = function(e) {killJulia()})
+
+   if (is.null(ret)) {
+      return(invisible(NULL))
+   } else {
+      return(ret)
+   }
 }
 
 
@@ -94,17 +110,21 @@ doCallJulia <- function(name, jlargs) {
    callbacks <- writeList(jlargs)
    messageType <- handleCallbacksAndOutput(callbacks)
    if (messageType == RESULT_INDICATOR) {
-      ret <- readElement(callbacks)
-      if (is.null(ret)) {
-         return(invisible(NULL))
-      } else {
-         return(ret)
-      }
+      return(readElement(callbacks))
    } else if (messageType == FAIL_INDICATOR) {
       stop(readString())
    } else {
       print(paste(c("Message type not supported (yet): ", messageType)))
       stopJulia()
+   }
+}
+
+
+releaseFinalizedRefs <- function() {
+   if (!is.null(pkgLocal$finalizedRefs)) {
+      doCallJulia("RConnector.decrefcounts",
+                  list(pkgLocal$finalizedRefs))
+      pkgLocal$finalizedRefs <- NULL
    }
 }
 
@@ -148,19 +168,34 @@ juliaEval <- function(expr) {
 #' to Julia functions.
 #'
 #' @param name the name of the Julia function
+#' @param ... arguments for currying:
+#'    The resulting function will be called using these arguments.
 #'
 #' @examples
 #' # Wrap a Julia function and use it
 #' juliaSqrt <- juliaFun("sqrt")
 #' juliaSqrt(2)
 #' juliaCall("map", juliaSqrt, c(1,4,9))
+#'
+#' # may also be used with arguments
+#' plus1 <- juliaFun("+", 1)
+#' plus1(2)
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
-juliaFun <- function(name) {
-   f <- function(...) {
-      juliaCall(name, ...)
+juliaFun <- function(name, ...) {
+   args <- list(...)
+   if (length(args) == 0) {
+      f <- function(...) {
+         juliaCall(name, ...)
+      }
+   } else {
+      f <- function(...) {
+         do.call(juliaCall, c(name, args, list(...)))
+      }
    }
+
    attr(f, "JLFUN") <- name
    return(f)
 }
@@ -273,5 +308,16 @@ handleCallbacksAndOutput <- function(callbacks) {
 answerCallback <- function(fun, args) {
    ret <- do.call(fun, args)
    writeResultMessage(ret)
+}
+
+
+juliaHeapReference <- function(ref) {
+   ret <- new.env(emptyenv())
+   ret$ref <- ref
+   reg.finalizer(ret, function(e) {
+      # remove reference (see releaseFinalizedRefs)
+      pkgLocal$finalizedRefs <- c(pkgLocal$finalizedRefs, e$ref)
+   })
+   ret
 }
 

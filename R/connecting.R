@@ -97,6 +97,10 @@ stopJulia <- function() {
       }, error = function(e) {})
       pkgLocal$con <- NULL
       pkgLocal$port <- NULL
+
+      # clean up references
+      invisible(gc(verbose = FALSE))
+      pkgLocal$finalizedRefs <- NULL
    }
 }
 

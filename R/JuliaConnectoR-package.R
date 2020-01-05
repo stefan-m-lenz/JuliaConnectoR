@@ -78,6 +78,11 @@
 #'
 #' An R function (type \code{closure}) that is handed to Julia as argument in a function
 #' call is translated to a Julia callback function that will call the given R function.
+#'
+#' Strings with attribute \code{"JLEXPR"}
+#' will be evaluated as Julia expressions,
+#' and the value is used in their place (see \code{\link{juliaExpr}}).
+#'
 #' }
 #'
 #' \subsection{Translation from Julia to R}{
@@ -87,7 +92,7 @@
 #' in R via the attribute \code{"JLTYPE"}.
 #' When passed to Julia, R variables with this
 #' attribute will be coerced to the respective type.
-#' This allows the reconstruction of the original objects
+#' This allows the reconstruction of the objects
 #' with their original type.
 #'
 #' It should not be necessary to worry too much
@@ -110,7 +115,7 @@
 #'  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
 #' }
 #'
-#' Composite types and containers are translated as follows:
+#' Non-primitive objects are translated as follows:
 #' \tabular{lcl}{
 #' \strong{Julia} \tab  \tab \strong{R} \cr
 #'  \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{array} of corresponding type \cr
@@ -118,11 +123,8 @@
 #'  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
 #'  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
 #'  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
-#'  named function \tab \eqn{\rightarrow}{-->} \tab string with attribute \code{"JLEXPR"} \cr
+#'  function \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
 #' }
-#'
-#' Strings with attribute \code{"JLEXPR"} will be evaluated,
-#' and the value is used in their place (see \code{\link{juliaExpr}}).
 #'
 #' }
 #'
@@ -133,11 +135,11 @@
 #' values in Julia. The behaviour regarding data frames and missing values
 #' can change in future versions of the package.
 #'
-#' If Julia objects contain external references such as pointers, saving
-#' the translated objects in R in a file, reloading the R session and
-#' and reviving the objects in Julia might lead to crashes.
+#' Objects containing cicular references cannot be translated back to Julia.
 #'
-#' It is not possible to translate anonymous functions from Julia to R.
+#' If Julia objects contain external references such as pointers,
+#' they cannot be translated back to Julia after the Julia process
+#' has been stopped and restarted.
 #'
 #' Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 #' \code{integer} values in R will be translated to \code{double} numbers.

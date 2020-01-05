@@ -13,6 +13,10 @@ writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
+writeAnonymousFunctionReference <- function(ref) {
+   writeBin(ref, pkgLocal$con)
+}
+
 writeNofAttributes <- function(n) {
    writeBin(as.raw(n), pkgLocal$con)
 }
@@ -62,15 +66,17 @@ writeElement <- function(elem, callbacks = list()) {
       if (!is.null(attr(elem, "JLTYPE"))) {
          writeExpression(attr(elem, "JLTYPE"))
       } else if (!is.null(attr(elem, "JLFUN"))) {
-         writeExpression(attr(elem, "JLFUN"))
+         if (!is.null(attr(elem, "JLREF"))) {
+            # it's an anonymous function
+            writeBin(TYPE_ID_ANONYMOUS_FUNCTION, pkgLocal$con)
+            writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
+         } else {
+            writeExpression(attr(elem, "JLFUN"))
+         }
       } else {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
-         if (identical(elem, emptyfun)) {
-             writeInt(0L)
-         } else {
-            callbacks <- c(callbacks, elem)
-            writeInt(length(callbacks))
-         }
+         callbacks <- c(callbacks, elem)
+         writeInt(length(callbacks))
       }
    } else {
       typeId <- TYPE_IDS[[typeof(elem)]]

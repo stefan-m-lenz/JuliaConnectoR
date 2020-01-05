@@ -75,6 +75,11 @@ readNofAttributes <- function() {
 }
 
 
+readAnonymousFunctionReference <- function() {
+   readBin(pkgLocal$con, "raw", 8) # 64 bit
+}
+
+
 readElement <- function(callbacks) {
    theAttributes <- list()
    typeId <- readBin(pkgLocal$con, "raw", 1)
@@ -86,16 +91,17 @@ readElement <- function(callbacks) {
       expr <- readString()
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
-   } else if (typeId == TYPE_ID_FUNCTION) {
+   } else if (typeId == TYPE_ID_NAMED_FUNCTION) {
       funname <- readString()
       return(juliaFun(funname))
+   } else if (typeId == TYPE_ID_ANONYMOUS_FUNCTION) {
+      ref <- readAnonymousFunctionReference()
+      fun <- juliaFun("RConnector.callanonymous", ref)
+      attr(fun, "JLREF") <- juliaHeapReference(ref)
+      return(fun)
    } else if (typeId == TYPE_ID_CALLBACK) {
       callbackId <- readInt()
-      if (callbackId == 0) {
-         return(emptyfun)
-      } else {
-         return(callbacks[[callbackId]])
-      }
+      return(callbacks[[callbackId]])
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)

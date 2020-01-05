@@ -39,11 +39,6 @@ struct Call
 end
 
 
-""" Accepts everything, does nothing """
-function emptyfun(args...; kwargs...)
-end
-
-
 function read_attributes(communicator)
    nattributes = read_nattributes(communicator)
    attributes = Dict{String, Any}()
@@ -120,15 +115,14 @@ function read_element(communicator, callbacks::Vector{Function})
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(communicator)
+   elseif typeid == TYPE_ID_ANONYMOUS_FUNCTION
+      ref = parseheapref(read_bin(communicator, 8))
+      return ((sharedheap[ref].obj)::AnonymousFunctionReference).f
    elseif  typeid == TYPE_ID_CALLBACK
       callbackid = read_int(communicator)
-      if callbackid == 0
-         return emptyfun
-      else
-         callback = callbackfun(callbackid, communicator)
-         push!(callbacks, callback)
-         return callback
-      end
+      callback = callbackfun(callbackid, communicator)
+      push!(callbacks, callback)
+      return callback
    else
       dimensions = read_dimensions(communicator)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)

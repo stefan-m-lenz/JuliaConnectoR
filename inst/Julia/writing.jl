@@ -254,11 +254,13 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
       if endswith(f_as_string, "()")
          # an anonymous function will have a string representation like
          # "getfield(Main, Symbol(\"##5#6\"))()".
-         # It cannot be transferred and instead a no-op function is transferred.
-         callbackid = 0
+         ref = sharedheapref!(AnonymousFunctionReference(f))
+         write_bin(communicator, TYPE_ID_ANONYMOUS_FUNCTION)
+         write_bin(communicator, ref)
+         return
       else
          # write an element for a named function
-         write_bin(communicator, TYPE_ID_FUNCTION)
+         write_bin(communicator, TYPE_ID_NAMED_FUNCTION)
          write_string(communicator, f_as_string)
          return
       end
@@ -316,6 +318,24 @@ function write_element(communicator, d::T,
    write_expression(communicator, string(d))
 end
 
+function write_struct_element(communicator, obj::T, 
+      callbacks::Vector{Function}) where T
+
+   names = fieldnames(T)
+   if isempty(names) # type without members
+      write_expression(communicator, string(T) * "()")
+   else
+      write_bin(communicator, TYPE_ID_LIST)
+      fieldvalues = map(name -> getfield(obj, name), names)
+      attributes = Dict{String, Any}("JLTYPE" => string(T))
+      ellist = ElementList(
+            Vector(), collect(names),
+            Dict{Symbol, Any}(zip(names, fieldvalues)),
+            attributes)
+      write_list(communicator, ellist, callbacks)
+   end
+end
+
 function write_element(communicator, obj::T,
       callbacks::Vector{Function}) where T
 
@@ -323,27 +343,15 @@ function write_element(communicator, obj::T,
       if !isimmutable(obj)
          ref, refknown = shareref!(communicator, obj)
          if refknown # recursion detected
-            write_element(communicator, CircularReference(ref), callbacks)
+            write_struct_element(communicator, 
+                  CircularReference(ref), callbacks)
             return
          end
       end
-
-      names = fieldnames(T)
-      if isempty(names) # type without members
-         write_expression(communicator, string(T) * "()")
-      else
-         write_bin(communicator, TYPE_ID_LIST)
-         fieldvalues = map(name -> getfield(obj, name), names)
-         attributes = Dict{String, Any}("JLTYPE" => string(T))
-         ellist = ElementList(
-               Vector(), collect(names),
-               Dict{Symbol, Any}(zip(names, fieldvalues)),
-               attributes)
-         write_list(communicator, ellist, callbacks)
-      end
+      write_struct_element(communicator, obj, callbacks)
    else
-      write_element(communicator, Fail("Lost in translation: $(string(obj))"),
-            callbacks)
+      write_struct_element(communicator, 
+            Fail("Lost in translation: $(string(obj))"), callbacks)
    end
 end
 
