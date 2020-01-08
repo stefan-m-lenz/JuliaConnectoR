@@ -691,9 +691,9 @@ test_that("Test BigInt: a Julia object with external pointers", {
    invisible(gc())
    juliaEval("1") # after one command, the references from R should be cleaned up
 
-   # should remove temporary Julia references
-   # Needs multiple calls to gc as
-   # one finalizer removes the references of another object that again.
+   # Multiple calls to the Julia garbage are necessary for a complete clean-up as
+   # one finalization may make another object unreachable, which will then
+   # be cleaned up in the next run.
    juliaCall("GC.gc")
    juliaCall("GC.gc")
    juliaCall("GC.gc")
