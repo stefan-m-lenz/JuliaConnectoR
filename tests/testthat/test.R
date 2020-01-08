@@ -673,43 +673,32 @@ test_that("Anonymous functions can be transferred", {
 })
 
 
-#' test_that("File handle can be transferred", {
-#'    juliaEval('mutable struct TestFileWriter
-#'                io::IOStream
-#'               end
-#'
-#'              function TestFileWriter(filename::String)
-#'                t = TestFileWriter(open(filename, "w"))
-#'                finalizer(finalizeTestFileWriter, t)
-#'              end
-#'
-#'              function finalizeTestFileWriter(t::TestFileWriter)
-#'                @schedule begin
-#'                   write(t.io, "2")
-#'                   close(t.io)
-#'                end
-#'              end
-#'
-#'              function writeOne(t::TestFileWriter)
-#'                write(t.io, "1")
-#'              end
-#'              ')
-#'    tmpfile <- tempfile("filewritertest")
-#'    testfilewriter <- juliaLet("TestFileWriter(f)", f = tmpfile)
-#'    juliaCall("writeOne", testfilewriter)
-#'    juliaCall("writeOne", testfilewriter)
-#'
-#'    filewriterref <- attr(testfilewriter, "JLREF")$ref
-#'    testfilewriter <- NULL
-#'    invisible(gc())
-#'    juliaEval("GC.gc()")# should remove temporary Julia references to testfilewriter
-#'    # after one command, the reference should be cleaned up
-#'    expect_equal(juliaLet("get(RConnector.sharedheap, ref, 0)", ref = filewriterref),
-#'                 0)
-#'    juliaCall("GC.gc")
-#'    expect_known_value("112", tmpfile)
-#'    file.remove(tmpfile)
-#' })
+test_that("Test BigInt: a Julia object with external pointers", {
+
+   i1 <- juliaCall("BigInt", 2147483647L)
+   i2 <- juliaCall("BigInt", 2147483647L)
+   p <- juliaCall("prod", list(i1, i2, i1))
+   p2 <- juliaCall("prod", list(i1, i2, i1))
+   juliaCall("GC.gc") # references in sharedheap must survive this
+   jldiv <- juliaFun("div")
+   juliaCall("Int", jldiv(jldiv(p,i1), i2))
+   expect_equal(juliaLet("Int(div(div(p,i1),i2))", p = p, i1 = i1, i2 = i2),
+                2147483647)
+
+   i1Ref <- attr(i1, "JLREF")$ref
+   expect_true(juliaLet("RConnector.sharedheap[ref].refcount > 0", ref = i1Ref))
+   i1 <- NULL
+   invisible(gc())
+   juliaEval("1") # after one command, the references from R should be cleaned up
+
+   # should remove temporary Julia references
+   # Needs multiple calls to gc as
+   # one finalizer removes the references of another object that again.
+   juliaCall("GC.gc")
+   juliaCall("GC.gc")
+   juliaCall("GC.gc")
+   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = i1Ref))
+})
 
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
