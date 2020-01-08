@@ -122,8 +122,11 @@ doCallJulia <- function(name, jlargs) {
 
 releaseFinalizedRefs <- function() {
    if (!is.null(pkgLocal$finalizedRefs)) {
-      doCallJulia("RConnector.decrefcounts",
-                  list(pkgLocal$finalizedRefs))
+      try({
+         doCallJulia("RConnector.decrefcounts",
+                     list(pkgLocal$finalizedRefs))
+      })
+
       pkgLocal$finalizedRefs <- NULL
    }
 }
