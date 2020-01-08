@@ -598,6 +598,16 @@ test_that("Documentation example of juliaFun", {
 })
 
 
+test_that("Constructors stand for their types", {
+   juliaEval('module TestTypeModule
+                export TestType
+                struct TestType end
+             end')
+   juliaImport(".TestTypeModule")
+   juliaCall("typeof", TestTypeModule.TestType) == "DataType"
+})
+
+
 test_that("Parametric types are imported", {
    juliaEval("module ParametricTypeTestModule
                export MyParametricType
