@@ -131,7 +131,7 @@ releaseFinalizedRefs <- function() {
 
 #' Evaluate a Julia expression
 #'
-#' This function evaluates a Julia expression, given as a string, in Julia
+#' This function evaluates a Julia expression, given as a string, in Julia,
 #' and translates the result back to R.
 #'
 #' If the expression needs arguments, consider using \code{juliaLet}
@@ -175,11 +175,17 @@ juliaEval <- function(expr) {
 #' # Wrap a Julia function and use it
 #' juliaSqrt <- juliaFun("sqrt")
 #' juliaSqrt(2)
+#' # In the following call, the sqrt function is called without
+#' # a callback to R because the linked function object is used.
 #' juliaCall("map", juliaSqrt, c(1,4,9))
 #'
 #' # may also be used with arguments
 #' plus1 <- juliaFun("+", 1)
 #' plus1(2)
+#' # Results in an R callback (calling Julia again)
+#' # because there is no linked function object in Julia.
+#' juliaCall("map", plus1, c(1,2,3))
+#'
 #'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
@@ -216,7 +222,7 @@ juliaFun <- function(name, ...) {
 #' @param expr a character vector which should contain one string
 #'
 #' @examples
-#' # Create complicated objects like version strings in Julia and compare them
+#' # Create complicated objects like version strings in Julia, and compare them
 #' v1 <- juliaExpr('v"1.0.1"')
 #' v2 <- juliaExpr('v"1.2.0"')
 #' juliaCall("<", v1, v2)
@@ -248,7 +254,7 @@ juliaExpr <- function(expr) {
 #' this simple example any more.
 #' That is the problem that \code{juliaLet} solves.
 #'
-#' Note that, as the evaluation is done in a \code{let} block. Therefore,
+#' Note that the evaluation is done in a \code{let} block. Therefore,
 #' changes to global variables in the Julia session are only possible by
 #' using the keyword \code{global} in front of the Julia variables
 #' (see examples).

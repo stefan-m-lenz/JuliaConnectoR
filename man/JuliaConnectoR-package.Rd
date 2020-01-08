@@ -135,6 +135,10 @@ Non-primitive objects are translated as follows:
  \code{Function} \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
 }
 
+Julia functions that have been translated to R can also be translated back to the
+corresponding Julia functions when used as argument of another function
+(see \code{\link{juliaFun}}).
+
 }
 }
 

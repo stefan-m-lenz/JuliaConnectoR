@@ -52,6 +52,19 @@ readAttributes <- function() {
    theAttributes
 }
 
+readListAttributes <- function() {
+   listAttributes <- readAttributes()
+
+   # If the attribute "JLREF" is given, attach the environment
+   # managing a possible Julia heap reference
+   jlRefAttr <- listAttributes[["JLREF"]]
+   if (!is.null(jlRefAttr)) {
+      listAttributes[["JLREF"]] <- juliaHeapReference(jlRefAttr)
+   }
+
+   listAttributes
+}
+
 
 addAttributes <- function(x, theAttributes) {
    for (attrKey in names(theAttributes)) {
@@ -164,7 +177,7 @@ readList <- function(callbacks = list()) {
       }
    }
 
-   attributes(ret) <- c(list(names = names(ret)), readAttributes())
+   attributes(ret) <- c(list(names = names(ret)), readListAttributes())
    ret
 }
 

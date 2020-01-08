@@ -20,21 +20,34 @@ function sharedheapref!(obj)
    ref
 end
 
-
 function parseheapref(ref::Vector{UInt8})
    UInt64(reinterpret(UInt64, ref)[1])
 end
 
 
+function decrefcount(ref::UInt64)
+   newrefcount = sharedheap[ref].refcount - 1
+   if newrefcount == 0
+      delete!(sharedheap, ref)
+   else
+      sharedheap[ref].refcount = newrefcount
+   end
+end
+
 function decrefcounts(refs::Vector{UInt8})
    for ref in reinterpret(UInt64, refs)
-      newrefcount = sharedheap[ref].refcount - 1
-      if newrefcount == 0
-         delete!(sharedheap, ref)
-      else
-         sharedheap[ref].refcount = newrefcount
-      end
+      decrefcount(ref)
    end
+end
+
+
+function sharedfinalizer(newobj, oldobjref::UInt64)
+   # If a new Julia heap object is recreated via backtranslation from R,
+   # it must reference the original object such that this one lives on.
+   # It must be prevented that the old object is garbage collected because
+   # this might finalize resources that are needed for the copy to work.
+   sharedheap[oldobjref].refcount += 1
+   finalizer(obj -> decrefcount(oldobjref), newobj)
 end
 
 
@@ -170,7 +183,7 @@ end
 
 
 function callanonymous(functionref::Vector{UInt8}, args...; kwargs...)
-   anofunref::AnonymousFunctionReference = 
+   anofunref::AnonymousFunctionReference =
          sharedheap[parseheapref(functionref)].obj
    ret = anofunref.f(args...; kwargs...)
    ret
@@ -186,7 +199,7 @@ function start_result_message(c::CommunicatoR)
    yield()
    flush(stderr)
    yield()
-   
+
    # after the output is handled,
    # take control of the outputstream to send the result
    lock(c.lock)
@@ -223,7 +236,7 @@ function capture_outputstreams(communicator::CommunicatoR)
    rd, wr = redirect_stderr()
 
    # Also redirect the logger.
-   # For debugging, comment the following line out, use @debug lines and 
+   # For debugging, comment the following line out, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".
    global_logger(SimpleLogger(wr))

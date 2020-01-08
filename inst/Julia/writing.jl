@@ -319,8 +319,9 @@ function write_element(communicator, d::T,
    write_expression(communicator, string(d))
 end
 
-function write_struct_element(communicator, obj::T, 
-      callbacks::Vector{Function}) where T
+function write_struct_element(communicator, obj::T,
+      callbacks::Vector{Function},
+      attributes::Dict{String, Any} = Dict{String, Any}()) where T
 
    names = fieldnames(T)
    if isempty(names) # type without members
@@ -328,7 +329,7 @@ function write_struct_element(communicator, obj::T,
    else
       write_bin(communicator, TYPE_ID_LIST)
       fieldvalues = map(name -> getfield(obj, name), names)
-      attributes = Dict{String, Any}("JLTYPE" => string(T))
+      attributes["JLTYPE"] = string(T)
       ellist = ElementList(
             Vector(), collect(names),
             Dict{Symbol, Any}(zip(names, fieldvalues)),
@@ -344,15 +345,19 @@ function write_element(communicator, obj::T,
       if !isimmutable(obj)
          ref, refknown = shareref!(communicator, obj)
          if refknown # recursion detected
-            write_struct_element(communicator, 
+            write_struct_element(communicator,
                   CircularReference(ref), callbacks)
-            # TODO write reference as attribute
+            return
+         else
+            # write object, giving reference to original object
+            write_struct_element(communicator, obj, callbacks,
+                  Dict{String, Any}("JLREF" => ref))
             return
          end
       end
       write_struct_element(communicator, obj, callbacks)
    else
-      write_struct_element(communicator, 
+      write_struct_element(communicator,
             Fail("Lost in translation: $(string(obj))"), callbacks)
    end
 end

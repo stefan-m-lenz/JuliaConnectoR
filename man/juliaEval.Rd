@@ -14,7 +14,7 @@ The value returned from Julia, translated to an R data structure.
 If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
-This function evaluates a Julia expression, given as a string, in Julia
+This function evaluates a Julia expression, given as a string, in Julia,
 and translates the result back to R.
 }
 \details{

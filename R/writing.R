@@ -39,11 +39,11 @@ dimensions <- function(x) {
 }
 
 
-writeAttributes <- function(elem) {
-   theAttributes <- attributes(elem)
+writeAttributes <- function(theAttributes) {
    theAttributes[["dim"]] <- NULL
    theAttributes[["dimnames"]] <- NULL
    theAttributes[["names"]] <- NULL # prevents infinite recursion
+
    nAttributes <- length(theAttributes)
    attributeNames <- names(theAttributes)
    writeNofAttributes(nAttributes)
@@ -53,6 +53,20 @@ writeAttributes <- function(elem) {
       writeElement(theAttributes[[i]])
    }
 }
+
+
+writeListAttributes <- function(theAttributes) {
+   # The attribute "JLREF" needs to be handled in a special way:
+   # Do not transfer the environment managing the reference,
+   # only the reference itself.
+   jlRefEnv <- theAttributes[["JLREF"]]
+   if (!is.null(jlRefEnv)) {
+      theAttributes[["JLREF"]] <- jlRefEnv$ref
+   }
+
+   writeAttributes(theAttributes)
+}
+
 
 writeElement <- function(elem, callbacks = list()) {
 
@@ -88,12 +102,12 @@ writeElement <- function(elem, callbacks = list()) {
          writeBin(typeId, pkgLocal$con)
          writeInt(dimensions(elem))
          writeBin(as.vector(elem), pkgLocal$con)
-         writeAttributes(elem)
+         writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_INTEGER) {
          writeBin(TYPE_ID_INTEGER, pkgLocal$con)
          writeInt(dimensions(elem))
          writeInt(elem)
-         writeAttributes(elem)
+         writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_LOGICAL) {
          writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
          writeInt(dimensions(elem))
@@ -105,7 +119,7 @@ writeElement <- function(elem, callbacks = list()) {
             for (i in 1:length(elem)) {
                writeString(elem[i])
             }
-            writeAttributes(elem)
+            writeAttributes(attributes(elem))
          } else {
             writeExpression(elem)
          }
@@ -153,7 +167,7 @@ writeList <- function(theList, callbacks = list()) {
       }
    }
 
-   writeAttributes(theList)
+   writeListAttributes(attributes(theList))
    return(callbacks)
 }
 

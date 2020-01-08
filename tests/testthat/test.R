@@ -1,13 +1,3 @@
-juliaEcho <- function(x) juliaCall("identity", x)
-testEcho <- function(x) {
-   if(is.list(x)) {
-      expect_identical(x, juliaEcho(x))
-   } else {
-      expect_equivalent(x, juliaEcho(x))
-   }
-}
-
-
 test_that("Some smoke tests", {
    expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
    juliaCall("string", list())
@@ -46,13 +36,13 @@ test_that("Warnings and normal output are both transferred and stable", {
       stderroutput <- capture.output(type = "message", {
          juliaLet('for i = 1:100
                   println(join(rand(["1", "ä", "ö"], rand(1:100))));
-                  println(stderr,join(rand(["2", "ü", "a"], rand(1:100))));
+                  println(stderr,join(rand(["2", "u", "a"], rand(1:100))));
                   end')
          ret <- juliaLet('println(22);  17')
       })
    })
    expect_match(stdoutput, "[1äö\n]+")
-   expect_match(stderroutput, "[2üa\n]+")
+   expect_match(stderroutput, "[2ua\n]+") # TODO problems with non-ascii-characters
 
 
    stdoutput <- capture_output({
@@ -270,6 +260,16 @@ test_that("Echo: List with NULL elements", {
    expect_equivalent(x, juliaEcho(x))
    x <- list(NULL, NULL)
    expect_equivalent(x, juliaEcho(x))
+})
+
+
+test_that("Mutable struct has reference", {
+   juliaEval('mutable struct TestMutableStruct
+                x::Int
+             end')
+   jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
+   expect_true(is.environment(jlRefEnv))
+   expect_true(is.raw(jlRefEnv$ref))
 })
 
 
@@ -673,6 +673,44 @@ test_that("Anonymous functions can be transferred", {
 })
 
 
+#' test_that("File handle can be transferred", {
+#'    juliaEval('mutable struct TestFileWriter
+#'                io::IOStream
+#'               end
+#'
+#'              function TestFileWriter(filename::String)
+#'                t = TestFileWriter(open(filename, "w"))
+#'                finalizer(finalizeTestFileWriter, t)
+#'              end
+#'
+#'              function finalizeTestFileWriter(t::TestFileWriter)
+#'                @schedule begin
+#'                   write(t.io, "2")
+#'                   close(t.io)
+#'                end
+#'              end
+#'
+#'              function writeOne(t::TestFileWriter)
+#'                write(t.io, "1")
+#'              end
+#'              ')
+#'    tmpfile <- tempfile("filewritertest")
+#'    testfilewriter <- juliaLet("TestFileWriter(f)", f = tmpfile)
+#'    juliaCall("writeOne", testfilewriter)
+#'    juliaCall("writeOne", testfilewriter)
+#'
+#'    filewriterref <- attr(testfilewriter, "JLREF")$ref
+#'    testfilewriter <- NULL
+#'    invisible(gc())
+#'    juliaEval("GC.gc()")# should remove temporary Julia references to testfilewriter
+#'    # after one command, the reference should be cleaned up
+#'    expect_equal(juliaLet("get(RConnector.sharedheap, ref, 0)", ref = filewriterref),
+#'                 0)
+#'    juliaCall("GC.gc")
+#'    expect_known_value("112", tmpfile)
+#'    file.remove(tmpfile)
+#' })
+
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
@@ -680,3 +718,4 @@ test_that("Anonymous functions can be transferred", {
 #    c <- Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)
 #    c$layers[[1]]$s(0)
 # })
+

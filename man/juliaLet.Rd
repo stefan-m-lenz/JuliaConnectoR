@@ -36,7 +36,7 @@ More complex objects cannot be simply represented in a string like in
 this simple example any more.
 That is the problem that \code{juliaLet} solves.
 
-Note that, as the evaluation is done in a \code{let} block. Therefore,
+Note that the evaluation is done in a \code{let} block. Therefore,
 changes to global variables in the Julia session are only possible by
 using the keyword \code{global} in front of the Julia variables
 (see examples).

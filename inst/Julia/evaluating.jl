@@ -85,11 +85,7 @@ function evaluate!(list::ElementList)
             elseif constructor <: CircularReference
                error("Circular references cannot be reconstructed")
             else
-               # normal composite type:
-               # forge call to inner constructor (which may be private)
-               constructorargs = [list.namedelements[name] for name in list.names]
-               return Main.eval(Expr(:new, constructor,
-                     [:($arg) for arg in constructorargs]...))
+               return reconstruct_struct(constructor, list)
             end
          else
             if constructor <: Tuple
@@ -123,7 +119,7 @@ end
 
 function mainevalcmd(str::String)
    strippedstr = strip(str)
-   ret = maineval(strippedstr)
+   ret = include_string(Main, str)
    if strippedstr[end] == ';'
       return nothing
    else
@@ -157,7 +153,7 @@ end
 
 function reconstruct_array(constructor, arr::Vector, attributes)
    if haskey(attributes, "JLDIM")
-      return reconstruct_multidimensional_array(constructor, 
+      return reconstruct_multidimensional_array(constructor,
             arr, attributes["JLDIM"])
    elseif any(isequal(JLUNDEF()), arr)
       ret = Base.invokelatest(constructor, undef, size(arr))
@@ -169,12 +165,12 @@ function reconstruct_array(constructor, arr::Vector, attributes)
 end
 
 
-function reconstruct_multidimensional_array(constructor, arr::Vector, 
+function reconstruct_multidimensional_array(constructor, arr::Vector,
          dims::Vector{Int})
 
    if prod(dims) != length(arr)
-      error("Incorrect dimensions of array. Dimensions are" * 
-            " $dims but number of elements is $(length(arr)).\n" * 
+      error("Incorrect dimensions of array. Dimensions are" *
+            " $dims but number of elements is $(length(arr)).\n" *
             " If the array has been modified, the attribute \"JLDIM\"" *
             " (and perhaps the attribute \"JLTYPE\") must be set accordingly.")
    else
@@ -182,4 +178,21 @@ function reconstruct_multidimensional_array(constructor, arr::Vector,
       copy_defined!(ret, arr)
       return ret
    end
+end
+
+
+function reconstruct_struct(constructor, list::ElementList)
+   # normal composite type:
+   # forge call to inner constructor (which may be private)
+   constructorargs = [list.namedelements[name] for name in list.names]
+   obj = Main.eval(Expr(:new, constructor, [:($arg) for arg in constructorargs]...))
+
+   # The reconstructed object may depend on a pre-existing copy and its resources.
+   # This is referenced by the "JLREF" attribute.
+   jlref::UInt64 = get(list.attributes, "JLREF", UInt64(0))
+   if jlref != 0
+      sharedfinalizer(obj, jlref)
+   end
+
+   return obj
 end
