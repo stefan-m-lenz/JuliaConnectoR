@@ -47,7 +47,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
    moduleName <- gsub(".*\\.", "", modulePath)
    absoluteModulePath <- gsub("^\\.*", "", modulePath)
    if (is.null(alias)) {
-      alias <- absoluteModulePath
+      alias <- moduleName
    }
 
    if (mode == LOAD_MODE_USING) {
@@ -100,14 +100,20 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 #' and its functions are attached to the R search path.
 #' This way, all functions (including constructors) exported by the
 #' package are available in R under their name, and under the name
-#' prefixed with the module name (or module path for submodules)
-#' plus "\code{.}", like in Julia.
+#' prefixed with the module name plus "\code{.}".
 #'
-#' @param modulePath name of the package/module that is to be used
+#' @param modulePath name of the package/module that is to be used,
+#' or a relative module path.
+#' Specifying a Julia module path like \code{.MyModule}
+#' allows using a module which does not correspond to a package,
+#' but has been loaded in the \code{Main} module, e. g. by
+#' \code{juliaCall("include", "path/to/MyModule.jl")}.
+#' Additionally, via a path such as \code{SomePkg.SubModule},
+#' a submodule of a package can be imported.
 #' @param alias alternative prefix for the package
 #' (useful e.g. to avoid naming collisions or for brevity)
-#' If an alias is not explicitly specified, the name of the package/module
-#' or its absolute module path is used.
+#' If an alias is not explicitly specified, the name of the
+#' package/module is used.
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
@@ -142,10 +148,10 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 #'                           package = "JuliaConnectoR")
 #' juliaCall("include", testModule)
 #' juliaUsing(".TestModule1.SubModule1")
-#' # call exported function of submodule
+#' # call exported function of submodule with
 #' test2()
-#' # call exported function of submodule via module path
-#' TestModule1.SubModule1.test2()
+#' # ... or with
+#' SubModule1.test2()
 #'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
@@ -165,21 +171,20 @@ juliaUsing <- function(modulePath, alias = NULL,
 #' and its functions are attached to the R search path.
 #' This way, all functions (including constructors) exported by the
 #' package are available in R under their name
-#' prefixed with the module name (or module path for submodules)
-#' plus "\code{.}", like in Julia.
+#' prefixed with the module name plus "\code{.}", like in Julia.
 #'
 #' @param modulePath name of the package/module that is to be used,
 #' or a relative module path.
-#' Using a module path in Julia like \code{.MyModule}
-#' allows to import a module which does not correspond to a package,
-#' but has been loaded in the \code{Main} module.
-#' Additionally, via a path such as \code{SomePkg.SubModule}
+#' Specifying a Julia module path like \code{.MyModule}
+#' allows importing a module which does not correspond to a package,
+#' but has been loaded in the \code{Main} module, e. g. by
+#' \code{juliaCall("include", "path/to/MyModule.jl")}.
+#' Additionally, via a path such as \code{SomePkg.SubModule},
 #' a submodule of a package can be imported.
-#' (See the examples.)
 #' @param alias alternative prefix for the package
-#' (useful e.g. to avoid naming collisions or for brevity).
-#' If an alias is not explicitly specified, the name of the package/module
-#' or its absolute module path is used.
+#' (useful e.g. to avoid naming collisions or for brevity)
+#' If an alias is not explicitly specified, the name of the
+#' package/module is used.
 #' @param importInternal \code{logical} value, default \code{FALSE}.
 #' Specifies whether unexported functions shall be imported.
 #'
@@ -212,7 +217,7 @@ juliaUsing <- function(modulePath, alias = NULL,
 #' juliaCall("include", testModule)
 #' juliaImport(".TestModule1.SubModule1")
 #' # call exported function of submodule via module path
-#' TestModule1.SubModule1.test2()
+#' SubModule1.test2()
 #' juliaImport(".TestModule1.SubModule1", alias = "Sub1")
 #' # call exported function of submodule via alias
 #' Sub1.test2()
