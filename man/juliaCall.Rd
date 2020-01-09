@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{juliaCall}
 \alias{juliaCall}
-\title{Calls a Julia function.}
+\title{Call a Julia function}
 \usage{
 juliaCall(name, ...)
 }
@@ -17,5 +17,5 @@ The value returned from Julia, translated to an R data structure.
 If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 }
 \description{
-Calls a Julia function.
+Call a Julia function and get the translated result.
 }

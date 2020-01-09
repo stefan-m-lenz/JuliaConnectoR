@@ -7,23 +7,21 @@
 juliaEval(expr)
 }
 \arguments{
-\item{expr}{Julia expression as a one-element character vector}
+\item{expr}{Julia code, given as a one-element character vector}
 }
 \value{
 The value returned from Julia, translated to an R data structure.
 If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
+This is also the case if the last non-whitespace character of \code{expr}
+is a semicolon.
 }
 \description{
-This function evaluates a Julia expression, given as a string, in Julia,
+This function evaluates Julia code, given as a string, in Julia,
 and translates the result back to R.
 }
 \details{
-If the expression needs arguments, consider using \code{juliaLet}
+If the code needs to use R variables, consider using \code{juliaLet}
 instead.
-
-If the Julia expression consists in fact of multiple expressions separated
-by semicolons or newlines and a parsing error is shown,
-consider wrapping it with \code{begin} ... \code{end}.
 }
 \examples{
 juliaEval("1 + 2")

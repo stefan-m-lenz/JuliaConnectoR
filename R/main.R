@@ -66,7 +66,9 @@ finalize <- function(env) {
    stopJulia()
 }
 
-#' Calls a Julia function.
+#' Call a Julia function
+#'
+#' Call a Julia function and get the translated result.
 #'
 #' @param name name of the Julia function
 #' @param ... parameters handed to the function. Will be translated
@@ -134,20 +136,18 @@ releaseFinalizedRefs <- function() {
 
 #' Evaluate a Julia expression
 #'
-#' This function evaluates a Julia expression, given as a string, in Julia,
+#' This function evaluates Julia code, given as a string, in Julia,
 #' and translates the result back to R.
 #'
-#' If the expression needs arguments, consider using \code{juliaLet}
+#' If the code needs to use R variables, consider using \code{juliaLet}
 #' instead.
 #'
-#' If the Julia expression consists in fact of multiple expressions separated
-#' by semicolons or newlines and a parsing error is shown,
-#' consider wrapping it with \code{begin} ... \code{end}.
-#'
-#' @param expr Julia expression as a one-element character vector
+#' @param expr Julia code, given as a one-element character vector
 #'
 #' @return The value returned from Julia, translated to an R data structure.
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
+#' This is also the case if the last non-whitespace character of \code{expr}
+#' is a semicolon.
 #'
 #' @examples
 #' juliaEval("1 + 2")
@@ -262,7 +262,7 @@ juliaExpr <- function(expr) {
 #' using the keyword \code{global} in front of the Julia variables
 #' (see examples).
 #'
-#' @param expr Julia code
+#' @param expr Julia code, given as one-element character vector
 #' @param ...  arguments that will be introduced as variables in the
 #'   \code{let} block. The values are transferred to Julia and
 #'   assigned to the variables introduced in the \code{let} block.

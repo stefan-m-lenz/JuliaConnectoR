@@ -7,7 +7,7 @@
 juliaLet(expr, ...)
 }
 \arguments{
-\item{expr}{Julia code}
+\item{expr}{Julia code, given as one-element character vector}
 
 \item{...}{arguments that will be introduced as variables in the
 \code{let} block. The values are transferred to Julia and

@@ -7,12 +7,19 @@
 juliaUsing(modulePath, alias = NULL, importInternal = FALSE)
 }
 \arguments{
-\item{modulePath}{name of the package/module that is to be used}
+\item{modulePath}{name of the package/module that is to be used,
+or a relative module path.
+Specifying a Julia module path like \code{.MyModule}
+allows using a module which does not correspond to a package,
+but has been loaded in the \code{Main} module, e. g. by
+\code{juliaCall("include", "path/to/MyModule.jl")}.
+Additionally, via a path such as \code{SomePkg.SubModule},
+a submodule of a package can be imported.}
 
 \item{alias}{alternative prefix for the package
 (useful e.g. to avoid naming collisions or for brevity)
-If an alias is not explicitly specified, the name of the package/module
-or its absolute module path is used.}
+If an alias is not explicitly specified, the name of the
+package/module is used.}
 
 \item{importInternal}{\code{logical} value, default \code{FALSE}.
 Specifies whether unexported functions shall be imported.}
@@ -22,8 +29,7 @@ The specified package/module is loaded via \code{using} in Julia
 and its functions are attached to the R search path.
 This way, all functions (including constructors) exported by the
 package are available in R under their name, and under the name
-prefixed with the module name (or module path for submodules)
-plus "\code{.}", like in Julia.
+prefixed with the module name plus "\code{.}".
 }
 \examples{
 # Using a package and one of its exported functions
@@ -54,10 +60,10 @@ testModule <- system.file("examples", "TestModule1.jl",
                           package = "JuliaConnectoR")
 juliaCall("include", testModule)
 juliaUsing(".TestModule1.SubModule1")
-# call exported function of submodule
+# call exported function of submodule with
 test2()
-# call exported function of submodule via module path
-TestModule1.SubModule1.test2()
+# ... or with
+SubModule1.test2()
 
 \dontshow{
 JuliaConnectoR:::stopJulia()
