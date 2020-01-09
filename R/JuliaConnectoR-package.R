@@ -130,6 +130,12 @@
 #' corresponding Julia functions when used as argument of another function
 #' (see \code{\link{juliaFun}}).
 #'
+#' It is safe to translate objects that contain external references from Julia to R.
+#' The pointers will be copied as values and the finalization of the translated
+#' Julia objects is prevented.
+#' The original objects are garbage collected after all direct or
+#' indirect copies are garbage collected.
+#'
 #' }
 #'
 #' @section Limitations:
