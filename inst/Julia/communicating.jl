@@ -51,7 +51,7 @@ function sharedfinalizer(newobj, oldobjref::UInt64)
       finalizer(obj -> decrefcount(oldobjref), newobj)
    else
       @warn "Please be sure that the revived objects " *
-            "do not contain external references-"
+            "do not contain external references."
    end
 end
 

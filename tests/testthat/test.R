@@ -752,7 +752,7 @@ test_that("Serialized mutable struct can be restored", {
    expect_match(msg, "external references", all = FALSE)
    x <- NULL
    juliaEval("1")
-   juliaCall("GC.gc") # copy of the serilized copy is cleaned up
+   juliaCall("GC.gc") # copy of the serialized copy is cleaned up
    file.remove(tmpfile)
 })
 
