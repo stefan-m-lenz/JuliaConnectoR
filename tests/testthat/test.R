@@ -733,6 +733,26 @@ test_that("Test BigInt: a Julia object with external pointers", {
    expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = i1Ref))
 })
 
+
+test_that("Serialized mutable struct can be restored", {
+   juliaEval("mutable struct TestSerializationStruct
+               i::Int
+             end")
+   x <- juliaEval("TestSerializationStruct(1)")
+   tmpfile <- tempfile()
+   save("x", file = tmpfile)
+   x <- NULL
+   juliaEval("1")
+   juliaCall("GC.gc")
+   load(tmpfile)
+   expect_equal(juliaEcho(x)$i, 1)
+   x <- NULL
+   juliaEval("1")
+   juliaCall("GC.gc") # copy of the serilized copy is cleaned up
+   file.remove(tmpfile)
+})
+
+
 # # takes very long, so don't include:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
