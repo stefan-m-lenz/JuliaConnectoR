@@ -1,7 +1,7 @@
 Package: JuliaConnectoR
 Type: Package
 Title: A Functionally Oriented Interface for Integrating Julia with R
-Version: 0.2.0.9000
+Version: 0.3.0
 Author: Stefan Lenz, Harald Binder
 Maintainer: Stefan Lenz <lenz@imbi.uni-freiburg.de>
 Authors@R: c(person("Stefan", "Lenz", role = c("aut", "cre", "cph"),
