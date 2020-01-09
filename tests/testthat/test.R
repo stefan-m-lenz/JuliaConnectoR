@@ -742,10 +742,14 @@ test_that("Serialized mutable struct can be restored", {
    tmpfile <- tempfile()
    save("x", file = tmpfile)
    x <- NULL
+   invisible(gc())
    juliaEval("1")
    juliaCall("GC.gc")
    load(tmpfile)
-   expect_equal(juliaEcho(x)$i, 1)
+   msg <- capture.output(type = "message", {
+      expect_equal(juliaEcho(x)$i, 1)
+   })
+   expect_match(msg, "external references", all = FALSE)
    x <- NULL
    juliaEval("1")
    juliaCall("GC.gc") # copy of the serilized copy is cleaned up

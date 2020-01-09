@@ -46,8 +46,13 @@ function sharedfinalizer(newobj, oldobjref::UInt64)
    # it must reference the original object such that this one lives on.
    # It must be prevented that the old object is garbage collected because
    # this might finalize resources that are needed for the copy to work.
-   sharedheap[oldobjref].refcount += 1
-   finalizer(obj -> decrefcount(oldobjref), newobj)
+   if haskey(sharedheap, oldobjref)
+      sharedheap[oldobjref].refcount += 1
+      finalizer(obj -> decrefcount(oldobjref), newobj)
+   else
+      @warn "Please be sure that the revived objects " *
+            "do not contain external references-"
+   end
 end
 
 
