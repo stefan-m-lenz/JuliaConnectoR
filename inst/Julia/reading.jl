@@ -131,26 +131,29 @@ function read_element(communicator, callbacks::Vector{Function})
       if typeid == TYPE_ID_FLOAT64
          ret = read_float64s(communicator, nelements)
          attributes = read_attributes(communicator)
+         return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_INT
          ret = read_ints(communicator, nelements)
          attributes = read_attributes(communicator)
+         return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_BOOL
          ret = read_bools(communicator, nelements)
          return reshape_element(ret, dimensions)
       elseif typeid == TYPE_ID_STRING
          ret = read_strings(communicator, nelements)
          attributes = read_attributes(communicator)
+         return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_COMPLEX
          ret = read_complexs(communicator, nelements)
          attributes = read_attributes(communicator)
+         return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_RAW
          ret = read_bin(communicator, nelements)
          attributes = read_attributes(communicator)
+         return convert_reshape_raw(ret, attributes, dimensions)
       else
          return Fail("Invalid type id $typeid of element")
       end
-
-      return convert_reshape_element(ret, attributes, dimensions)
    end
 end
 
@@ -163,7 +166,22 @@ function reshape_element(element, dimensions)
    end
 end
 
+
 function convert_reshape_element(element, attributes, dimensions)
+   typestr = get(attributes, "JLTYPE", "")
+   if typestr != ""
+      try
+         type = maineval(typestr)
+         element = convert.(type, element)
+      catch ex
+         return Fail("Conversion to type \"$typestr\" failed. Original error: $ex")
+      end
+   end
+   return reshape_element(element, dimensions)
+end
+
+
+function convert_reshape_raw(element, attributes, dimensions)
    typestr = get(attributes, "JLTYPE", "")
    if typestr != ""
       try
@@ -176,8 +194,12 @@ function convert_reshape_element(element, attributes, dimensions)
             else
                dimensions[1] /= sizeof(type)
             end
+            element = convert.(type, element)
+         elseif type <: String
+            # It may be the case that a Julia String can not be handled in R,
+            # e.g. if it contains NUL characters. Then it will be encoded in bytes.
+            return String(element)
          end
-         element = convert.(type, element)
       catch ex
          return Fail("Conversion to type \"$typestr\" failed. Original error: $ex")
       end

@@ -332,6 +332,25 @@ test_that("Undefined strings are transferred as empty strings", {
 })
 
 
+test_that("String with null can be translated back to Julia", {
+   # einfacher string
+   jlStrWithNul <- "String([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x5a, 0x65, 0x72, 0x6f, 0x57])"
+   str <- juliaEval(jlStrWithNul)
+   expect_true(is.raw(str))
+   expect_equal(as.character(juliaCall("typeof", str)), "String")
+   expect_equal(as.character(juliaLet("String(x[1:5])", x = str)), "Hello")
+
+   # string array
+
+   strArr <- juliaLet("String[a,b]", a = str, b = str)
+   expect_true(is.list(strArr))
+
+   strArr <- juliaLet("String[a,b,c]", a = str, b = str, c = str)
+   expect_true(is.list(strArr))
+   expect_equal(juliaCall("typeof", strArr), juliaEval("Array{String,1}"))
+})
+
+
 # Test Let
 test_that("Let: used like eval", {
    output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})
@@ -604,7 +623,8 @@ test_that("Constructors stand for their types", {
                 struct TestType end
              end')
    juliaImport(".TestTypeModule")
-   juliaCall("typeof", TestTypeModule.TestType) == "DataType"
+   expect_equal(as.character(juliaCall("typeof", TestTypeModule.TestType)),
+                "DataType")
 })
 
 
@@ -694,6 +714,9 @@ test_that("Test BigInt: a Julia object with external pointers", {
    juliaCall("Int", jldiv(jldiv(p,i1), i2))
    expect_equal(juliaLet("Int(div(div(p,i1),i2))", p = p, i1 = i1, i2 = i2),
                 2147483647)
+
+   f <- juliaLet("p/i1/i2", p = p, i1 = i1, i2 = i2)
+   expect_equal(juliaCall("Float64", f), 2147483647)
 
    i1Ref <- attr(i1, "JLREF")$ref
    expect_true(juliaLet("RConnector.sharedheap[ref].refcount > 0", ref = i1Ref))

@@ -27,18 +27,49 @@ readInts <- function(n) {
 
 readString <- function() {
    nbytes <- readInt()
-   ret <- readBin(pkgLocal$con, "raw", nbytes)
-   ret <- rawToChar(ret)
-   Encoding(ret) <- "UTF-8"
-   ret
+   binstr <- readBin(pkgLocal$con, "raw", nbytes)
+   retstr <- NULL
+   try({retstr <- rawToChar(binstr)}, silent = TRUE)
+   if (is.null(retstr)) {
+      # Error: probably NUL character, which is allowed in Julia
+      retstr <- binstr
+      attr(retstr, "JLTYPE") <- "String"
+   } else {
+      Encoding(retstr) <- "UTF-8"
+      retstr
+   }
+   retstr
 }
 
 readStrings <- function(n = 1) {
    ret <- character(n)
    for (i in seq_len(n)) {
-      ret[i] <- readString()
+      str <- readString()
+      if (is.raw(str)) {
+         if (n == 1) {
+            return(str)
+         } else {
+            ret <- as.list(ret)
+            ret[[i]] <- str
+            return(c(ret[1:i], readStringList(n - i)))
+         }
+      }
+      ret[i] <- str
    }
    ret
+}
+
+readStringList <- function(n) {
+   if (n==0) {
+      return(list())
+   } else {
+      ret <- list()
+      ret[[n]] <- NULL
+      for (i in seq_len(n)) {
+         ret[[i]] <- readString()
+      }
+      return(ret)
+   }
 }
 
 
