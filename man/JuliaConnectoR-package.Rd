@@ -74,8 +74,9 @@ The type correspondences of the basic R data types in Julia are the following:
 
 R vectors of length 1 of the types in the table above will be translated to the types shown.
 
-R arrays with more than one element will be translated to Julia \code{Array}s of the corresponding types.
-The dimensions of the array, as returned by \code{dim()}, will also be respected.
+R vectors or arrays with more than one element will be translated to Julia \code{Array}s
+of the corresponding types. The dimensions of an R array, as returned by \code{dim()},
+will also be respected.
 For example, the R integer vector \code{c(1L, 2L)} will be of type \code{Vector{Int}},
 or \code{Array{Int,1}}, in Julia.
 A double matrix such as \code{matrix(c(1,2,3,4), nrow = 2)}
@@ -127,7 +128,7 @@ of Julia are translated to R:
 Non-primitive objects are translated as follows:
 \tabular{lcl}{
 \strong{Julia} \tab  \tab \strong{R} \cr
- \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{array} of corresponding type \cr
+ \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{vector} or \code{array} of corresponding type \cr
  \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
