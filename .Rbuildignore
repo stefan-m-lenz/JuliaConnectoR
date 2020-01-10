@@ -1,6 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+.git
+JuliaConnectoR.Rproj
+make-manual.R
 DEVDOC.md
+README.md
 LICENSE
 .travis.yml
 make-manual.R
