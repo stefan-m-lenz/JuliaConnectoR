@@ -757,11 +757,78 @@ test_that("Serialized mutable struct can be restored", {
 })
 
 
-# # takes very long, so don't include:
+test_that("Object with unexported function defined in different modules", {
+   juliaEval('
+   module FirstModule
+      struct FirstType
+         f::Function
+      end
+      f(x::FirstType) = 1
+   end
+
+   module SecondModule
+
+      import ..FirstModule.f
+      struct SecondType
+         f::Function
+      end
+
+      f(x::SecondType) = 2
+   end #module')
+
+   # It doesn't matter whether SecondModule.f or FirstModule.f is used
+   ft1 <- juliaEval("FirstModule.FirstType(SecondModule.f)")
+   ft2 <- juliaEval("SecondModule.SecondType(FirstModule.f)")
+
+   expect_equal(juliaLet("x.f(x)", x = ft1), 1)
+   expect_equal(juliaLet("x.f(x)", x = ft2), 2)
+   expect_equal(juliaLet("x.f(y)", x = ft1, y = ft2), 2)
+   expect_equal(juliaLet("x.f(y)", x = ft2, y = ft1), 1)
+})
+
+
+test_that("Boltzmann machine can be trained and used", {
+   skip_on_cran()
+
+   juliaEval('using Pkg;
+              if !haskey(Pkg.installed(), "BoltzmannMachines")
+                    Pkg.add(PackageSpec(name = "BoltzmannMachines", version = v"1.2"))
+              end')
+
+   # Set a random seed in Julia
+   juliaEval("using Random; Random.seed!(5);")
+
+   juliaUsing("BoltzmannMachines", importInternal = TRUE)
+
+   # a test data set from the BoltzmannMachines-package, just to have some data
+   x <- barsandstripes(50L, 4L)
+   x
+
+   # Train DBMs with
+   dbm <- fitdbm(x, epochs = 2L, nhiddens = c(4L,3L))
+   dbm
+   dbm2 <- fitdbm(x, epochs = 1L,
+                  pretraining = list(TrainLayer(nhidden = 4L),
+                                     TrainLayer(nhidden = 3L)))
+   dbm2
+
+   # Use a trained model to generate samples
+   gensamples <- samples(dbm, 10L)
+   expect_equal(nrow(gensamples), 10)
+
+   # Evaluate the model: Likelihood estimation ...
+   loglikelihood(dbm2, x)
+   #  ... or exact calculation (possible for such a small model)
+   exactloglikelihood(dbm2, x)
+})
+
+
+
+# # It takes very long to laod Flux, so don't include by default:
 # test_that("Flux model can be transferred", {
 #    juliaUsing("Flux")
-#    juliaImport("Flux.NNlib", alias = "NNlib", importInternal = TRUE)
+#    juliaImport("Flux.NNlib", importInternal = TRUE)
 #    c <- Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)
-#    c$layers[[1]]$s(0)
+#    expect_equal(c$layers[[1]]$s(0), 0)
 # })
 

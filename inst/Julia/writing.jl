@@ -251,7 +251,7 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
    if callbackid === nothing # it's not a callback function
       f_as_string = string(f)
       if endswith(f_as_string, "()") || startswith(f_as_string, '#')
-         # Detect an anonymous function:
+         # Detected an anonymous function:
          # An anonymous function will have a string representation like
          # "getfield(Main, Symbol(\"##5#6\"))()" in Julia 1.0.
          # In Julia 1.3 it is something like "#3".
@@ -259,8 +259,17 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
          write_bin(communicator, TYPE_ID_ANONYMOUS_FUNCTION)
          write_bin(communicator, ref)
          return
-      else
-         # write an element for a named function
+
+      else # Write an element for a named function.
+         
+         # In 1.0 f_as_string contains the full path, in 1.3 only the name.
+         # We need the full path.
+         # For operators, this does not work, because parsing fails then.
+         if !('.' in f_as_string) && !Base.isoperator(Symbol(f_as_string))
+            firstmodulepath = string(iterate(methods(f))[1].module)
+            f_as_string = firstmodulepath * "." * f_as_string
+         end
+
          write_bin(communicator, TYPE_ID_NAMED_FUNCTION)
          write_string(communicator, f_as_string)
          return
