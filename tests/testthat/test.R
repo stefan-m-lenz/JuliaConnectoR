@@ -642,6 +642,7 @@ test_that("Parametric types are imported", {
 
 
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
+   skip_on_cran()
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server

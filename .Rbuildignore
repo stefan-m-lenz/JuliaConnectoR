@@ -1,6 +1,9 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .git
+.gitignore
+.Rhistory
+JuliaConnectoR.pdf
 JuliaConnectoR.Rproj
 make-manual.R
 DEVDOC.md
