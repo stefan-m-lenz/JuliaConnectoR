@@ -52,8 +52,14 @@ runJuliaServer <- function(port = 11980) {
            stdout = stdoutfile, stderr = stderrfile)
 
    # get information about the real port from the temporary file
+   sleepTime <- 0.2
+   timeSlept <- 0
    while (file.access(portfilename, mode = 4) < 0) {
-      Sys.sleep(0.2)
+      Sys.sleep(sleepTime)
+      timeSlept <- timeSlept + sleepTime
+      if (timeSlept >= 50) {
+         stop("Timeout while waiting for response from Julia server")
+      }
    }
    portfile <- file(portfilename, open = "r")
    realJuliaPort <- as.integer(readLines(con = portfile, n = 1L, ok = FALSE, encoding = "UTF-8"))
@@ -67,6 +73,18 @@ startJulia <- function() {
    jlc <- juliaConnection()
    pkgLocal$con <- jlc$con
    pkgLocal$port <- jlc$port
+}
+
+
+checkJuliaVersion <- function(juliaCmd) {
+   juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE)
+   juliaVersion <- regmatches(juliaVersion,
+                              regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
+                                      juliaVersion))
+   juliaVersion <- as.integer(unlist(strsplit(juliaVersion, ".", fixed = TRUE)))
+   if (juliaVersion[1] < 1 && juliaVersion[2] < 7) {
+      stop("Julia version must be at least 0.7")
+   }
 }
 
 
@@ -85,6 +103,9 @@ getJuliaExecutablePath <- function() {
       }
       juliaCmd <- file.path(juliaBindir, "julia")
    }
+
+   checkJuliaVersion(juliaCmd)
+
    return(juliaCmd)
 }
 
