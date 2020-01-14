@@ -2,13 +2,13 @@ library(testthat)
 library(JuliaConnectoR)
 library(utils)
 
-juliaFound <- FALSE
+juliaWorks <- FALSE
 try({
-      JuliaConnectoR:::getJuliaExecutablePath()
-      juliaFound <- TRUE
+      juliaEval("1")
+      juliaWorks <- TRUE
    })
 
-if (juliaFound) {
+if (juliaWorks) {
    test_check("JuliaConnectoR")
 } else {
    warning("Tests not performed because Julia was not found.")
