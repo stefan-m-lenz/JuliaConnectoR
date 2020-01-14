@@ -82,8 +82,8 @@ checkJuliaVersion <- function(juliaCmd) {
                               regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
                                       juliaVersion))
    juliaVersion <- as.integer(unlist(strsplit(juliaVersion, ".", fixed = TRUE)))
-   if (juliaVersion[1] < 1 && juliaVersion[2] < 7) {
-      stop("Julia version must be at least 0.7")
+   if (juliaVersion[1] < 1) {
+      stop("Julia version must be at least 1.0")
    }
 }
 
