@@ -42,6 +42,7 @@ using the keyword \code{global} in front of the Julia variables
 (see examples).
 }
 \examples{
+\dontrun{
 # Intended use: Create a complex Julia object
 # using Julia syntax and data from the R workspace
 juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
@@ -50,8 +51,5 @@ juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
 # (although not recommended for a functional style)
 juliaLet("global x = xval", xval = rnorm(10))
 juliaEval("x")
-
-\dontshow{
-JuliaConnectoR:::stopJulia()
 }
 }

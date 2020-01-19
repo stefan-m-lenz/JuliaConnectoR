@@ -18,6 +18,7 @@ when it is called. Like any R function, the returned function can
 also be passed as a function argument to Julia functions.
 }
 \examples{
+\dontrun{
 # Wrap a Julia function and use it
 juliaSqrt <- juliaFun("sqrt")
 juliaSqrt(2)
@@ -31,9 +32,5 @@ plus1(2)
 # Results in an R callback (calling Julia again)
 # because there is no linked function object in Julia.
 juliaCall("map", plus1, c(1,2,3))
-
-
-\dontshow{
-JuliaConnectoR:::stopJulia()
 }
 }

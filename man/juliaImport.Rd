@@ -32,6 +32,7 @@ package are available in R under their name
 prefixed with the module name plus "\code{.}", like in Julia.
 }
 \examples{
+\dontrun{
 # Importing a package and using one of its exported functions
 juliaImport("UUIDs")
 juliaCall("string", UUIDs.uuid4())
@@ -62,8 +63,5 @@ SubModule1.test2()
 juliaImport(".TestModule1.SubModule1", alias = "Sub1")
 # call exported function of submodule via alias
 Sub1.test2()
-
-\dontshow{
-JuliaConnectoR:::stopJulia()
 }
 }

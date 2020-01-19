@@ -32,6 +32,7 @@ package are available in R under their name, and under the name
 prefixed with the module name plus "\code{.}".
 }
 \examples{
+\dontrun{
 # Using a package and one of its exported functions
 juliaUsing("UUIDs")
 juliaCall("string", uuid4())
@@ -64,8 +65,5 @@ juliaUsing(".TestModule1.SubModule1")
 test2()
 # ... or with
 SubModule1.test2()
-
-\dontshow{
-JuliaConnectoR:::stopJulia()
 }
 }
