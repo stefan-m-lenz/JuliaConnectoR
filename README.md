@@ -19,7 +19,7 @@ The package can be installed in R via `devtools`:
     library(devtools)
     install_github("stefan-m-lenz/JuliaConnectoR")
 
-The package requires that [Julia (Version &ge; 0.7) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
+The package requires that [Julia (Version &ge; 1.0) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
 ## List of functions
 
