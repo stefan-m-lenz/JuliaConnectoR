@@ -28,9 +28,11 @@ The following functions are exported by the package:
 | Function name | Description |
 |---------------|-------------|
 | `juliaImport`/`juliaUsing` | Load a Julia package in Julia via `import` or `using` (see Julia documentation) and attach its functions and data types in the R search space, such that the functions can be called directly in R |
-| `juliaCall` | Call any Julia function by name. Not needed for the functions attached via `juliaImport`/`juliaUsing` |
+| `juliaFun` | Create an R function that wraps a Julia function |
+| `juliaCall` | Call any Julia function by name. Not needed for functions attached via `juliaImport`/`juliaUsing` or created via `juliaFun`. |
 | `juliaEval` | Evaluate a simple Julia expression (and return the result) |
-| `juliaLet` | Evaluate Julia expressions with R variables in place of Julia variables employing a `let` block (and return the result)|
+| `juliaLet` | Evaluate Julia expressions with R variables in place of Julia variables employing a `let` block (and return the result) |
+| `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
 ## Translating Julia and R data structure
 
