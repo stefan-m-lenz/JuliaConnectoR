@@ -25,9 +25,7 @@ instead.
 }
 \examples{
 juliaEval("1 + 2")
-\dontrun{
 juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
-}
 juliaEval('using Random; Random.seed!(5);')
 \dontshow{
 JuliaConnectoR:::stopJulia()

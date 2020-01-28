@@ -24,7 +24,7 @@ Julia in place of Julia functions.
 \section{Setup}{
 
 The package requires that
-\href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 0.7) is installed}
+\href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 1.0) is installed}
 and that the Julia executable is in the system search \env{PATH} or that the
 \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 the Julia installation.
