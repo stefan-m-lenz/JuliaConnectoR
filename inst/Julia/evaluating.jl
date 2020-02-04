@@ -106,6 +106,12 @@ function evaluate!(list::ElementList)
    end
 end
 
+# TODO
+# function evaluate!(isr::ImmutableStructRef)
+#    sharedheap
+
+# end
+
 function evaluate!(item)
    item
 end

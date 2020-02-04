@@ -261,7 +261,7 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
          return
 
       else # Write an element for a named function.
-         
+
          # In 1.0 f_as_string contains the full path, in 1.3 only the name.
          # We need the full path.
          # For operators, this does not work, because parsing fails then.
@@ -347,24 +347,34 @@ function write_struct_element(communicator, obj::T,
    end
 end
 
+function write_mutable_struct(communicator, obj::T,
+      callbacks::Vector{Function}) where T
+
+   ref, refknown = shareref!(communicator, obj)
+   if refknown # recursion detected
+      write_struct_element(communicator, CircularReference(ref),
+            Dict{String, Any}(), callbacks)
+      return
+   else
+      # write object, giving reference to original object
+      write_struct_element(communicator, obj, callbacks,
+            Dict{String, Any}("JLREF" => ref))
+      return
+   end
+end
+
 function write_element(communicator, obj::T,
       callbacks::Vector{Function}) where T
 
    if isstructtype(T)
-      if !isimmutable(obj)
-         ref, refknown = shareref!(communicator, obj)
-         if refknown # recursion detected
-            write_struct_element(communicator,
-                  CircularReference(ref), callbacks)
-            return
-         else
-            # write object, giving reference to original object
-            write_struct_element(communicator, obj, callbacks,
-                  Dict{String, Any}("JLREF" => ref))
-            return
+      if (translate_structs.x)
+         if !isimmutable(obj)
+            write_mutable_struct()
          end
+         write_struct_element(communicator, obj, callbacks)
+      else
+         write_struct_reference(communicator, obj, callbacks)
       end
-      write_struct_element(communicator, obj, callbacks)
    else
       write_struct_element(communicator,
             Fail("Lost in translation: $(string(obj))"), callbacks)
@@ -491,4 +501,11 @@ function write_list(communicator, ellist::ElementList, callbacks::Vector{Functio
    end
 
    write_attributes(communicator, ellist.attributes)
+end
+
+
+function write_struct_reference(communicator, obj, callbacks::Vector{Function})
+   ref = sharestruct!(obj)
+   write_bin(communicator, TYPE_ID_STRUCT_REFERENCE)
+   write_bin(communicator, ref)
 end

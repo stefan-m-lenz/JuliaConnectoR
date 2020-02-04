@@ -13,6 +13,10 @@ writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
+writeStructReference <- function(ref) {
+   writeBin(ref, pkgLocal$con)
+}
+
 writeAnonymousFunctionReference <- function(ref) {
    writeBin(ref, pkgLocal$con)
 }
@@ -90,8 +94,11 @@ writeElement <- function(elem, callbacks = list()) {
          callbacks <- c(callbacks, elem)
          writeInt(length(callbacks))
       }
+   } else if (elemType == "environment" && class(elem) == "JuliaStruct") {
+      writeBin(TYPE_ID_STRUCT_REFERENCE, pkgLocal$con)
+      writeStructReference(elem$ref)
    } else {
-      typeId <- TYPE_IDS[[typeof(elem)]]
+      typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {
          writeBin(TYPE_ID_NULL, pkgLocal$con)
          warning(paste0("Could not coerce type of element ", elem, ". Writing NULL."))

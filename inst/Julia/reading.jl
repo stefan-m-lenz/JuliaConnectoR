@@ -115,6 +115,9 @@ function read_element(communicator, callbacks::Vector{Function})
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(communicator)
+   elseif typeid == TYPE_ID_STRUCT_REFERENCE
+      ref = parseheapref(read_bin(communicator, 8))
+      return ((sharedheap[ref].obj)::Ref).x
    elseif typeid == TYPE_ID_ANONYMOUS_FUNCTION
       ref = parseheapref(read_bin(communicator, 8))
       return ((sharedheap[ref].obj)::AnonymousFunctionReference).f

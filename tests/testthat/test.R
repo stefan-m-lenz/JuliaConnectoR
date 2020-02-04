@@ -267,9 +267,20 @@ test_that("Mutable struct has reference", {
    juliaEval('mutable struct TestMutableStruct
                 x::Int
              end')
-   jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
-   expect_true(is.environment(jlRefEnv))
-   expect_true(is.raw(jlRefEnv$ref))
+   jlRef <- juliaEval("TestMutableStruct(1)")
+   refEcho <- juliaEcho(jlRef)
+   expect_true(juliaCall("==", jlRef, refEcho))
+   expect_true(all(jlRef$ref == refEcho$ref))
+   jlRef <- NULL
+   refEcho <- NULL
+   gc()
+   juliaEval("1")
+   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = jlRef$ref))
+
+   # TODO Test old behaviuor with juliaFetch
+   # jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
+   # expect_true(is.environment(jlRefEnv))
+   # expect_true(is.raw(jlRefEnv$ref))
 })
 
 

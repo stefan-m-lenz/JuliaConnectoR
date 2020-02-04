@@ -11,14 +11,33 @@ mutable struct AnonymousFunctionReference
    f::Function
 end
 
-
+# global variables
 const sharedheap = Dict{UInt64, SharedObject}()
+const translate_structs = Ref(false) # TODO implement
+
 
 function sharedheapref!(obj)
    ref = UInt64(pointer_from_objref(obj))
    sharedheap[ref] = SharedObject(obj)
    ref
 end
+
+
+function sharestruct!(obj)
+   if isimmutable(obj)
+      strRef = Ref(obj)
+   else
+      strRef = obj
+   end
+   ref = UInt64(pointer_from_objref(strRef))
+   if haskey(sharedheap, ref)
+      sharedheap[ref].refcount += 1
+   else
+      sharedheap[ref] = SharedObject(strRef)
+   end
+   ref
+end
+
 
 function parseheapref(ref::Vector{UInt8})
    UInt64(reinterpret(UInt64, ref)[1])

@@ -124,6 +124,11 @@ readAnonymousFunctionReference <- function() {
 }
 
 
+readStructReference <- function() {
+   readBin(pkgLocal$con, "raw", 8) # 64 bit
+}
+
+
 readElement <- function(callbacks) {
    theAttributes <- list()
    typeId <- readBin(pkgLocal$con, "raw", 1)
@@ -135,6 +140,11 @@ readElement <- function(callbacks) {
       expr <- readString()
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
+   } else if (typeId == TYPE_ID_STRUCT_REFERENCE) {
+      ref <- readStructReference()
+      obj <- juliaHeapReference(ref)
+      class(obj) <- "JuliaStruct"
+      return(obj)
    } else if (typeId == TYPE_ID_NAMED_FUNCTION) {
       funname <- readString()
       return(juliaFun(funname))
