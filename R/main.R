@@ -237,6 +237,38 @@ juliaExpr <- function(expr) {
 }
 
 
+#' Translate a Julia proxy object to an R object
+#'
+#' R objects of class \code{JuliaReference} are references to Julia objects in the Julia session.
+#' These R objects are also called "proxy objects".
+#' With this function it is possible to translate these objects into R objects.
+#'
+#' If the corresponding Julia objects do not contain external references,
+#' translated objects can also saved in R and safely be restored in Julia.
+#'
+#' Modifying objects is possible and changes in R will be translated back to Julia.
+#'
+#' Calling this function on an object that is not a Julia proxy object will simply
+#' return the object.
+#'
+#' @param x a reference to a Julia object
+juliaGet <- function(x) {
+   UseMethod("juliaGet", x)
+}
+
+juliaGet.default <- function(x) {
+   x
+}
+
+juliaGet.JuliaReference <- function(x) {
+   juliaCall("RConnector.fetchmode!", TRUE)
+   ret <- NULL
+   tryCatch({ret <- juliaCall("identity", x)},
+       finally = {juliaCall("RConnector.fetchmode!", FALSE)})
+   ret
+}
+
+
 #' Evaluate Julia code in a \code{let} block using values of R variables
 #'
 #' R variables can be passed as named arguments, which are inserted

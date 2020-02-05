@@ -203,46 +203,58 @@ end
 function write_element(communicator, arr::AbstractArray,
       callbacks::Vector{Function})
 
-   arrsize = size(arr)
-   attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
+   if fetch_mode.x
+      arrsize = size(arr)
+      attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
 
-   arr2 = arr[:] # R lists support only 1 dimension
-   if length(arrsize) > 1
-      # we have a multidimensional array:
-      # add the dimensions as attribute to be able to reconstruct it
-      attributes["JLDIM"] = collect(arrsize)
+      arr2 = arr[:] # R lists support only 1 dimension
+      if length(arrsize) > 1
+         # we have a multidimensional array:
+         # add the dimensions as attribute to be able to reconstruct it
+         attributes["JLDIM"] = collect(arrsize)
+      end
+
+      ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
+            Dict{Symbol, Any}(), attributes)
+      write_element(communicator, ellist, callbacks)
+   else
+      write_object_reference(communicator, arr)
    end
-
-   ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
-         Dict{Symbol, Any}(), attributes)
-   write_element(communicator, ellist, callbacks)
 end
 
 function write_element(communicator, dict::AbstractDict,
       callbacks::Vector{Function})
 
-   # Assure that keys and values are always in a list,
-   # to allow a straightforward reconstruction later on.
-   # Strings and numbers would otherwise be converted to vectors in R.
-   alwaysaslist(x) = x
-   alwaysaslist(x::Array{N}) where {N <: Union{Number, String}} =
-         ElementList(Vector{Any}(x))
+   if fetch_mode.x
+      # Assure that keys and values are always in a list,
+      # to allow a straightforward reconstruction later on.
+      # Strings and numbers would otherwise be converted to vectors in R.
+      alwaysaslist(x) = x
+      alwaysaslist(x::Array{N}) where {N <: Union{Number, String}} =
+            ElementList(Vector{Any}(x))
 
-   ellist = ElementList(Vector{Any}(),
-         [:keys, :values],
-         Dict{Symbol, Any}(:keys => alwaysaslist(collect(keys(dict))),
-               :values => alwaysaslist(collect(values(dict)))),
-         Dict{String, Any}("JLTYPE" => string(typeof(dict))))
-   write_element(communicator, ellist, callbacks)
+      ellist = ElementList(Vector{Any}(),
+            [:keys, :values],
+            Dict{Symbol, Any}(:keys => alwaysaslist(collect(keys(dict))),
+                  :values => alwaysaslist(collect(values(dict)))),
+            Dict{String, Any}("JLTYPE" => string(typeof(dict))))
+      write_element(communicator, ellist, callbacks)
+   else
+      write_object_reference(communicator, dict)
+   end
 end
 
 function write_element(communicator, set::AbstractSet,
       callbacks::Vector{Function})
 
-   ellist = ElementList(Vector{Any}(collect(set)),
-         Vector{Symbol}(), Dict{Symbol, Any}(),
-         Dict{String, Any}("JLTYPE" => string(typeof(set))))
-   write_element(communicator, ellist, callbacks)
+   if fetch_mode.x
+      ellist = ElementList(Vector{Any}(collect(set)),
+            Vector{Symbol}(), Dict{Symbol, Any}(),
+            Dict{String, Any}("JLTYPE" => string(typeof(set))))
+      write_element(communicator, ellist, callbacks)
+   else
+      write_object_reference(communicator, set)
+   end
 end
 
 function write_element(communicator, f::Function, callbacks::Vector{Function})
@@ -353,7 +365,7 @@ function write_mutable_struct(communicator, obj::T,
    ref, refknown = shareref!(communicator, obj)
    if refknown # recursion detected
       write_struct_element(communicator, CircularReference(ref),
-            Dict{String, Any}(), callbacks)
+            callbacks, Dict{String, Any}())
       return
    else
       # write object, giving reference to original object
@@ -367,13 +379,14 @@ function write_element(communicator, obj::T,
       callbacks::Vector{Function}) where T
 
    if isstructtype(T)
-      if (translate_structs.x)
+      if fetch_mode.x
          if !isimmutable(obj)
-            write_mutable_struct()
+            write_mutable_struct(communicator, obj, callbacks)
+         else
+            write_struct_element(communicator, obj, callbacks)
          end
-         write_struct_element(communicator, obj, callbacks)
       else
-         write_struct_reference(communicator, obj, callbacks)
+         write_object_reference(communicator, obj)
       end
    else
       write_struct_element(communicator,
@@ -504,8 +517,8 @@ function write_list(communicator, ellist::ElementList, callbacks::Vector{Functio
 end
 
 
-function write_struct_reference(communicator, obj, callbacks::Vector{Function})
-   ref = sharestruct!(obj)
+function write_object_reference(communicator, obj)
+   ref = shareobject!(obj)
    write_bin(communicator, TYPE_ID_STRUCT_REFERENCE)
    write_bin(communicator, ref)
 end

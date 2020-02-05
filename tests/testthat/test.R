@@ -1,5 +1,5 @@
 test_that("Some smoke tests", {
-   expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
+   expect_equal(juliaCall("prod", c(1,2,3)), 6)
    juliaCall("string", list())
    juliaCall("string", list(as.integer(1), "bla" = 23L))
    juliaEval("String[]")
@@ -254,12 +254,17 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 test_that("Echo: List with NULL elements", {
    x <- list(1, NULL, 3)
-   expect_equivalent(juliaEcho(x), x)
+   expect_equal(x[[1]], 1)
+   expect_null(x[[2]])
+   expect_equal(x[[3]], 3)
+   expect_equal(length(x), 3)
    testEcho(juliaEval('[1, nothing, 3]'))
    x <- list("bla", NULL)
-   expect_equivalent(x, juliaEcho(x))
+   expect_equal(x[[1]], "bla")
+   expect_null(x[[2]])
    x <- list(NULL, NULL)
-   expect_equivalent(x, juliaEcho(x))
+   expect_null(x[[1]])
+   expect_null(x[[2]])
 })
 
 
@@ -281,10 +286,11 @@ test_that("Mutable struct usable by reference", {
    juliaEval("1")
    expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
 
-   # TODO Test old behaviuor with juliaFetch
-   # jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
-   # expect_true(is.environment(jlRefEnv))
-   # expect_true(is.raw(jlRefEnv$ref))
+   # Test behaviuor with juliaGet:
+   # The reference must be attached
+   jlRefEnv <- attr(juliaGet(juliaEval("TestMutableStruct(1)")), "JLREF")
+   expect_true(is.environment(jlRefEnv))
+   expect_true(is.raw(jlRefEnv$ref))
 })
 
 # TODO test immutable struct reference
@@ -297,7 +303,7 @@ test_that("Currying in juliaFun works", {
 })
 
 
-test_that("Multidimensional object arrays keep their dimensions", {
+test_that("Multidimensional object arrays work", {
    juliaEval("struct MultiTestStruct
                 f::Float64
               end")
@@ -307,12 +313,19 @@ test_that("Multidimensional object arrays keep their dimensions", {
    x <- juliaLet("map(MultiTestStruct, c)", c = content)
    testEcho(x)
    expect_equivalent(juliaCall("size", x), list(1,2,3))
-   attr(x, "JLDIM") <- c(1L, 2L, 4L)
-   expect_error(juliaEcho(x), regexp = "Incorrect dimensions")
 
+   x[[1,2,3]] <- juliaEval("MultiTestStruct(17.0)")
+   expect_equal(x[[1,2,3]]$f, 17)
+
+   # TODO test with fetch
+   #attr(x, "JLDIM") <- c(1L, 2L, 4L)
+   #expect_error(juliaEcho(x), regexp = "Incorrect dimensions")
+
+   # TODO test with fetch
    # Must also work with dimensions of zero
    testEcho(juliaEval("Matrix{MultiTestStruct}(undef, 0, 0)"))
 
+   # TODO test with fetch
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
    expect_equivalent(juliaCall("size", x), list(0,0,0))
@@ -320,11 +333,13 @@ test_that("Multidimensional object arrays keep their dimensions", {
 
 
 test_that("Arrays with undef entries are translated", {
+   skip("TODO test with fetch")
    juliaEval("mutable struct MutableTestStruct
                 f::Float64
              end")
 
    # all undefs
+   # TODO test with fetch
    testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
 
    # undefs and values
@@ -420,12 +435,33 @@ test_that("Echo: Module", {
 # Test Dictionary
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
-   testEcho(d)
+   expect_equal(d[[juliaExpr(":bla")]], 1)
+   expect_equal(d[[juliaExpr(":blup")]], 3)
+   d[[juliaExpr(":blup")]] <- 4
+   expect_equal(d[[juliaExpr(":blup")]], 4)
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], juliaGet(juliaEval("[:bla, :blup]")))
+   expect_setequal(d2[["values"]], list(1, 4))
+
    d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
-   testEcho(d)
+   expect_equal(d[["bla"]], 1)
+   expect_equal(d[["blup"]], 2)
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], list("bla", "blup"))
+   expect_setequal(d2[["values"]], list(1, 2))
+
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], list("bla", "blup"))
+   expect_setequal(d2[["values"]], list(1,2))
+
    d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
+   expect_equal(length(juliaCall("keys", d)), 1)
    testEcho(d)
+
    d <- juliaLet("Dict(zip(x, y))", x = list(), y = list())
+   d2 <- juliaGet(d)
+   expect_length(d2[["keys"]], 0)
+   expect_length(d2[["values"]], 0)
    testEcho(d)
 })
 
@@ -434,8 +470,10 @@ test_that("Echo: Dictionary", {
 test_that("Echo: Set", {
    s1 <- juliaEval("Set([1; 2; 3; 4])")
    s2 <- juliaEval("Set([1; 2])")
-   expect_length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4)), 0)
-   expect_length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4)), 0)
+   expect_length(setdiff(juliaGet(juliaEval("Set([1; 2; 3; 4])")),
+                         c(1,2,3,4)), 0)
+   expect_length(setdiff(juliaGet(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2)),
+                         c(3,4)), 0)
    testEcho(s1)
 })
 
@@ -616,7 +654,7 @@ test_that("Julia functions as members are transferred and usable in R", {
    op1 <- juliaFun("+")
    juliaEval('struct FunTestStruct f::Function end')
    funTestStruct <- juliaCall("FunTestStruct", op1)
-   expect_equal(funTestStruct[["f"]](1,2), 3)
+   expect_equal(funTestStruct$f(1,2), 3)
 })
 
 
@@ -687,11 +725,15 @@ test_that("Error if Julia is not setup properly", {
 
 
 test_that("Circular references do not lead to a crash", {
-   tryCatch({juliaEval("mutable struct TestRecur
+
+   definition <- 'mutable struct TestRecur
                   r::Union{TestRecur, Int}
-             end")}, error = function(e) {}) # ignore redefinition error
+                  end'
+   try({juliaEval(definition)}, silent = TRUE) # (ignore redefinition error)
+
    r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
-   expect_error(juliaEcho(r), regex = "Circular reference")
+   expect_match(capture.output({print(juliaEcho(r))}), regex = "circular reference", all = FALSE)
+   expect_error(juliaEcho(juliaGet(r)), regex = "Circular reference")
 })
 
 
@@ -716,19 +758,22 @@ test_that("Anonymous functions can be transferred", {
                f::Function
              end")
    afs <- juliaEval("TestAnonFunStruct(() -> 20)")
-   expect_equal(afs[[1]](), 20)
+   expect_equal(afs$f(), 20)
 })
 
 
 test_that("Test BigInt: a Julia object with external pointers", {
 
-   i1 <- juliaCall("BigInt", 2147483647L)
-   i2 <- juliaCall("BigInt", 2147483647L)
-   p <- juliaCall("prod", list(i1, i2, i1))
-   p2 <- juliaCall("prod", list(i1, i2, i1))
+   # Note: It is not really recommended to translate objects with
+   # external pointers. Nevertheless, it should work and not cause a crash.
+
+   i1 <- juliaGet(juliaCall("BigInt", 2147483647L))
+   i2 <- juliaGet(juliaCall("BigInt", 2147483647L))
+   p <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
+   p2 <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
    juliaCall("GC.gc") # references in sharedheap must survive this
    jldiv <- juliaFun("div")
-   juliaCall("Int", jldiv(jldiv(p,i1), i2))
+   expect_equal(juliaCall("Int", jldiv(jldiv(p,i1), i2)), 2147483647L)
    expect_equal(juliaLet("Int(div(div(p,i1),i2))", p = p, i1 = i1, i2 = i2),
                 2147483647)
 
@@ -755,7 +800,7 @@ test_that("Serialized mutable struct can be restored", {
    juliaEval("mutable struct TestSerializationStruct
                i::Int
              end")
-   x <- juliaEval("TestSerializationStruct(1)")
+   x <- juliaGet(juliaEval("TestSerializationStruct(1)"))
    tmpfile <- tempfile()
    save("x", file = tmpfile)
    x <- NULL

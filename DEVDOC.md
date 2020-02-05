@@ -19,12 +19,12 @@
             | '0x05' dimensions {boolean}
             | '0x06' dimensions {string} attributes
             | '0x07' list
-            | '0x5e' struct_reference
+            | '0x5e' object_reference
             | '0xaf' anonymous_function_reference
             | '0xcb' callback
             | '0xfc' named_function
             | '0xee' expression
-    struct_reference -> 8 * byte
+    object_reference -> 8 * byte
     anonymous_function_reference -> 8 * byte
     callback -> int32
     named_function -> string

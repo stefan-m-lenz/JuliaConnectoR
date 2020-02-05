@@ -13,8 +13,11 @@ end
 
 # global variables
 const sharedheap = Dict{UInt64, SharedObject}()
-const translate_structs = Ref(false) # TODO implement
+const fetch_mode = Ref(false) # TODO implement
 
+function fetchmode!(mode::Bool)
+   fetch_mode.x = mode
+end
 
 function sharedheapref!(obj)
    ref = UInt64(pointer_from_objref(obj))
@@ -28,7 +31,7 @@ mutable struct ImmutableObjectReferece
 end
 
 
-function sharestruct!(obj)
+function shareobject!(obj)
    if isimmutable(obj)
       refobj = ImmutableObjectReferece(obj)
    else
