@@ -328,7 +328,7 @@ juliaHeapReference <- function(ref) {
    ret$ref <- ref
    reg.finalizer(ret, function(e) {
       # remove reference (see releaseFinalizedRefs)
-      pkgLocal$finalizedRefs <- c(pkgLocal$finalizedRefs, e$ref)
+      pkgLocal$finalizedRefs <- c(pkgLocal$finalizedRefs, get("ref", e))
    })
    ret
 }

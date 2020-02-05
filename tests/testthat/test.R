@@ -263,25 +263,31 @@ test_that("Echo: List with NULL elements", {
 })
 
 
-test_that("Mutable struct has reference", {
+test_that("Mutable struct usable by reference", {
    juliaEval('mutable struct TestMutableStruct
                 x::Int
              end')
    jlRef <- juliaEval("TestMutableStruct(1)")
    refEcho <- juliaEcho(jlRef)
    expect_true(juliaCall("==", jlRef, refEcho))
-   expect_true(all(jlRef$ref == refEcho$ref))
+   expect_true(all(get("ref", jlRef) == get("ref", refEcho)))
+   expect_equal(refEcho$x, 1)
+   refEcho$x <- 2L
+   expect_equal(jlRef$x, 2)
+   ref <- get("ref", jlRef)
    jlRef <- NULL
    refEcho <- NULL
-   gc()
+   invisible(gc())
    juliaEval("1")
-   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = jlRef$ref))
+   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
 
    # TODO Test old behaviuor with juliaFetch
    # jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
    # expect_true(is.environment(jlRefEnv))
    # expect_true(is.raw(jlRefEnv$ref))
 })
+
+# TODO test immutable struct reference
 
 
 test_that("Currying in juliaFun works", {

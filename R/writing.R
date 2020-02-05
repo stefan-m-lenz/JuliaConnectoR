@@ -94,9 +94,9 @@ writeElement <- function(elem, callbacks = list()) {
          callbacks <- c(callbacks, elem)
          writeInt(length(callbacks))
       }
-   } else if (elemType == "environment" && class(elem) == "JuliaStruct") {
+   } else if (elemType == "environment" && class(elem) == "JuliaReference") {
       writeBin(TYPE_ID_STRUCT_REFERENCE, pkgLocal$con)
-      writeStructReference(elem$ref)
+      writeStructReference(get("ref", elem)) # (don't use $ on JuliaReference
    } else {
       typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {

@@ -23,17 +23,22 @@ function sharedheapref!(obj)
 end
 
 
+mutable struct ImmutableObjectReferece
+   obj::Any
+end
+
+
 function sharestruct!(obj)
    if isimmutable(obj)
-      strRef = Ref(obj)
+      refobj = ImmutableObjectReferece(obj)
    else
-      strRef = obj
+      refobj = obj
    end
-   ref = UInt64(pointer_from_objref(strRef))
+   ref = UInt64(pointer_from_objref(refobj))
    if haskey(sharedheap, ref)
       sharedheap[ref].refcount += 1
    else
-      sharedheap[ref] = SharedObject(strRef)
+      sharedheap[ref] = SharedObject(refobj)
    end
    ref
 end

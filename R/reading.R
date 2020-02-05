@@ -143,7 +143,7 @@ readElement <- function(callbacks) {
    } else if (typeId == TYPE_ID_STRUCT_REFERENCE) {
       ref <- readStructReference()
       obj <- juliaHeapReference(ref)
-      class(obj) <- "JuliaStruct"
+      class(obj) <- "JuliaReference"
       return(obj)
    } else if (typeId == TYPE_ID_NAMED_FUNCTION) {
       funname <- readString()

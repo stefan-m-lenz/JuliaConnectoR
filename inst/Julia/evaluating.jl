@@ -106,11 +106,11 @@ function evaluate!(list::ElementList)
    end
 end
 
-# TODO
-# function evaluate!(isr::ImmutableStructRef)
-#    sharedheap
 
-# end
+function evaluate!(objref::ImmutableObjectReferece)
+   objref.obj
+end
+
 
 function evaluate!(item)
    item
@@ -201,4 +201,13 @@ function reconstruct_struct(constructor, list::ElementList)
    end
 
    return obj
+end
+
+
+function getprop(value, name::String)
+   getproperty(value, Symbol(name))
+end
+
+function setprop!(value, name::String, x)
+   setproperty!(value, Symbol(name), x)
 end
