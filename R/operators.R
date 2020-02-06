@@ -31,5 +31,6 @@ length.JuliaReference <- function(x) {
 }
 
 print.JuliaReference <- function(x) {
-   cat(paste0("<Julia object>\n", juliaCall("repr", x)))
+   cat(paste0("<Julia object of type ", juliaCall("typeof", x), ">\n",
+              juliaCall("repr", x)))
 }
