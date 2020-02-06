@@ -129,11 +129,11 @@ readStructReference <- function() {
 }
 
 
-readElement <- function(callbacks) {
+readElement <- function() {
    theAttributes <- list()
    typeId <- readBin(pkgLocal$con, "raw", 1)
    if (typeId == TYPE_ID_LIST) {
-      return(readList(callbacks))
+      return(readList())
    } else if (typeId == TYPE_ID_NULL) {
       return(NULL)
    } else if (typeId == TYPE_ID_EXPRESSION) {
@@ -154,8 +154,8 @@ readElement <- function(callbacks) {
       attr(fun, "JLREF") <- juliaHeapReference(ref)
       return(fun)
    } else if (typeId == TYPE_ID_CALLBACK) {
-      callbackId <- readInt()
-      return(callbacks[[callbackId]])
+      callbackId <- readString()
+      return(get(callbackId, pkgLocal$callbacks))
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)
@@ -194,12 +194,12 @@ readElement <- function(callbacks) {
 }
 
 
-readList <- function(callbacks = list()) {
+readList <- function() {
    ret <- list()
 
    npositional <- readInt()
    for (i in seq_len(npositional)) {
-      listElement <- readElement(callbacks)
+      listElement <- readElement()
       if (is.null(listElement)) {
          ret[i] <- list(NULL)
       } else {
@@ -210,7 +210,7 @@ readList <- function(callbacks = list()) {
    nnamed <- readInt()
    for (i in seq_len(nnamed)) {
       name <- readString()
-      listElement <- readElement(callbacks)
+      listElement <- readElement()
       if (is.null(listElement)) {
          ret[name] <- list(NULL)
       } else {
@@ -223,9 +223,9 @@ readList <- function(callbacks = list()) {
 }
 
 
-readCall <- function(callbacks = list()) {
+readCall <- function() {
    name <- readString()
-   args <- readList(callbacks)
+   args <- readList()
    list(name = name, args = args)
 }
 

@@ -1,11 +1,11 @@
-function write_message(communicator, result, callbacks::Vector{Function})
+function write_message(communicator, result)
    start_result_message(communicator)
    write_bin(communicator, RESULT_INDICATOR)
-   write_element(communicator, result, callbacks)
+   write_element(communicator, result)
    end_result_message(communicator)
 end
 
-function write_message(communicator, fail::Fail, callbacks::Vector{Function})
+function write_message(communicator, fail::Fail)
    start_fail_message(communicator)
    write_bin(communicator, FAIL_INDICATOR)
    write_string(communicator, fail.message)
@@ -13,12 +13,11 @@ function write_message(communicator, fail::Fail, callbacks::Vector{Function})
 end
 
 
-function write_callback_message(communicator, callbackid::Int, args::ElementList)
+function write_callback_message(communicator, callbackid::String, args::ElementList)
    start_callback_message(communicator)
    write_bin(communicator, CALL_INDICATOR)
-   write_string(communicator, string(callbackid))
-   callbacks = Vector{Function}()
-   write_list(communicator, args, callbacks)
+   write_string(communicator, callbackid)
+   write_list(communicator, args)
    end_callback_message(communicator)
 end
 
@@ -28,7 +27,7 @@ function write_attributes(communicator, attributes)
    write_nattributes(communicator, length(attributes))
    for (key, value) in attributes
       write_string(communicator, key)
-      write_element(communicator, value, Vector{Function}())
+      write_element(communicator, value)
    end
 end
 
@@ -59,8 +58,7 @@ function write_dimensions(communicator, arr::AbstractArray)
 end
 
 
-function write_element(communicator, arr::AbstractArray{String},
-      callbacks::Vector{Function})
+function write_element(communicator, arr::AbstractArray{String})
 
    write_bin(communicator, TYPE_ID_STRING)
    write_dimensions(communicator, arr)
@@ -74,16 +72,15 @@ function write_element(communicator, arr::AbstractArray{String},
    write_bin(communicator, 0x00)
 end
 
-function write_element(communicator, arr::AbstractArray{F},
-      callbacks::Vector{Function}) where {F <: SEND_AS_DOUBLE}
+function write_element(communicator, arr::AbstractArray{F}
+      ) where {F <: SEND_AS_DOUBLE}
 
    attributes = (("JLTYPE", string(F)), )
-   write_element(communicator, convert(Array{Float64}, arr),
-      callbacks, attributes)
+   write_element(communicator, convert(Array{Float64}, arr), attributes)
 end
 
 function write_element(communicator, arr::AbstractArray{Float64},
-      callbacks::Vector{Function}, attributes = ())
+      attributes = ())
 
    write_bin(communicator, TYPE_ID_FLOAT64)
    write_dimensions(communicator, arr)
@@ -93,8 +90,7 @@ function write_element(communicator, arr::AbstractArray{Float64},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{UInt8},
-      callbacks::Vector{Function}, attributes = ())
+function write_element(communicator, arr::AbstractArray{UInt8}, attributes = ())
 
    if length(arr) == 1
       attributes = tuple(attributes..., ("JLDIM", 1))
@@ -109,15 +105,14 @@ function write_element(communicator, arr::AbstractArray{UInt8},
 end
 
 function write_element(communicator, arr::AbstractArray{T},
-      callbacks::Vector{Function}) where {T <: SEND_AS_INT32}
+      ) where {T <: SEND_AS_INT32}
 
    attributes = (("JLTYPE", string(T)), )
-   write_element(communicator, convert(Array{Int32}, arr),
-         callbacks, attributes, true)
+   write_element(communicator, convert(Array{Int32}, arr), attributes, true)
 end
 
 function write_element(communicator, arr::AbstractArray{Int32},
-      callbacks::Vector{Function}, attributes = (), isothertype::Bool = false)
+      attributes = (), isothertype::Bool = false)
 
    if !isothertype
       attributes = (("JLTYPE", "Int32"), )
@@ -135,8 +130,7 @@ function write_element(communicator, arr::AbstractArray{Int32},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Int64},
-      callbacks::Vector{Function})
+function write_element(communicator, arr::AbstractArray{Int64})
 
    arrmin, arrmax = extrema(arr)
    if arrmin >= typemin(Int32) && arrmax <= typemax(Int32)
@@ -146,28 +140,27 @@ function write_element(communicator, arr::AbstractArray{Int64},
          attributes = (("JLTYPE", "Int64"), )
       end
       write_element(communicator, convert(Array{Int32}, arr),
-            callbacks, attributes, true)
+            attributes, true)
    else
       attributes = (("JLTYPE", "Int64"), )
-      write_element(communicator, convert(Array{Float64}, arr),
-            callbacks, attributes) #TODO possible inexactness?
+      write_element(communicator, convert(Array{Float64}, arr), attributes)
+      #TODO possible inexactness?
    end
 end
 
 function write_element(communicator, arr::AbstractArray{T},
-      callbacks::Vector{Function}) where {T <: SEND_AS_RAW_TYPES}
+      ) where {T <: SEND_AS_RAW_TYPES}
 
    if length(arr) == 1
       attributes = (("JLTYPE", string(T)), ("JLDIM", collect(size(arr))))
    else
       attributes = (("JLTYPE", string(T)), )
    end
-   write_element(communicator, reinterpret(UInt8, arr),
-         callbacks, attributes)
+   write_element(communicator, reinterpret(UInt8, arr), attributes)
 end
 
 function write_element(communicator, arr::AbstractArray{Complex{Float64}},
-      callbacks::Vector{Function}, attributes = ())
+      attributes = ())
 
    if length(arr) == 1
       attributes = tuple(attributes..., ("JLDIM", 1))
@@ -183,16 +176,13 @@ function write_element(communicator, arr::AbstractArray{Complex{Float64}},
 end
 
 function write_element(communicator, arr::AbstractArray{C},
-      callbacks::Vector{Function}) where {C <: SEND_AS_COMPLEX}
+      ) where {C <: SEND_AS_COMPLEX}
 
    attributes = (("JLTYPE", string(C)), )
-   write_element(communicator, convert.(Complex{Float64}, arr),
-         callbacks, attributes)
+   write_element(communicator, convert.(Complex{Float64}, arr), attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Bool},
-      callbacks::Vector{Function})
-
+function write_element(communicator, arr::AbstractArray{Bool})
    write_bin(communicator, TYPE_ID_BOOL)
    write_dimensions(communicator, arr)
    for d in arr
@@ -200,8 +190,7 @@ function write_element(communicator, arr::AbstractArray{Bool},
    end
 end
 
-function write_element(communicator, arr::AbstractArray,
-      callbacks::Vector{Function})
+function write_element(communicator, arr::AbstractArray)
 
    if fetch_mode.x
       arrsize = size(arr)
@@ -216,14 +205,13 @@ function write_element(communicator, arr::AbstractArray,
 
       ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
             Dict{Symbol, Any}(), attributes)
-      write_element(communicator, ellist, callbacks)
+      write_element(communicator, ellist)
    else
       write_object_reference(communicator, arr)
    end
 end
 
-function write_element(communicator, dict::AbstractDict,
-      callbacks::Vector{Function})
+function write_element(communicator, dict::AbstractDict)
 
    if fetch_mode.x
       # Assure that keys and values are always in a list,
@@ -238,29 +226,27 @@ function write_element(communicator, dict::AbstractDict,
             Dict{Symbol, Any}(:keys => alwaysaslist(collect(keys(dict))),
                   :values => alwaysaslist(collect(values(dict)))),
             Dict{String, Any}("JLTYPE" => string(typeof(dict))))
-      write_element(communicator, ellist, callbacks)
+      write_element(communicator, ellist)
    else
       write_object_reference(communicator, dict)
    end
 end
 
-function write_element(communicator, set::AbstractSet,
-      callbacks::Vector{Function})
-
+function write_element(communicator, set::AbstractSet)
    if fetch_mode.x
       ellist = ElementList(Vector{Any}(collect(set)),
             Vector{Symbol}(), Dict{Symbol, Any}(),
             Dict{String, Any}("JLTYPE" => string(typeof(set))))
-      write_element(communicator, ellist, callbacks)
+      write_element(communicator, ellist)
    else
       write_object_reference(communicator, set)
    end
 end
 
-function write_element(communicator, f::Function, callbacks::Vector{Function})
+function write_element(communicator, f::Function)
 
-   callbackid = findfirst(isequal(f), callbacks)
-   if callbackid === nothing # it's not a callback function
+   callbackid = get(registered_callbacks, f, "")
+   if callbackid == "" # it's not a callback function
       f_as_string = string(f)
       if endswith(f_as_string, "()") || startswith(f_as_string, '#')
          # Detected an anonymous function:
@@ -292,37 +278,32 @@ function write_element(communicator, f::Function, callbacks::Vector{Function})
    write_int32(communicator, callbackid)
 end
 
-function write_element(communicator, t::Tuple, callbacks::Vector{Function})
+function write_element(communicator, t::Tuple)
    write_bin(communicator, TYPE_ID_LIST)
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
    ellist = ElementList(
          Vector{Any}(collect(t)),
          Vector{Symbol}(), Dict{Symbol, Any}(),
          attributes)
-   write_list(communicator, ellist, callbacks)
+   write_list(communicator, ellist)
 end
 
-function write_element(communicator, ellist::ElementList,
-      callbacks::Vector{Function})
+function write_element(communicator, ellist::ElementList)
 
    write_bin(communicator, TYPE_ID_LIST)
-   write_list(communicator, ellist, callbacks)
+   write_list(communicator, ellist)
 end
 
-function write_element(communicator, obj::Symbol,
-      callbacks::Vector{Function})
-
+function write_element(communicator, obj::Symbol)
    ellist = ElementList(
          Vector{Any}(),
          [:name],
          Dict{Symbol, Any}(:name => string(obj)),
          Dict{String, Any}("JLTYPE" => "Symbol"))
-   write_element(communicator, ellist, callbacks)
+   write_element(communicator, ellist)
 end
 
-function write_element(communicator, obj::Module,
-      callbacks::Vector{Function})
-
+function write_element(communicator, obj::Module)
    modulename = string(obj)
    if startswith(modulename, "Main.")
       modulename = String(modulename[6:end])
@@ -332,16 +313,14 @@ function write_element(communicator, obj::Module,
       [:name],
       Dict{Symbol, Any}(:name => modulename),
       Dict{String, Any}("JLTYPE" => "Module"))
-   write_element(communicator, ellist, callbacks)
+   write_element(communicator, ellist)
 end
 
-function write_element(communicator, d::T,
-      callbacks::Vector{Function}) where {T2, T <: Type{T2}}
+function write_element(communicator, d::T) where {T2, T <: Type{T2}}
    write_expression(communicator, string(d))
 end
 
 function write_struct_element(communicator, obj::T,
-      callbacks::Vector{Function},
       attributes::Dict{String, Any} = Dict{String, Any}()) where T
 
    names = fieldnames(T)
@@ -355,69 +334,61 @@ function write_struct_element(communicator, obj::T,
             Vector(), collect(names),
             Dict{Symbol, Any}(zip(names, fieldvalues)),
             attributes)
-      write_list(communicator, ellist, callbacks)
+      write_list(communicator, ellist)
    end
 end
 
-function write_mutable_struct(communicator, obj::T,
-      callbacks::Vector{Function}) where T
+function write_mutable_struct_element(communicator, obj::T) where T
 
    ref, refknown = shareref!(communicator, obj)
    if refknown # recursion detected
       write_struct_element(communicator, CircularReference(ref),
-            callbacks, Dict{String, Any}())
+            Dict{String, Any}())
       return
    else
       # write object, giving reference to original object
-      write_struct_element(communicator, obj, callbacks,
+      write_struct_element(communicator, obj,
             Dict{String, Any}("JLREF" => ref))
       return
    end
 end
 
-function write_element(communicator, obj::T,
-      callbacks::Vector{Function}) where T
+function write_element(communicator, obj::T) where T
 
    if isstructtype(T)
       if fetch_mode.x
          if !isimmutable(obj)
-            write_mutable_struct(communicator, obj, callbacks)
+            write_mutable_struct_element(communicator, obj)
          else
-            write_struct_element(communicator, obj, callbacks)
+            write_struct_element(communicator, obj)
          end
       else
          write_object_reference(communicator, obj)
       end
    else
       write_struct_element(communicator,
-            Fail("Lost in translation: $(string(obj))"), callbacks)
+            Fail("Lost in translation: $(string(obj))"))
    end
 end
 
-function write_element(communicator, f::F, callbacks::Vector{Function}
-      ) where {F <: SEND_AS_DOUBLE}
-
+function write_element(communicator, f::F) where {F <: SEND_AS_DOUBLE}
    attributes = (("JLTYPE", string(F)), )
-   write_element(communicator, Float64(f), callbacks, attributes)
+   write_element(communicator, Float64(f), attributes)
 end
 
-function write_element(communicator, f::Float64, callbacks::Vector{Function},
-      attributes = ())
-
+function write_element(communicator, f::Float64, attributes = ())
    write_bin(communicator, TYPE_ID_FLOAT64)
    write_int32(communicator, 0)
    write_bin(communicator, f)
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, i::T, callbacks::Vector{Function}
-      ) where {T <: SEND_AS_INT32}
-
+function write_element(communicator, i::T) where {T <: SEND_AS_INT32}
    attributes = (("JLTYPE", string(T)), )
-   write_element(communicator, Int32(i), callbacks, attributes, true)
+   write_element(communicator, Int32(i), attributes, true)
 end
 
-function write_element(communicator, i::Int32, callbacks::Vector{Function},
+function write_element(communicator, i::Int32,
       attributes = (), isothertype::Bool = false)
 
    if !isothertype
@@ -430,42 +401,40 @@ function write_element(communicator, i::Int32, callbacks::Vector{Function},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, i::Int64, callbacks::Vector{Function})
+function write_element(communicator, i::Int64)
    if typemin(Int32) <= i <= typemax(Int32)
       @static if Int == Int64
          attributes = ()
       else
          attributes = (("JLTYPE", "Int64"), )
       end
-      write_element(communicator, Int32(i), callbacks, attributes, true)
+      write_element(communicator, Int32(i), attributes, true)
    else
       attributes = (("JLTYPE", "Int64"), )
       # TODO inexactness?
-      write_element(communicator, Float64(i), callbacks, attributes)
+      write_element(communicator, Float64(i), attributes)
    end
 end
 
-function write_element(communicator, i::T, callbacks::Vector{Function}
-      ) where {T <: SEND_AS_RAW_TYPES}
+function write_element(communicator, i::T) where {T <: SEND_AS_RAW_TYPES}
    attributes = (("JLTYPE", string(T)), )
-   write_element(communicator, reinterpret(UInt8, [i]), callbacks, attributes)
+   write_element(communicator, reinterpret(UInt8, [i]), attributes)
 end
 
-function write_element(communicator, b::Bool, callbacks::Vector{Function})
+function write_element(communicator, b::Bool)
    write_bin(communicator, TYPE_ID_BOOL)
    write_int32(communicator, 0)
    write_bin(communicator, b)
 end
 
-function write_element(communicator, str::String, callbacks::Vector{Function})
+function write_element(communicator, str::String)
    write_bin(communicator, TYPE_ID_STRING)
    write_int32(communicator, 0)
    write_string(communicator, str)
    write_bin(communicator, 0x00) # no attributes
 end
 
-function write_element(communicator, c::Complex{Float64}, callbacks::Vector{Function},
-      attributes = ())
+function write_element(communicator, c::Complex{Float64}, attributes = ())
    write_bin(communicator, TYPE_ID_COMPLEX)
    write_int32(communicator, 0)
    write_bin(communicator, Float64(real(c)))
@@ -473,20 +442,19 @@ function write_element(communicator, c::Complex{Float64}, callbacks::Vector{Func
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, c::C, callbacks::Vector{Function}
-      ) where {C <: SEND_AS_COMPLEX}
+function write_element(communicator, c::C) where {C <: SEND_AS_COMPLEX}
    attributes = (("JLTYPE", string(C)), )
-   write_element(communicator, convert(Complex{Float64}, c), callbacks, attributes)
+   write_element(communicator, convert(Complex{Float64}, c), attributes)
 end
 
-function write_element(communicator, u::UInt8, callbacks::Vector{Function})
+function write_element(communicator, u::UInt8)
    write_bin(communicator, TYPE_ID_RAW)
    write_int32(communicator, 0)
    write_bin(communicator, u)
    write_bin(communicator, 0x00) # no attributes
 end
 
-function write_element(communicator, n::Nothing, callbacks::Vector{Function})
+function write_element(communicator, n::Nothing)
    write_bin(communicator, TYPE_ID_NOTHING)
 end
 
@@ -497,20 +465,20 @@ function write_expression(communicator, str::AbstractString)
 end
 
 
-function write_list(communicator, arr::AbstractArray, callbacks::Vector{Function})
-   write_list(communicator, ElementList(vec(arr)), callbacks)
+function write_list(communicator, arr::AbstractArray)
+   write_list(communicator, ElementList(vec(arr)))
 end
 
-function write_list(communicator, ellist::ElementList, callbacks::Vector{Function})
+function write_list(communicator, ellist::ElementList)
    write_int32(communicator, length(ellist.positionalelements))
    for el in ellist.positionalelements
-      write_element(communicator, el, callbacks)
+      write_element(communicator, el)
    end
 
    write_int32(communicator, length(ellist.namedelements))
    for name in ellist.names # use the order of the names here
       write_string(communicator, string(name))
-      write_element(communicator, ellist.namedelements[name], callbacks)
+      write_element(communicator, ellist.namedelements[name])
    end
 
    write_attributes(communicator, ellist.attributes)

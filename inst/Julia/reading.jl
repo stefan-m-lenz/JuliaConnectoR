@@ -44,7 +44,7 @@ function read_attributes(communicator)
    attributes = Dict{String, Any}()
    for i in 1:nattributes
       name = read_string(communicator)
-      attributes[name] = read_element(communicator, Vector{Function}())
+      attributes[name] = read_element(communicator)
    end
    attributes
 end
@@ -106,11 +106,11 @@ function read_dimensions(communicator)
 end
 
 
-function read_element(communicator, callbacks::Vector{Function})
+function read_element(communicator)
    typeid = read_bin(communicator, UInt8)
 
    if typeid == TYPE_ID_LIST
-      return read_list(communicator, callbacks)
+      return read_list(communicator)
    elseif typeid == TYPE_ID_NOTHING
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
@@ -122,9 +122,8 @@ function read_element(communicator, callbacks::Vector{Function})
       ref = parseheapref(read_bin(communicator, 8))
       return ((sharedheap[ref].obj)::AnonymousFunctionReference).f
    elseif  typeid == TYPE_ID_CALLBACK
-      callbackid = read_int(communicator)
+      callbackid = read_string(communicator)
       callback = callbackfun(callbackid, communicator)
-      push!(callbacks, callback)
       return callback
    else
       dimensions = read_dimensions(communicator)
@@ -221,12 +220,12 @@ function read_expression(communicator)
 end
 
 
-function read_list(communicator, callbacks::Vector{Function})
+function read_list(communicator)
 
    npositional = read_int(communicator)
    positionalelements = Vector{Any}(undef, npositional)
    for i in 1:npositional
-      positionalelements[i] = read_element(communicator, callbacks)
+      positionalelements[i] = read_element(communicator)
    end
 
    fails = Vector{Fail}(
@@ -237,7 +236,7 @@ function read_list(communicator, callbacks::Vector{Function})
    namedelements = Dict{Symbol, Any}()
    for i in 1:nnamed
       name = read_string(communicator)
-      namedelement = read_element(communicator, callbacks)
+      namedelement = read_element(communicator)
       try
          sym = Symbol(name)
          namedelements[sym] = namedelement
@@ -261,7 +260,7 @@ function findfield(name::AbstractString)
 end
 
 
-function read_call(communicator, callbacks::Vector{Function})
+function read_call(communicator)
    name = read_string(communicator)
    fails = Vector{Fail}()
    fun = () -> nothing
@@ -270,6 +269,6 @@ function read_call(communicator, callbacks::Vector{Function})
    catch ex
       push!(fails, Fail("Unable to identify function: $ex"))
    end
-   args = read_list(communicator, callbacks)
+   args = read_list(communicator)
    Call(fun, args, fails)
 end

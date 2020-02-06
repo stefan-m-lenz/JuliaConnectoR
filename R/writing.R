@@ -72,11 +72,11 @@ writeListAttributes <- function(theAttributes) {
 }
 
 
-writeElement <- function(elem, callbacks = list()) {
+writeElement <- function(elem) {
 
    if (is.null(elem)) {
       writeBin(TYPE_ID_NULL, pkgLocal$con)
-      return(callbacks)
+      return()
    }
 
    elemType <- typeof(elem)
@@ -91,12 +91,12 @@ writeElement <- function(elem, callbacks = list()) {
          writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
       } else {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
-         callbacks <- c(callbacks, elem)
-         writeInt(length(callbacks))
+         callbackId <- registerCallback(elem)
+         writeString(callbackId)
       }
    } else if (elemType == "environment" && class(elem) == "JuliaReference") {
       writeBin(TYPE_ID_STRUCT_REFERENCE, pkgLocal$con)
-      writeStructReference(get("ref", elem)) # (don't use $ on JuliaReference
+      writeStructReference(get("ref", elem)) # use get, because $ is overloaded
    } else {
       typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {
@@ -132,11 +132,9 @@ writeElement <- function(elem, callbacks = list()) {
          }
       } else if (typeId == TYPE_ID_LIST) {
          writeBin(typeId, pkgLocal$con)
-         callbacks <- writeList(elem, callbacks)
+         writeList(elem)
       }
    }
-
-   return(callbacks)
 }
 
 
@@ -146,7 +144,7 @@ writeExpression <- function(str) {
 }
 
 
-writeList <- function(theList, callbacks = list()) {
+writeList <- function(theList) {
    theNames <- names(theList)
 
    if (is.null(theNames)) {
@@ -163,19 +161,18 @@ writeList <- function(theList, callbacks = list()) {
    npositional <- length(posargs)
    writeInt(npositional)
    for (arg in posargs) {
-      callbacks <- writeElement(arg, callbacks)
+      writeElement(arg)
    }
 
    writeInt(nnamed)
    if (nnamed > 0) {
       for (i in seq_along(namedargs)) {
          writeString(namedNames[i])
-         callbacks <- writeElement(namedargs[[i]], callbacks)
+         writeElement(namedargs[[i]])
       }
    }
 
    writeListAttributes(attributes(theList))
-   return(callbacks)
 }
 
 

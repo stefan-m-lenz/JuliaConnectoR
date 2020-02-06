@@ -26,7 +26,7 @@
             | '0xee' expression
     object_reference -> 8 * byte
     anonymous_function_reference -> 8 * byte
-    callback -> int32
+    callback -> string
     named_function -> string
     string -> int32 utf8string
     dimensions -> ndimensions {int32}

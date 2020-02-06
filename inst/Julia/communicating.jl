@@ -15,6 +15,34 @@ end
 const sharedheap = Dict{UInt64, SharedObject}()
 const fetch_mode = Ref(false) # TODO implement
 
+const finalized_callbacks = Vector{String}()
+const registered_callbacks = Dict{Function, String}()
+
+
+mutable struct CallbackFinalizer
+   id::String
+   f::Function
+end
+
+function finalize_callback(cb::CallbackFinalizer)
+   delete!(registered_callbacks, cb.f)
+   push!(finalized_callbacks, cb.id)
+end
+
+function CallbackFinalizer(id::String)
+   cb = CallbackFinalizer(id, identity) # any function does the job
+   finalizer(finalize_callback, cb)
+   cb
+end
+
+const useless_counter = Ref(0)
+function stayalivewithme(cb::CallbackFinalizer)
+   # accessing a global variable will prevent this function from
+   # being optimized out, even by super clever optimizers
+   useless_counter.x += 1
+end
+
+
 function fetchmode!(mode::Bool)
    fetch_mode.x = mode
 end
@@ -65,6 +93,11 @@ function decrefcounts(refs::Vector{UInt8})
    for ref in reinterpret(UInt64, refs)
       decrefcount(ref)
    end
+
+   # return finalized callbacks
+   ret = deepcopy(finalized_callbacks)
+   empty!(finalized_callbacks)
+   ret
 end
 
 
@@ -153,12 +186,11 @@ function serve_repl(sock)
 
    while isopen(sock)
       call = Call()
-      callbacks = Vector{Function}()
       try
          firstbyte = read_bin(communicator, 1)
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
-            call = read_call(communicator, callbacks)
+            call = read_call(communicator)
          else
             if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
                close(sock)
@@ -174,13 +206,18 @@ function serve_repl(sock)
       end
 
       result = evaluate!(call)
-      write_message(communicator, result, callbacks)
+      write_message(communicator, result)
    end
 end
 
 
-function callbackfun(callbackid::Int, communicator::CommunicatoR)
+function callbackfun(callbackid::String, communicator::CommunicatoR)
+
+   callbackfinalizer = CallbackFinalizer(callbackid)
+
    (args...; kwargs...) -> begin
+      stayalivewithme(callbackfinalizer)
+
       posargs = isempty(args) ? Vector{Any}() : collect(Any, args)
       callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
       write_callback_message(communicator, callbackid, callbackargs)
@@ -189,8 +226,7 @@ function callbackfun(callbackid::Int, communicator::CommunicatoR)
       while true
          firstbyte = read_bin(communicator, 1)[1]
          if firstbyte == RESULT_INDICATOR
-            callbacks = Vector{Function}()
-            answer = read_element(communicator, callbacks)
+            answer = read_element(communicator)
             fails = collectfails(answer)
             if isempty(fails)
                ret =  evaluate!(answer)
@@ -199,10 +235,9 @@ function callbackfun(callbackid::Int, communicator::CommunicatoR)
                return Fail("Parsing failed. Reason: " * string(fails))
             end
          elseif firstbyte == CALL_INDICATOR
-            callbacks = Vector{Function}()
-            call = read_call(communicator, callbacks)
+            call = read_call(communicator)
             result = evaluate!(call)
-            write_message(communicator, result, callbacks)
+            write_message(communicator, result)
          elseif firstbyte == FAIL_INDICATOR
             r_errormsg = read_string(communicator)
             throw(ErrorException("Error in R callback: "* r_errormsg))

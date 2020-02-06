@@ -53,7 +53,24 @@ emptyfun <- function(...) {}
 # for holding local package variables:
 # - the Julia connection object ("con")
 # - the port where Julia is listening ("port")
+# - the last callback id ("lastCallbackId")
+# - references to callback functions passed to Julia ("callbacks")
 pkgLocal <- new.env(parent = emptyenv())
+pkgLocal$callbacks <- new.env(parent = emptyenv())
+pkgLocal$lastCallbackId <- -1L
+
+
+registerCallback <- function(callback) {
+   while (TRUE) {
+      pkgLocal$lastCallbackId <- (pkgLocal$lastCallbackId + 1L) %% 2147483647L
+      callbackId <- as.character(pkgLocal$lastCallbackId)
+      if (is.null(pkgLocal$callbacks[[callbackId]])) {
+         break
+      }
+   }
+   assign(envir = pkgLocal$callbacks, callbackId, callback)
+   callbackId
+}
 
 
 .onLoad <- function(libname, pkgname) {
@@ -110,10 +127,10 @@ juliaCall <- function(name, ...) {
 doCallJulia <- function(name, jlargs) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
-   callbacks <- writeList(jlargs)
-   messageType <- handleCallbacksAndOutput(callbacks)
+   writeList(jlargs)
+   messageType <- handleCallbacksAndOutput()
    if (messageType == RESULT_INDICATOR) {
-      return(readElement(callbacks))
+      return(readElement())
    } else if (messageType == FAIL_INDICATOR) {
       stop(readString())
    } else {
@@ -126,8 +143,9 @@ doCallJulia <- function(name, jlargs) {
 releaseFinalizedRefs <- function() {
    if (!is.null(pkgLocal$finalizedRefs)) {
       try({
-         doCallJulia("RConnector.decrefcounts",
+         callbackrefs <- doCallJulia("RConnector.decrefcounts",
                      list(pkgLocal$finalizedRefs))
+         rm(envir = pkgLocal$callbacks, list = callbackrefs)
       })
 
       pkgLocal$finalizedRefs <- NULL
@@ -326,13 +344,12 @@ juliaLet <- function(expr, ...) {
 }
 
 
-handleCallbacksAndOutput <- function(callbacks) {
+handleCallbacksAndOutput <- function() {
    repeat {
       messageType <- readMessageType()
       if (messageType == CALL_INDICATOR) {
          call <- readCall()
-         callbackIdx <- strtoi(call$name, base = 10)
-         callbackfun <- callbacks[[callbackIdx]]
+         callbackfun <- get(call$name, pkgLocal$callbacks)
          tryCatch(answerCallback(callbackfun, call$args),
                  error = function(e) {
                     warning(e)
