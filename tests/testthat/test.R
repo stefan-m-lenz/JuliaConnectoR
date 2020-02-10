@@ -330,8 +330,8 @@ test_that("Multidimensional object arrays work", {
    testEcho(x)
    expect_equivalent(juliaCall("size", x), list(1,2,3))
 
-   x[[1,2,3]] <- juliaEval("MultiTestStruct(17.0)")
-   expect_equal(x[[1,2,3]]$f, 17)
+   x[1,2,3] <- juliaEval("MultiTestStruct(17.0)")
+   expect_equal(x[1,2,3]$f, 17)
 
    # TODO test with fetch
    #attr(x, "JLDIM") <- c(1L, 2L, 4L)
@@ -451,17 +451,17 @@ test_that("Echo: Module", {
 # Test Dictionary
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
-   expect_equal(d[[juliaExpr(":bla")]], 1)
-   expect_equal(d[[juliaExpr(":blup")]], 3)
-   d[[juliaExpr(":blup")]] <- 4
-   expect_equal(d[[juliaExpr(":blup")]], 4)
+   expect_equal(d[juliaExpr(":bla")], 1)
+   expect_equal(d[juliaExpr(":blup")], 3)
+   d[juliaExpr(":blup")] <- 4
+   expect_equal(d[juliaExpr(":blup")], 4)
    d2 <- juliaGet(d)
    expect_setequal(d2[["keys"]], juliaGet(juliaEval("[:bla, :blup]")))
    expect_setequal(d2[["values"]], list(1, 4))
 
    d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
-   expect_equal(d[["bla"]], 1)
-   expect_equal(d[["blup"]], 2)
+   expect_equal(d["bla"], 1)
+   expect_equal(d["blup"], 2)
    d2 <- juliaGet(d)
    expect_setequal(d2[["keys"]], list("bla", "blup"))
    expect_setequal(d2[["values"]], list(1, 2))
@@ -589,6 +589,30 @@ test_that("Errors are handled gracefully", {
    expect_error(juliaCall("thisisnotarealfunction", 100, 4))
    expect_error(juliaCall("RConnector.thisisnotarealfunction", "haha"))
    expect_error(juliaCall("NotARealModule.thisisnotarealfunction", list(1,2,3)))
+})
+
+
+test_that("Vectors of objects can be accessed by index via proxy", {
+   x <- juliaEval("[ [1;2;3], [4;5;6], [7;8;9] ]")
+   expect_equal(class(x), "JuliaReference")
+   expect_equal(x[1][2], 2)
+   expect_equal(x[2][2], 5)
+   x[1][1] <- 17L
+   expect_equal(x[1][1], 17)
+   expect_equal(x[2:3][1][1], 4)
+   x[2:3][1][1] <- 18L
+   expect_equal(x[2:3][1][1], 18)
+
+   expect_equal(x[1][x[2] == 5], 2) # logical indexing
+
+   # Multiple dimensions
+   y <- juliaEval("map( x-> [1;x;3], rand(2,2,2))")
+   expect_equivalent(y[c(1,2)][1], y[1])
+   expect_equivalent(y[c(1,3)][2], y[3])
+   y[c(1,3)] <- juliaEval("[[17.0], [18.0]]")
+   expect_equivalent(y[1], 17)
+   expect_equivalent(y[3], 18)
+   expect_equivalent(juliaGet(y)[c(4,5)], juliaGet(y[c(4,5)]))
 })
 
 
