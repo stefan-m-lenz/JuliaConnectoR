@@ -115,7 +115,7 @@ function read_element(communicator)
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(communicator)
-   elseif typeid == TYPE_ID_STRUCT_REFERENCE
+   elseif typeid == TYPE_ID_OBJECT_REFERENCE
       ref = parseheapref(read_bin(communicator, 8))
       return sharedheap[ref].obj
    elseif typeid == TYPE_ID_ANONYMOUS_FUNCTION

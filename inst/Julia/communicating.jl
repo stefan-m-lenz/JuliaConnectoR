@@ -59,19 +59,28 @@ mutable struct ImmutableObjectReferece
 end
 
 
-function shareobject!(obj)
-   if isimmutable(obj)
-      refobj = ImmutableObjectReferece(obj)
-   else
-      refobj = obj
-   end
-   ref = UInt64(pointer_from_objref(refobj))
+function share_mutable_object!(obj)
+   ref = UInt64(pointer_from_objref(obj))
    if haskey(sharedheap, ref)
       sharedheap[ref].refcount += 1
    else
-      sharedheap[ref] = SharedObject(refobj)
+      sharedheap[ref] = SharedObject(obj)
    end
    ref
+end
+
+
+function share_immutable_object!(obj)
+   share_mutable_object!(ImmutableObjectReferece(obj))
+end
+
+
+function shareobject!(obj)
+   if isimmutable(obj)
+      return share_immutable_object!(obj)
+   else
+      return share_mutable_object!(obj)
+   end
 end
 
 
@@ -141,14 +150,6 @@ end
 
 function read_bin(c::CommunicatoR, x)
    read(c.io, x)
-end
-
-
-function shareref!(communicator::CommunicatoR, obj)
-   ref = sharedheapref!(obj)
-   refexists = ref in communicator.objrefs
-   push!(communicator.objrefs, ref)
-   ref, refexists
 end
 
 

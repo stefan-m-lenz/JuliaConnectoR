@@ -140,7 +140,7 @@ readElement <- function() {
       expr <- readString()
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
-   } else if (typeId == TYPE_ID_STRUCT_REFERENCE) {
+   } else if (typeId == TYPE_ID_OBJECT_REFERENCE) {
       ref <- readStructReference()
       obj <- juliaHeapReference(ref)
       class(obj) <- "JuliaReference"

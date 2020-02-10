@@ -95,7 +95,7 @@ writeElement <- function(elem) {
          writeString(callbackId)
       }
    } else if (elemType == "environment" && class(elem) == "JuliaReference") {
-      writeBin(TYPE_ID_STRUCT_REFERENCE, pkgLocal$con)
+      writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
       writeStructReference(get("ref", elem)) # use get, because $ is overloaded
    } else {
       typeId <- TYPE_IDS[[elemType]]

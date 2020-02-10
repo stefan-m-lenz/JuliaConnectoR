@@ -340,8 +340,12 @@ end
 
 function write_mutable_struct_element(communicator, obj::T) where T
 
-   ref, refknown = shareref!(communicator, obj)
-   if refknown # recursion detected
+   ref = share_mutable_object!(obj)
+   refexists = ref in communicator.objrefs
+   push!(communicator.objrefs, ref)
+
+   if refexists # recursion detected
+      decrefcount(ref) # not shared, actually
       write_struct_element(communicator, CircularReference(ref),
             Dict{String, Any}())
       return
@@ -487,6 +491,6 @@ end
 
 function write_object_reference(communicator, obj)
    ref = shareobject!(obj)
-   write_bin(communicator, TYPE_ID_STRUCT_REFERENCE)
+   write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
    write_bin(communicator, ref)
 end
