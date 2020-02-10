@@ -1,5 +1,6 @@
 test_that("Some smoke tests", {
    expect_equal(juliaCall("prod", c(1,2,3)), 6)
+   juliaEval("")
    juliaCall("string", list())
    juliaCall("string", list(as.integer(1), "bla" = 23L))
    juliaEval("String[]")

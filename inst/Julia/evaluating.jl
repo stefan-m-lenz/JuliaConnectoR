@@ -124,6 +124,9 @@ end
 
 
 function mainevalcmd(str::String)
+   if isempty(str)
+      return nothing
+   end
    strippedstr = strip(str)
    ret = include_string(Main, str)
    if strippedstr[end] == ';'
