@@ -71,7 +71,11 @@ end
 
 
 function share_immutable_object!(obj)
-   share_mutable_object!(ImmutableObjectReferece(obj))
+   obj2 = ImmutableObjectReferece(obj)
+   ref = UInt64(pointer_from_objref(obj2))
+   # the object is newly created and cannot exists already
+   sharedheap[ref] = SharedObject(obj2)
+   ref
 end
 
 
