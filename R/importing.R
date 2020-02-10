@@ -143,6 +143,10 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 #' # execute exported function via module name
 #' TestModule1.test1()
 #'
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
+#'
 #' # Using a submodule
 #' testModule <- system.file("examples", "TestModule1.jl",
 #'                           package = "JuliaConnectoR")
@@ -210,6 +214,10 @@ juliaUsing <- function(modulePath, alias = NULL,
 #' # import in R
 #' juliaImport(".TestModule1")
 #' TestModule1.test1()
+#'
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 #'
 #' # Importing a submodule
 #' testModule <- system.file("examples", "TestModule1.jl",

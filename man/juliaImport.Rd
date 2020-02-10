@@ -52,6 +52,10 @@ juliaCall("include", testModule)
 juliaImport(".TestModule1")
 TestModule1.test1()
 
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
+
 # Importing a submodule
 testModule <- system.file("examples", "TestModule1.jl",
                           package = "JuliaConnectoR")

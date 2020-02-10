@@ -55,6 +55,10 @@ test1()
 # execute exported function via module name
 TestModule1.test1()
 
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
+
 # Using a submodule
 testModule <- system.file("examples", "TestModule1.jl",
                           package = "JuliaConnectoR")

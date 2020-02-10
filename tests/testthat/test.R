@@ -791,13 +791,9 @@ test_that("Test BigInt: a Julia object with external pointers", {
    # external pointers. Nevertheless, it should work and not cause a crash.
 
    i1 <- juliaGet(juliaCall("BigInt", 2147483647L))
-   print(paste("i1", attr(i1, "JLREF")$ref))
    i2 <- juliaGet(juliaCall("BigInt", 2147483647L))
-   print(paste("i2", attr(i2, "JLREF")$ref))
    p <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
-   print(paste("p", attr(p, "JLREF")$ref))
    p2 <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
-   print(paste("p2", attr(p2, "JLREF")$ref))
    juliaCall("GC.gc") # references in sharedheap must survive this
    jldiv <- juliaFun("div")
    expect_equal(juliaCall("Int", jldiv(jldiv(p,i1), i2)), 2147483647L)
@@ -828,24 +824,22 @@ test_that("Serialized mutable struct can be restored", {
                i::Int
              end")
    x <- juliaGet(juliaEval("TestSerializationStruct(1)"))
-   print(get("ref", attr(x, "JLREF")))
-   #tmpfile <- tempfile()
-   #save("x", file = tmpfile)
+   tmpfile <- tempfile()
+   save("x", file = tmpfile)
    x <- NULL
    juliaEval("RConnector.sharedheap")
    invisible(gc())
    juliaEval("1")
    juliaCall("GC.gc")
-   #load(tmpfile)
-   #TODO
-   # msg <- capture.output(type = "message", {
-   #    expect_equal(juliaEcho(x)$i, 1)
-   # })
-#   expect_match(msg, "external references", all = FALSE)
-   # x <- NULL
-   # juliaEval("1")
-   # juliaCall("GC.gc") # copy of the serialized copy is cleaned up
-   # file.remove(tmpfile)
+   load(tmpfile)
+   msg <- capture.output(type = "message", {
+      expect_equal(juliaEcho(x)$i, 1)
+   })
+   expect_match(msg, "external references", all = FALSE)
+   x <- NULL
+   juliaEval("1")
+   juliaCall("GC.gc") # copy of the serialized copy is cleaned up
+   file.remove(tmpfile)
 })
 
 
