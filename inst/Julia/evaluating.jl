@@ -220,7 +220,7 @@ function getidx(collection, key)
    getindex(collection, key)
 end
 
-# replace multiple elements
+# get multiple elements
 function getidx(collection, keys::Vector{Float64})
    map(k -> getindex(collection, Int(k)), keys)
 end

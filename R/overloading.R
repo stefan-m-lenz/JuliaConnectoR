@@ -12,8 +12,6 @@
 }
 
 
-
-
 `[.JuliaReference` <- function(jlref, ...) {
    do.call(juliaCall, c("RConnector.getidx", jlref, list(...)))
 }
@@ -31,14 +29,14 @@
    jlref
 }
 
-
 # TODO why does this not work instead?
 # `[<-.JuliaReference` <- function(jlref, ..., value) {
 #    do.call(juliaCall, c("RConnector.setidx!", jlref, value, list(...)))
 #    jlref
 # }
 
-# TODO handle differently for arrays
+
+# TODO handle differently for arrays: numbered indexing
 `[[.JuliaReference` <- function(jlref, name) {
    juliaCall("RConnector.getprop", jlref, name)
 }
@@ -48,16 +46,16 @@
    jlref
 }
 
-# TODO names
-
 
 length.JuliaReference <- function(x) {
    juliaCall("length", x)
 }
 
+
 dim.JuliaReference <- function(x) {
    unlist(juliaCall("size", x))
 }
+
 
 print.JuliaReference <- function(x, ...) {
    cat(paste0("<Julia object of type ", juliaCall("typeof", x), ">\n",
