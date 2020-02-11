@@ -156,8 +156,19 @@ function read_bin(c::CommunicatoR, x)
    read(c.io, x)
 end
 
+"""
+    serve(port_hint; keeprunnning = false, portfile = "")
+Starts the JuliaConnectoR server, which will accept connections.
 
-function serve(port_hint::Int; multiclient::Bool = false,
+It is attempted to start the server at the port given via `port_hint`.
+The actual port may be different. If the argument `portfile` is specified,
+the real port is written to the file with the given name
+as decimal number in form of a string.
+
+If the argument `keeprunning` is set to `true`, the server will keep running
+after a disconnect from the client. This is useful for debugging.
+"""
+function serve(port_hint::Int; keeprunning::Bool = false,
       portfile::String = "")
 
    realport, server = listenany(port_hint)
@@ -173,7 +184,7 @@ function serve(port_hint::Int; multiclient::Bool = false,
    # Prevents crash when run as script and interrupted
    ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
 
-   if multiclient
+   if keeprunning
       while true
          sock = accept(server)
          @async serve_repl(sock)

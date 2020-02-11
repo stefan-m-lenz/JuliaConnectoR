@@ -736,7 +736,7 @@ test_that("Parametric types are imported", {
 
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    # if JULIACONNECTOR_SERVER is used, the server must be started with
-   # "multiclient = true" to work.
+   # "keeprunning = true" to work.
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
