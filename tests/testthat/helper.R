@@ -21,11 +21,13 @@ jlRefsRemoved <- function(x) {
 }
 
 
-testEcho <- function(x) {
+testEcho <- function(x, comparableInJulia = TRUE) {
    if (is.list(x)) {
       expect_identical(jlRefsRemoved(x), jlRefsRemoved(juliaEcho(x)))
    } else if (is.environment(x) && class(x) == "JuliaReference") {
-      expect_true(juliaCall("==", x, juliaEcho(x)))
+      if (comparableInJulia) {
+         expect_true(juliaCall("==", x, juliaEcho(x)))
+      }
       testEcho(juliaGet(x))
    } else {
       expect_equivalent(x, juliaEcho(x))

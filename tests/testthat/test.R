@@ -333,15 +333,13 @@ test_that("Multidimensional object arrays work", {
    x[1,2,3] <- juliaEval("MultiTestStruct(17.0)")
    expect_equal(x[1,2,3]$f, 17)
 
-   # TODO test with fetch
-   #attr(x, "JLDIM") <- c(1L, 2L, 4L)
-   #expect_error(juliaEcho(x), regexp = "Incorrect dimensions")
+   y <- juliaGet(x)
+   attr(y, "JLDIM") <- c(1L, 2L, 4L)
+   expect_error(juliaEcho(y), regexp = "Incorrect dimensions")
 
-   # TODO test with fetch
    # Must also work with dimensions of zero
    testEcho(juliaEval("Matrix{MultiTestStruct}(undef, 0, 0)"))
 
-   # TODO test with fetch
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
    expect_equivalent(juliaCall("size", x), list(0,0,0))
@@ -349,29 +347,29 @@ test_that("Multidimensional object arrays work", {
 
 
 test_that("Arrays with undef entries are translated", {
-   skip("TODO test with fetch")
    juliaEval("mutable struct MutableTestStruct
                 f::Float64
              end")
 
    # all undefs
-   # TODO test with fetch
-   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"),
+            comparableInJulia = FALSE)
 
    # undefs and values
    juliaLet("x = Vector{MutableTestStruct}(undef, 3);
              x[1] = MutableTestStruct(x1);
              x[2] = MutableTestStruct(x2);
             x", x1 = 1.0, x2 = 2.0)
-   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"),
+            comparableInJulia = FALSE)
 
    # multidimensional arrays with undefs and values
    x <- juliaLet("x = Array{MutableTestStruct}(undef, 2, 3, 4);
              x[1,1,1] = MutableTestStruct(x1);
             x[2,2,2] = MutableTestStruct(x2);
             x", x1 = 1.0, x2 = 2.0)
-   testEcho(x)
-   expect_equal(x[[1]]$f, 1)
+   testEcho(x, comparableInJulia = FALSE)
+   expect_equal(x[1]$f, 1)# TODO change to [[]]
 })
 
 
@@ -920,7 +918,7 @@ test_that("Boltzmann machine can be trained and used", {
    dbm2 <- fitdbm(x, epochs = 1L,
                   pretraining = list(TrainLayer(nhidden = 4L),
                                      TrainLayer(nhidden = 3L)))
-   dbm2
+   dbm2 <- juliaGet(dbm2)
 
    # Use a trained model to generate samples
    gensamples <- samples(dbm, 10L)
