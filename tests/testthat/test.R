@@ -853,7 +853,7 @@ test_that("Serialized mutable struct can be restored", {
    tmpfile <- tempfile()
    save("x", file = tmpfile)
    x <- NULL
-   juliaEval("println(RConnector.sharedheap)")
+   #juliaEval("println(RConnector.sharedheap)")
    invisible(gc())
    juliaEval("1")
    juliaCall("GC.gc")

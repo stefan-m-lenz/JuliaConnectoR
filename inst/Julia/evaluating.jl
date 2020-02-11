@@ -109,9 +109,7 @@ end
 
 function evaluate!(objref::ObjectReference)
    try
-      @debug "eval"
       obj = sharedheap[objref.ref].obj
-      @debug "obj" obj
       if obj isa ImmutableObjectReference
          return obj.obj
       else

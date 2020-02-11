@@ -131,7 +131,7 @@ readObjectReference <- function() {
       return(obj)
    } else if (objectClassId == OBJECT_CLASS_ID_ANONYMOUS_FUNCTION) {
       fun <- juliaFun("RConnector.callanonymous", ref)
-      attr(fun, "JLREF") <- juliaHeapReference(ref)
+      attr(fun, "JLREF") <- obj
       return(fun)
    } else {
       stop(paste("Unknwon object class", objectClassId))

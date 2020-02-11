@@ -46,10 +46,10 @@
    jlref
 }
 
-
-length.JuliaReference <- function(x) {
-   juliaCall("length", x)
-}
+#TODO add back in?
+# length.JuliaReference <- function(x) {
+#    juliaCall("length", x)
+# }
 
 
 dim.JuliaReference <- function(x) {

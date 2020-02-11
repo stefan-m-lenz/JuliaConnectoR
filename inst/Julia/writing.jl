@@ -253,14 +253,9 @@ function write_element(communicator, f::Function)
          # An anonymous function will have a string representation like
          # "getfield(Main, Symbol(\"##5#6\"))()" in Julia 1.0.
          # In Julia 1.3 it is something like "#3".
-         @debug "sharing"
          ref = share_immutable_object!(f)
-         @debug "write"
-         @debug ref
          write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
-         @debug "writing" OBJECT_CLASS_ID_ANONYMOUS_FUNCTION
          write_bin(communicator, OBJECT_CLASS_ID_ANONYMOUS_FUNCTION)
-         @debug "writing" ref
          write_bin(communicator, ref)
          return
 
@@ -280,9 +275,7 @@ function write_element(communicator, f::Function)
       end
    end
 
-   @debug "writeing callback"
    write_bin(communicator, TYPE_ID_CALLBACK)
-   @debug "callbackid" callbackid
    write_string(communicator, callbackid)
 end
 

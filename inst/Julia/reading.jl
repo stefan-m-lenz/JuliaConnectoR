@@ -117,11 +117,8 @@ function read_element(communicator)
       return read_expression(communicator)
    elseif typeid == TYPE_ID_OBJECT_REFERENCE
       # not needed in Julia, ignore for now
-      @debug "reading"
       object_class = read_bin(communicator, 1)
-      @debug "object_class" object_class
       ref = parseheapref(read_bin(communicator, 8))
-      @debug "ref" ref
       return ObjectReference(ref)
    elseif  typeid == TYPE_ID_CALLBACK
       callbackid = read_string(communicator)
