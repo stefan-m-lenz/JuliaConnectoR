@@ -192,7 +192,7 @@ end
 
 function write_element(communicator, arr::AbstractArray)
 
-   if fetch_mode.x
+   if full_translation.x
       arrsize = size(arr)
       attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
 
@@ -213,7 +213,7 @@ end
 
 function write_element(communicator, dict::AbstractDict)
 
-   if fetch_mode.x
+   if full_translation.x
       # Assure that keys and values are always in a list,
       # to allow a straightforward reconstruction later on.
       # Strings and numbers would otherwise be converted to vectors in R.
@@ -233,7 +233,7 @@ function write_element(communicator, dict::AbstractDict)
 end
 
 function write_element(communicator, set::AbstractSet)
-   if fetch_mode.x
+   if full_translation.x
       ellist = ElementList(Vector{Any}(collect(set)),
             Vector{Symbol}(), Dict{Symbol, Any}(),
             Dict{String, Any}("JLTYPE" => string(typeof(set))))
@@ -361,7 +361,7 @@ end
 function write_element(communicator, obj::T) where T
 
    if isstructtype(T)
-      if fetch_mode.x
+      if full_translation.x
          if !isimmutable(obj)
             write_mutable_struct_element(communicator, obj)
          else

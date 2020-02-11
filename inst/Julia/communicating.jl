@@ -14,7 +14,7 @@ end
 
 # global variables
 const sharedheap = Dict{UInt64, SharedObject}()
-const fetch_mode = Ref(false) # TODO implement
+const full_translation = Ref(false)
 
 const finalized_callbacks = Vector{String}()
 const registered_callbacks = Dict{Function, String}()
@@ -44,8 +44,8 @@ function stayalivewithme(cb::CallbackFinalizer)
 end
 
 
-function fetchmode!(mode::Bool)
-   fetch_mode.x = mode
+function full_translation!(mode::Bool)
+   full_translation.x = mode
 end
 
 function sharedheapref!(obj)

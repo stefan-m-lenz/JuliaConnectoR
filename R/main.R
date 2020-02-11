@@ -283,10 +283,10 @@ juliaGet.default <- function(x) {
 }
 
 juliaGet.JuliaReference <- function(x) {
-   juliaCall("RConnector.fetchmode!", TRUE)
+   juliaCall("RConnector.full_translation!", TRUE)
    ret <- NULL
    tryCatch({ret <- juliaCall("identity", x)},
-       finally = {juliaCall("RConnector.fetchmode!", FALSE)})
+       finally = {juliaCall("RConnector.full_translation!", FALSE)})
    ret
 }
 
