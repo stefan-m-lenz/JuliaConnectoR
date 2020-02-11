@@ -107,8 +107,19 @@ function evaluate!(list::ElementList)
 end
 
 
-function evaluate!(objref::ImmutableObjectReferece)
-   objref.obj
+function evaluate!(objref::ObjectReference)
+   try
+      @debug "eval"
+      obj = sharedheap[objref.ref].obj
+      @debug "obj" obj
+      if obj isa ImmutableObjectReference
+         return obj.obj
+      else
+         return obj
+      end
+   catch ex
+      return Fail("Object reference could not be resolved. Original error: $ex")
+   end
 end
 
 

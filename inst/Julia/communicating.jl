@@ -7,8 +7,9 @@ function SharedObject(obj)
    SharedObject(obj, UInt32(1))
 end
 
-mutable struct AnonymousFunctionReference
-   f::Function
+
+struct ObjectReference
+   ref::UInt64
 end
 
 # global variables
@@ -54,7 +55,7 @@ function sharedheapref!(obj)
 end
 
 
-mutable struct ImmutableObjectReferece
+mutable struct ImmutableObjectReference
    obj::Any
 end
 
@@ -71,7 +72,7 @@ end
 
 
 function share_immutable_object!(obj)
-   obj2 = ImmutableObjectReferece(obj)
+   obj2 = ImmutableObjectReference(obj)
    ref = UInt64(pointer_from_objref(obj2))
    # the object is newly created and cannot exists already
    sharedheap[ref] = SharedObject(obj2)
@@ -231,7 +232,7 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
 
    callbackfinalizer = CallbackFinalizer(callbackid)
 
-   (args...; kwargs...) -> begin
+   ret = (args...; kwargs...) -> begin
       stayalivewithme(callbackfinalizer)
 
       posargs = isempty(args) ? Vector{Any}() : collect(Any, args)
@@ -262,13 +263,16 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
          end
       end
    end
+
+   registered_callbacks[ret] = callbackid
+   ret
 end
 
 
 function callanonymous(functionref::Vector{UInt8}, args...; kwargs...)
-   anofunref::AnonymousFunctionReference =
-         sharedheap[parseheapref(functionref)].obj
-   ret = anofunref.f(args...; kwargs...)
+   objref::ImmutableObjectReference = sharedheap[parseheapref(functionref)].obj
+   f::Function = objref.obj
+   ret = f(args...; kwargs...)
    ret
 end
 
@@ -322,7 +326,7 @@ function capture_outputstreams(communicator::CommunicatoR)
    # For debugging, comment the following line out, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".
-   global_logger(SimpleLogger(wr))
+   #global_logger(SimpleLogger(wr))
 
    redirect_outputstream(communicator, rd, STDERR_INDICATOR)
 end

@@ -13,13 +13,6 @@ writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
-writeStructReference <- function(ref) {
-   writeBin(ref, pkgLocal$con)
-}
-
-writeAnonymousFunctionReference <- function(ref) {
-   writeBin(ref, pkgLocal$con)
-}
 
 writeNofAttributes <- function(n) {
    writeBin(as.raw(n), pkgLocal$con)
@@ -71,6 +64,12 @@ writeListAttributes <- function(theAttributes) {
    writeAttributes(theAttributes)
 }
 
+writeObjectReference <- function(objectClassId, ref) {
+   writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
+   writeBin(objectClassId, pkgLocal$con)
+   writeBin(ref, pkgLocal$con)
+}
+
 
 writeElement <- function(elem) {
 
@@ -86,17 +85,16 @@ writeElement <- function(elem) {
       } else if (!is.null(attr(elem, "JLFUN"))) {
          writeExpression(attr(elem, "JLFUN"))
       } else if (!is.null(attr(elem, "JLREF"))) {
-         # it's an anonymous function
-         writeBin(TYPE_ID_ANONYMOUS_FUNCTION, pkgLocal$con)
-         writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
+         writeObjectReference(OBJECT_CLASS_ID_ANONYMOUS_FUNCTION,
+                              attr(elem, "JLREF")$ref)
       } else {
          writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
          callbackId <- registerCallback(elem)
          writeString(callbackId)
       }
    } else if (elemType == "environment" && class(elem) == "JuliaReference") {
-      writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
-      writeStructReference(get("ref", elem)) # use get, because $ is overloaded
+      writeObjectReference(as.raw(0x00), # Julia doesn't care about the class)
+                           get("ref", elem))
    } else {
       typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {

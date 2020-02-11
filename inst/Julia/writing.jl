@@ -207,7 +207,7 @@ function write_element(communicator, arr::AbstractArray)
             Dict{Symbol, Any}(), attributes)
       write_element(communicator, ellist)
    else
-      write_object_reference(communicator, arr)
+      write_object_reference(communicator, arr, OBJECT_CLASS_ID_ARRAY)
    end
 end
 
@@ -228,7 +228,7 @@ function write_element(communicator, dict::AbstractDict)
             Dict{String, Any}("JLTYPE" => string(typeof(dict))))
       write_element(communicator, ellist)
    else
-      write_object_reference(communicator, dict)
+      write_object_reference(communicator, dict, OBJECT_CLASS_ID_STRUCT)
    end
 end
 
@@ -239,7 +239,7 @@ function write_element(communicator, set::AbstractSet)
             Dict{String, Any}("JLTYPE" => string(typeof(set))))
       write_element(communicator, ellist)
    else
-      write_object_reference(communicator, set)
+      write_object_reference(communicator, set, OBJECT_CLASS_ID_STRUCT)
    end
 end
 
@@ -253,8 +253,14 @@ function write_element(communicator, f::Function)
          # An anonymous function will have a string representation like
          # "getfield(Main, Symbol(\"##5#6\"))()" in Julia 1.0.
          # In Julia 1.3 it is something like "#3".
-         ref = sharedheapref!(AnonymousFunctionReference(f))
-         write_bin(communicator, TYPE_ID_ANONYMOUS_FUNCTION)
+         @debug "sharing"
+         ref = share_immutable_object!(f)
+         @debug "write"
+         @debug ref
+         write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
+         @debug "writing" OBJECT_CLASS_ID_ANONYMOUS_FUNCTION
+         write_bin(communicator, OBJECT_CLASS_ID_ANONYMOUS_FUNCTION)
+         @debug "writing" ref
          write_bin(communicator, ref)
          return
 
@@ -274,8 +280,10 @@ function write_element(communicator, f::Function)
       end
    end
 
+   @debug "writeing callback"
    write_bin(communicator, TYPE_ID_CALLBACK)
-   write_int32(communicator, callbackid)
+   @debug "callbackid" callbackid
+   write_string(communicator, callbackid)
 end
 
 function write_element(communicator, t::Tuple)
@@ -367,7 +375,7 @@ function write_element(communicator, obj::T) where T
             write_struct_element(communicator, obj)
          end
       else
-         write_object_reference(communicator, obj)
+         write_object_reference(communicator, obj, OBJECT_CLASS_ID_STRUCT)
       end
    else
       write_struct_element(communicator,
@@ -489,8 +497,9 @@ function write_list(communicator, ellist::ElementList)
 end
 
 
-function write_object_reference(communicator, obj)
+function write_object_reference(communicator, obj, object_class_id::UInt8)
    ref = shareobject!(obj)
    write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
+   write_bin(communicator, object_class_id)
    write_bin(communicator, ref)
 end

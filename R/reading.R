@@ -119,13 +119,23 @@ readNofAttributes <- function() {
 }
 
 
-readAnonymousFunctionReference <- function() {
-   readBin(pkgLocal$con, "raw", 8) # 64 bit
-}
-
-
-readStructReference <- function() {
-   readBin(pkgLocal$con, "raw", 8) # 64 bit
+readObjectReference <- function() {
+   objectClassId <- readBin(pkgLocal$con, "raw", 1)
+   ref <- readBin(pkgLocal$con, "raw", 8) # 64 bit reference
+   obj <- juliaHeapReference(ref)
+   if (objectClassId == OBJECT_CLASS_ID_STRUCT) {
+      class(obj) <- "JuliaReference" # TODO
+      return(obj)
+   } else if (objectClassId == OBJECT_CLASS_ID_ARRAY) {
+      class(obj) <- "JuliaReference" # TODO
+      return(obj)
+   } else if (objectClassId == OBJECT_CLASS_ID_ANONYMOUS_FUNCTION) {
+      fun <- juliaFun("RConnector.callanonymous", ref)
+      attr(fun, "JLREF") <- juliaHeapReference(ref)
+      return(fun)
+   } else {
+      stop(paste("Unknwon object class", objectClassId))
+   }
 }
 
 
@@ -141,18 +151,10 @@ readElement <- function() {
       attr(expr, "JLEXPR") <- TRUE
       return(expr)
    } else if (typeId == TYPE_ID_OBJECT_REFERENCE) {
-      ref <- readStructReference()
-      obj <- juliaHeapReference(ref)
-      class(obj) <- "JuliaReference"
-      return(obj)
+      return(readObjectReference())
    } else if (typeId == TYPE_ID_NAMED_FUNCTION) {
       funname <- readString()
       return(juliaFun(funname))
-   } else if (typeId == TYPE_ID_ANONYMOUS_FUNCTION) {
-      ref <- readAnonymousFunctionReference()
-      fun <- juliaFun("RConnector.callanonymous", ref)
-      attr(fun, "JLREF") <- juliaHeapReference(ref)
-      return(fun)
    } else if (typeId == TYPE_ID_CALLBACK) {
       callbackId <- readString()
       return(get(callbackId, pkgLocal$callbacks))

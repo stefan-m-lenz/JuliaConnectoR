@@ -616,6 +616,10 @@ test_that("Vectors of objects can be accessed by index via proxy", {
 
 test_that("Callback functions", {
 
+   x <- juliaEcho(function() {})
+   expect_equal(typeof(x), "closure")
+   expect_equal(x, function() {})
+
    outputenv <- new.env(parent = emptyenv())
    outputenv$output <- c()
    doOutput <- function(x) {
@@ -849,7 +853,7 @@ test_that("Serialized mutable struct can be restored", {
    tmpfile <- tempfile()
    save("x", file = tmpfile)
    x <- NULL
-   juliaEval("RConnector.sharedheap")
+   juliaEval("println(RConnector.sharedheap)")
    invisible(gc())
    juliaEval("1")
    juliaCall("GC.gc")

@@ -116,11 +116,13 @@ function read_element(communicator)
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(communicator)
    elseif typeid == TYPE_ID_OBJECT_REFERENCE
+      # not needed in Julia, ignore for now
+      @debug "reading"
+      object_class = read_bin(communicator, 1)
+      @debug "object_class" object_class
       ref = parseheapref(read_bin(communicator, 8))
-      return sharedheap[ref].obj
-   elseif typeid == TYPE_ID_ANONYMOUS_FUNCTION
-      ref = parseheapref(read_bin(communicator, 8))
-      return ((sharedheap[ref].obj)::AnonymousFunctionReference).f
+      @debug "ref" ref
+      return ObjectReference(ref)
    elseif  typeid == TYPE_ID_CALLBACK
       callbackid = read_string(communicator)
       callback = callbackfun(callbackid, communicator)
