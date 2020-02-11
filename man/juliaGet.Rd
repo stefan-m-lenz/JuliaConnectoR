@@ -10,7 +10,7 @@ juliaGet(x)
 \item{x}{a reference to a Julia object}
 }
 \description{
-R objects of class \code{JuliaReference} are references to Julia objects in the Julia session.
+R objects of class \code{JuliaObject} are references to Julia objects in the Julia session.
 These R objects are also called "proxy objects".
 With this function it is possible to translate these objects into R objects.
 }

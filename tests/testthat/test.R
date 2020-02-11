@@ -254,7 +254,7 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 
 test_that("Echo: List with NULL elements", {
-   x <- list(1, NULL, 3)
+   x <- juliaGet(juliaEcho(list(1, NULL, 3)))
    expect_equal(x[[1]], 1)
    expect_null(x[[2]])
    expect_equal(x[[3]], 3)
@@ -300,7 +300,7 @@ test_that("Immutable struct usable by reference and translated", {
                 x::Int
              end')
    jlRef <- juliaEval("TestImmutableStruct(1)")
-   expect_s3_class(jlRef, "JuliaReference")
+   expect_s3_class(jlRef, "JuliaStruct")
    refEcho <- juliaEcho(jlRef)
    expect_true(juliaCall("==", jlRef, refEcho))
    expect_equal(refEcho$x, 1)
@@ -369,7 +369,7 @@ test_that("Arrays with undef entries are translated", {
             x[2,2,2] = MutableTestStruct(x2);
             x", x1 = 1.0, x2 = 2.0)
    testEcho(x, comparableInJulia = FALSE)
-   expect_equal(x[1]$f, 1)# TODO change to [[]]
+   expect_equal(x[[1]]$f, 1)
 })
 
 
@@ -592,16 +592,29 @@ test_that("Errors are handled gracefully", {
 
 test_that("Vectors of objects can be accessed by index via proxy", {
    x <- juliaEval("[ [1;2;3], [4;5;6], [7;8;9] ]")
-   expect_equal(class(x), "JuliaReference")
-   expect_equal(x[1][2], 2)
-   expect_equal(x[2][2], 5)
-   x[1][1] <- 17L
-   expect_equal(x[1][1], 17)
+   expect_s3_class(x, "JuliaArray")
+   expect_equal(x[[1]][2], 2)
+   expect_equal(x[[2]][2], 5)
+   x[[1]][1] <- 17L
+   expect_equal(x[[1]][1], 17)
    expect_equal(x[2:3][1][1], 4)
    x[2:3][1][1] <- 18L
    expect_equal(x[2:3][1][1], 18)
 
    expect_equal(x[1][x[2] == 5], 2) # logical indexing
+
+   y <- juliaGet(x)
+   #everything should work for y in the same way as x
+   # TODO
+   # expect_equal(x[[1]][2], y[[1]][2])
+   # expect_equal(x[[2]][2], y[[2]][2])
+   # x[[1]][1] <- 17L
+   # y[[1]][1] <- 17L
+   # expect_equal(x[1][1], 17)
+   # expect_equal(x[2:3][1][1], 4)
+   # x[2:3][1][1] <- 18L
+   # expect_equal(x[2:3][1][1], y[2:3][1][1])
+   # expect_equal(x[1][x[2] == 5], y[1][y[2] == 5])
 
    # Multiple dimensions
    y <- juliaEval("map( x-> [1;x;3], rand(2,2,2))")

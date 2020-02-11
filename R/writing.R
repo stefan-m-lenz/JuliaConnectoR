@@ -92,7 +92,7 @@ writeElement <- function(elem) {
          callbackId <- registerCallback(elem)
          writeString(callbackId)
       }
-   } else if (elemType == "environment" && class(elem) == "JuliaReference") {
+   } else if (elemType == "environment" && inherits(elem, "JuliaObject")) {
       writeObjectReference(as.raw(0x00), # Julia doesn't care about the class)
                            get("ref", elem))
    } else {

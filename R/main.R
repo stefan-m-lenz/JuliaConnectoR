@@ -261,7 +261,7 @@ juliaExpr <- function(expr) {
 
 #' Translate a Julia proxy object to an R object
 #'
-#' R objects of class \code{JuliaReference} are references to Julia objects in the Julia session.
+#' R objects of class \code{JuliaObject} are references to Julia objects in the Julia session.
 #' These R objects are also called "proxy objects".
 #' With this function it is possible to translate these objects into R objects.
 #'
@@ -282,7 +282,7 @@ juliaGet.default <- function(x) {
    x
 }
 
-juliaGet.JuliaReference <- function(x) {
+juliaGet.JuliaObject <- function(x) {
    juliaCall("RConnector.full_translation!", TRUE)
    ret <- NULL
    tryCatch({ret <- juliaCall("identity", x)},

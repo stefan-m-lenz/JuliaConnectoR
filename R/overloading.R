@@ -1,22 +1,38 @@
+#' Access or mutate Julia objects
+#'
+#' @description
+#' Extract or replace parts of Julia proxy objects
+#'
+#' @name AccessOrMutate.JuliaObject
+#' @examples
+#' #TODO
+#' juliaEval("bla")
+NULL
+
+
 # TODO docu operators
 # index: conversion to int
 # doku item indexing. ?`$.data.frame` -> Extract.data.frame
 
-`$.JuliaReference` <- function(jlref, name) {
+#' @rdname AccessOrMutate.JuliaObject
+`$.JuliaStruct` <- function(jlref, name) {
    juliaCall("RConnector.getprop", jlref, name)
 }
 
-`$<-.JuliaReference` <- function(jlref, name, value) {
+#' @rdname AccessOrMutate.JuliaObject
+`$<-.JuliaStruct` <- function(jlref, name, value) {
    juliaCall("RConnector.setprop!", jlref, name, value)
    jlref
 }
 
 
-`[.JuliaReference` <- function(jlref, ...) {
+#' @rdname AccessOrMutate.JuliaObject
+`[.JuliaObject` <- function(jlref, ...) {
    do.call(juliaCall, c("RConnector.getidx", jlref, list(...)))
 }
 
-`[<-.JuliaReference` <- function(jlref, i, j, k, value) {
+#' @rdname AccessOrMutate.JuliaObject
+`[<-.JuliaObject` <- function(jlref, i, j, k, value) {
    if (missing(k)) {
       if (missing(j)) {
          juliaCall("RConnector.setidx!", jlref, value, i)
@@ -29,35 +45,39 @@
    jlref
 }
 
-# TODO why does this not work instead?
-# `[<-.JuliaReference` <- function(jlref, ..., value) {
-#    do.call(juliaCall, c("RConnector.setidx!", jlref, value, list(...)))
-#    jlref
-# }
+# TODO [] auf arrays: so wie liste?
+
+#' @rdname AccessOrMutate.JuliaObject
+`[[.JuliaArray` <- `[.JuliaObject`
+
+#' @rdname AccessOrMutate.JuliaObject
+`[[<-.JuliaArray` <- `[<-.JuliaObject`
 
 
-# TODO handle differently for arrays: numbered indexing
-`[[.JuliaReference` <- function(jlref, name) {
+#' @rdname AccessOrMutate.JuliaObject
+`[[.JuliaStruct` <- function(jlref, name) {
    juliaCall("RConnector.getprop", jlref, name)
 }
 
-`[[<-.JuliaReference` <- function(jlref, name, value) {
+#' @rdname AccessOrMutate.JuliaObject
+`[[<-.JuliaStruct` <- function(jlref, name, value) {
    juliaCall("RConnector.setprop!", jlref, name, value)
    jlref
 }
 
 
-length.JuliaReference <- function(x) {
+length.JuliaArray <- function(x) {
    juliaCall("length", x)
 }
 
 
-dim.JuliaReference <- function(x) {
+dim.JuliaArray <- function(x) {
    unlist(juliaCall("size", x))
 }
 
 
-print.JuliaReference <- function(x, ...) {
+print.JuliaObject <- function(x, ...) {
    cat(paste0("<Julia object of type ", juliaCall("typeof", x), ">\n",
               juliaCall("repr", x)))
 }
+
