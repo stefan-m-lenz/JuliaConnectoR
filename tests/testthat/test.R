@@ -813,7 +813,7 @@ test_that("Circular references do not lead to a crash", {
                   end'
    try({juliaEval(definition)}, silent = TRUE) # (ignore redefinition error)
 
-   r <- juliaEval(juliaGet("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1"))
+   r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
    expect_match(capture.output({print(juliaEcho(r))}), regex = "circular reference", all = FALSE)
    expect_error(juliaEcho(juliaGet(r)), regex = "Circular reference")
 

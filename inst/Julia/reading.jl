@@ -3,8 +3,10 @@ struct Fail
 end
 
 function Fail(msg, origex)
-   Fail(msg * ". Original error: " * sprint(showerror, origex))
+   Fail(msg * "\nOriginal error:\n" * sprint(showerror, origex) *
+         "\n\n" * string(origex))
 end
+
 
 struct ElementList
    positionalelements::Vector{Any}
