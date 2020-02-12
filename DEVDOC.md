@@ -26,6 +26,7 @@
     object_class_id = '0x5c' (* class JuliaStruct *)
                     | '0xaf' (* anonymous function reference *)
                     | '0xaa' (* class JuliaArray *)
+                    | '0x00' (* no information *)
     object_reference = 8 * byte
     anonymous_function_reference = 8 * byte
     callback = string
