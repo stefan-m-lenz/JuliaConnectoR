@@ -28,11 +28,33 @@ NULL
 
 #' @rdname AccessOrMutate.JuliaObject
 `[.JuliaObject` <- function(jlref, ...) {
-   do.call(juliaCall, c("RConnector.getidx", jlref, list(...)))
+   do.call(juliaCall, c("RConnector.getidxs", jlref, list(...)))
 }
 
 #' @rdname AccessOrMutate.JuliaObject
 `[<-.JuliaObject` <- function(jlref, i, j, k, value) {
+   if (missing(k)) {
+      if (missing(j)) {
+         juliaCall("RConnector.setidxs!", jlref, value, i)
+      } else {
+         juliaCall("RConnector.setidxs!", jlref, value, i, j)
+      }
+   } else {
+      juliaCall("RConnector.setidxs!", jlref, value, i, j, k)
+   }
+   jlref
+   jlref
+}
+
+# TODO [] auf arrays: so wie liste?
+
+#' @rdname AccessOrMutate.JuliaObject
+`[[.JuliaArray` <- function(jlref, ...) {
+   do.call(juliaCall, c("RConnector.getidx", jlref, list(...)))
+}
+
+#' @rdname AccessOrMutate.JuliaObject
+`[[<-.JuliaArray` <- function(jlref, i, j, k, value) {
    if (missing(k)) {
       if (missing(j)) {
          juliaCall("RConnector.setidx!", jlref, value, i)
@@ -44,14 +66,6 @@ NULL
    }
    jlref
 }
-
-# TODO [] auf arrays: so wie liste?
-
-#' @rdname AccessOrMutate.JuliaObject
-`[[.JuliaArray` <- `[.JuliaObject`
-
-#' @rdname AccessOrMutate.JuliaObject
-`[[<-.JuliaArray` <- `[<-.JuliaObject`
 
 
 #' @rdname AccessOrMutate.JuliaObject

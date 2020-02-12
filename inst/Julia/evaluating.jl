@@ -52,7 +52,7 @@ function evaluate!(call::Call)
       result = Base.invokelatest(call.fun,
             call.args.positionalelements...; call.args.namedelements...)
    catch ex
-      result = Fail("Evaluation failed. Original error: $ex")
+      result = Fail("Evaluation failed", ex)
    end
    result
 end
@@ -97,7 +97,7 @@ function evaluate!(list::ElementList)
             end
          end
       catch ex
-         return Fail("Construction of type $jltype failed. Original error: $ex")
+         return Fail("Construction of type $jltype failed", ex)
       end
    elseif isempty(list.namedelements)
       return converttomostspecifictype(list.positionalelements)
@@ -116,7 +116,7 @@ function evaluate!(objref::ObjectReference)
          return obj
       end
    catch ex
-      return Fail("Object reference could not be resolved. Original error: $ex")
+      return Fail("Object reference could not be resolved", ex)
    end
 end
 

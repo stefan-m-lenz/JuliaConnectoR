@@ -324,17 +324,27 @@ test_that("Multidimensional object arrays work", {
                 f::Float64
               end")
 
-   content <- juliaEval("rand(1,2,3)")
+   content <- juliaEval("rand(4,5,6)")
    testEcho(content)
    x <- juliaLet("map(MultiTestStruct, c)", c = content)
    testEcho(x)
-   expect_equivalent(juliaCall("size", x), list(1,2,3))
+   expect_equivalent(juliaCall("size", x), list(4,5,6))
 
-   x[1,2,3] <- juliaEval("MultiTestStruct(17.0)")
-   expect_equal(x[1,2,3]$f, 17)
+   expect_equivalent(juliaGet(x[1,1,1]), list(juliaGet(x[[1,1,1]])))
+
+   x[[1,2,3]] <- juliaEval("MultiTestStruct(17.0)")
+   expect_equal(x[[1,2,3]]$f, 17)
+
+   x[1,2,2] <- juliaEval("MultiTestStruct(19.0)")
+   expect_equal(x[[1,2,2]]$f, 19)
+
+   expect_equal(dim(x[3:4, 4:5, 1]), c(2,2,1))
+   expect_equal(dim(x[3:4, as.integer(4:5), 1L]), c(2,2,1))
+
+   x[3:4, as.integer(4:5), 1L] <- juliaEval("MultiTestStruct(20.0)")
 
    y <- juliaGet(x)
-   attr(y, "JLDIM") <- c(1L, 2L, 4L)
+   attr(y, "JLDIM") <- c(4L, 5L, 6L)
    expect_error(juliaEcho(y), regexp = "Incorrect dimensions")
 
    # Must also work with dimensions of zero
