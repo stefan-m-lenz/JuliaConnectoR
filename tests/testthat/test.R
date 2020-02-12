@@ -338,13 +338,18 @@ test_that("Multidimensional object arrays work", {
    x[1,2,2] <- juliaEval("MultiTestStruct(19.0)")
    expect_equal(x[[1,2,2]]$f, 19)
 
+   x[1,2,2] <- list(juliaEval("MultiTestStruct(19.0)"))
+   expect_equal(x[[1,2,2]]$f, 19)
+
    expect_equal(dim(x[3:4, 4:5, 1]), c(2,2,1))
    expect_equal(dim(x[3:4, as.integer(4:5), 1L]), c(2,2,1))
 
    x[3:4, as.integer(4:5), 1L] <- juliaEval("MultiTestStruct(20.0)")
+   expect_equal(juliaGet(x[[3, 4, 1]])$f, 20)
+   expect_equal(juliaGet(x[[4, 5, 1]])$f, 20)
 
    y <- juliaGet(x)
-   attr(y, "JLDIM") <- c(4L, 5L, 6L)
+   attr(y, "JLDIM") <- c(1L, 2L, 3L)
    expect_error(juliaEcho(y), regexp = "Incorrect dimensions")
 
    # Must also work with dimensions of zero
@@ -459,17 +464,25 @@ test_that("Echo: Module", {
 # Test Dictionary
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
-   expect_equal(d[juliaExpr(":bla")], 1)
-   expect_equal(d[juliaExpr(":blup")], 3)
+   expect_equivalent(d[juliaExpr(":bla")][[1]], 1)
+   expect_equivalent(d[juliaExpr(":bla"), juliaExpr(":bla")], c(1, 1))
+   expect_equal(d[[juliaExpr(":bla")]], 1)
+   expect_equivalent(d[juliaExpr(":blup")],list(3))
    d[juliaExpr(":blup")] <- 4
-   expect_equal(d[juliaExpr(":blup")], 4)
+   expect_equal(d[[juliaExpr(":blup")]], 4)
+   d[[juliaExpr(":blup")]] <- 5
+   expect_equal(d[[juliaExpr(":blup")]], 5)
    d2 <- juliaGet(d)
    expect_setequal(d2[["keys"]], juliaGet(juliaEval("[:bla, :blup]")))
-   expect_setequal(d2[["values"]], list(1, 4))
+   expect_setequal(d2[["values"]], list(1, 5))
+
+   d[juliaExpr(":hi"), juliaExpr(":hello")] <- c(15, 14)
+   expect_equivalent(d[juliaExpr(":bla"), juliaExpr(":hi")], c(1, 15))
+   expect_length(d[juliaExpr(":bla"), juliaExpr(":hi"), juliaExpr(":hello"), juliaExpr(":hello")], 4)
 
    d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
-   expect_equal(d["bla"], 1)
-   expect_equal(d["blup"], 2)
+   expect_equal(d[["bla"]], 1)
+   expect_equivalent(d["blup"], list(2))
    d2 <- juliaGet(d)
    expect_setequal(d2[["keys"]], list("bla", "blup"))
    expect_setequal(d2[["values"]], list(1, 2))
@@ -607,32 +620,34 @@ test_that("Vectors of objects can be accessed by index via proxy", {
    expect_equal(x[[2]][2], 5)
    x[[1]][1] <- 17L
    expect_equal(x[[1]][1], 17)
-   expect_equal(x[2:3][1][1], 4)
-   x[2:3][1][1] <- 18L
-   expect_equal(x[2:3][1][1], 18)
+   expect_equal(x[2:3][[1]][[1]], 4)
+   x[2:3][[1]][[1]] <- 18L
+   expect_equal(x[2:3][[1]][[1]], 18)
 
-   expect_equal(x[1][x[2] == 5], 2) # logical indexing
+   expect_equal(x[[1]][x[[2]] == 5], 2) # logical indexing
 
+   # juliaGet version must behave in the same way as the proxy version
    y <- juliaGet(x)
-   #everything should work for y in the same way as x
-   # TODO
-   # expect_equal(x[[1]][2], y[[1]][2])
-   # expect_equal(x[[2]][2], y[[2]][2])
-   # x[[1]][1] <- 17L
-   # y[[1]][1] <- 17L
-   # expect_equal(x[1][1], 17)
-   # expect_equal(x[2:3][1][1], 4)
-   # x[2:3][1][1] <- 18L
-   # expect_equal(x[2:3][1][1], y[2:3][1][1])
-   # expect_equal(x[1][x[2] == 5], y[1][y[2] == 5])
+   expect_equal(x[[2]], y[[2]])
+   expect_equal(x[[1]][2], y[[1]][2])
+   expect_equal(x[[2]][2], y[[2]][2])
+   x[[1]][1] <- 17L
+   y[[1]][1] <- 17L
+   expect_equal(x[[1]][1], 17)
+   expect_equal(y[[1]][1], 17)
+   x[2:3][[1]][[1]] <- 18L
+   y <- juliaGet(x)
+   expect_equal(y[2:3][[1]][[1]], 18)
+   expect_equal(x[2:3][[1]][1], y[2:3][[1]][1])
+   expect_equal(x[[2]], y[[2]])
 
    # Multiple dimensions
    y <- juliaEval("map( x-> [1;x;3], rand(2,2,2))")
-   expect_equivalent(y[c(1,2)][1], y[1])
-   expect_equivalent(y[c(1,3)][2], y[3])
+   expect_equivalent(y[c(1,2)][[1]], y[[1]])
+   expect_equivalent(y[c(1,3)][[2]], y[[3]])
    y[c(1,3)] <- juliaEval("[[17.0], [18.0]]")
-   expect_equivalent(y[1], 17)
-   expect_equivalent(y[3], 18)
+   expect_equivalent(juliaGet(y[1]), list(17))
+   expect_equivalent(juliaGet(y[3]), list(18))
    expect_equivalent(juliaGet(y)[c(4,5)], juliaGet(y[c(4,5)]))
 })
 

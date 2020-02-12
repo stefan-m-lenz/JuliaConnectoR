@@ -3,7 +3,11 @@ function getprop(value, name::String)
 end
 
 # "d$key" will result in a lookup instead of a access of fields
-function getprop(d::AbstractDict{K, V}, key::K, x) where {K, V} # TODO test
+function getprop(d::AbstractDict{K, V}, key::K) where {K, V}
+   d[key]
+end
+
+function getprop(d::AbstractDict{String, V}, key::String) where V
    d[key]
 end
 
@@ -93,8 +97,8 @@ function getidxs(d::AbstractDict{K, V}, key::K) where {K, V}
 end
 
 # indexing dictionary with e.g. d[c("hi", "you")]
-function getidxs(d::AbstractDict{K, V}, keys::AbstractVector{<:K}) where {K, V}
-   map(key -> d[key], keys)
+function getidxs(d::AbstractDict{K, V}, keys::Vararg{K}) where {K, V}
+   map(k -> d[k], keys)
 end
 
 
@@ -115,11 +119,6 @@ function setidx!(collection, value, key::Vararg{<:Number})
    return nothing
 end
 
-function setidx!(d::AbstractDict{K, V}, value, key::K) where {K, V}
-   d[key] = value
-   return nothing
-end
-
 
 function check_lengths_for_assignment(keys, values)
    if length(values) != length(keys)
@@ -133,8 +132,11 @@ end
 Set multiple elements in a collection.
 Called by `collection[key] <- value` in R.
 """
-function setidxs!(collection, values, keys::Vector{Float64})
-   map(i -> setindex!(collection, values[i], Int(keys[i])), eachindex(keys))
+function setidxs!(collection, value,
+      keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int}})
+
+   dimidxs = map(dimensionidxs, keys)
+   collection[dimidxs...] .= value
    return nothing
 end
 
@@ -145,26 +147,32 @@ function setidxs!(collection, value, key::Vararg{<:Float64})
    return nothing
 end
 
-# replace multiple elements in a multidimensional array
-function setidxs!(collection, value,
-      keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int}})
+# replace multiple elements in a multidimensional array with multiple values
+function setidxs!(collection::AbstractArray{T}, value::AbstractArray{T},
+      keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int}}) where T
+
    dimidxs = map(dimensionidxs, keys)
-   setindex!(collection, value, dimidxs...)
+   collection[dimidxs...] .= value
    return nothing
 end
 
-function setidxs!(collection, values::Vector, keys::Vector{Float64})
-   check_lengths_for_assignment(keys, values)
-   map(i -> setindex!(collection, values[i], Int(keys[i])), eachindex(keys))
+# replace multiple elements in a multidimensional array with a single value
+function setidxs!(collection::AbstractArray{T}, value::T,
+      keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int}}) where T
+
+   dimidxs = map(dimensionidxs, keys)
+   collection[dimidxs...] .= repeat([value], length.(keys)...)
    return nothing
 end
 
+# replace single element in dictionary with e.g. d["hi"]
 function setidxs!(d::AbstractDict{K, V}, value, key::K) where {K, V}
    d[key] = value
    return nothing
 end
 
-function setidxs!(d::AbstractDict{K, V}, values::Vector, keys::Vector{K}) where {K, V}
+# replace multiple elements in dictionary with e.g. d[c("hi", "you")]
+function setidxs!(d::AbstractDict{K, V}, values::Vector, keys::Vararg{K}) where {K, V}
    check_lengths_for_assignment(keys, values)
    map(i -> d[keys[i]] = values[i], eachindex(keys))
    return nothing

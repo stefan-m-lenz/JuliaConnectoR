@@ -28,7 +28,12 @@ NULL
 
 #' @rdname AccessOrMutate.JuliaObject
 `[.JuliaObject` <- function(jlref, ...) {
-   do.call(juliaCall, c("RConnector.getidxs", jlref, list(...)))
+   ret <- do.call(juliaCall, c("RConnector.getidxs", jlref, list(...)))
+   if (!is.list(ret) && !inherits(ret, "JuliaObject")) {
+      return(list(ret)) # compatibility with translated behaviour of translated objects
+   } else {
+      return(ret)
+   }
 }
 
 #' @rdname AccessOrMutate.JuliaObject
@@ -42,7 +47,6 @@ NULL
    } else {
       juliaCall("RConnector.setidxs!", jlref, value, i, j, k)
    }
-   jlref
    jlref
 }
 
