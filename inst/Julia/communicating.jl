@@ -222,7 +222,7 @@ function serve_repl(sock)
                "Original error: $ex")
       end
 
-      result = evaluate!(call)
+      result = evaluate_checked!(call)
       write_message(communicator, result)
    end
 end
@@ -244,20 +244,15 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
          firstbyte = read_bin(communicator, 1)[1]
          if firstbyte == RESULT_INDICATOR
             answer = read_element(communicator)
-            fails = collectfails(answer)
-            if isempty(fails)
-               ret =  evaluate!(answer)
-               return ret
-            else
-               return Fail("Parsing failed. Reason: " * string(fails))
-            end
+            parsingcheck(answer)
+            return evaluate!(answer)
          elseif firstbyte == CALL_INDICATOR
             call = read_call(communicator)
             result = evaluate!(call)
             write_message(communicator, result)
          elseif firstbyte == FAIL_INDICATOR
             r_errormsg = read_string(communicator)
-            throw(ErrorException("Error in R callback: " * r_errormsg))
+            error("Error in R callback: " * r_errormsg)
          else
             error("Unexpected leading byte: " * string(firstbyte))
          end

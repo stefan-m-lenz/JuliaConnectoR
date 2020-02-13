@@ -3,8 +3,7 @@ struct Fail
 end
 
 function Fail(msg, origex)
-   Fail(msg * "\nOriginal error:\n" * sprint(showerror, origex) *
-         "\n\n" * string(origex))
+   Fail(msg * "\nOriginal error:\n" * sprint(showerror, origex, backtrace()))
 end
 
 
