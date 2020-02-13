@@ -6,7 +6,7 @@
 #' @name AccessOrMutate.JuliaObject
 #' @examples
 #' #TODO
-#' juliaEval("bla")
+#' #juliaEval("bla")
 NULL
 
 
