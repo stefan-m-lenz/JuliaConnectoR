@@ -317,6 +317,10 @@ function write_element(communicator, obj::Module)
    write_element(communicator, ellist)
 end
 
+function write_element(communicator, obj::NamedTuple)
+   write_struct_element(communicator, obj)
+end
+
 function write_element(communicator, d::T) where {T2, T <: Type{T2}}
    write_expression(communicator, string(d))
 end

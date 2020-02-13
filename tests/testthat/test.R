@@ -450,6 +450,7 @@ test_that("Echo: Tuples", {
 # Test Named Tuples
 test_that("Echo: Named Tuples", {
    namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+   expect_type(namedTuple, "list")
    testEcho(namedTuple)
 })
 
