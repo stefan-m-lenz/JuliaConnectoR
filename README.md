@@ -47,15 +47,15 @@ On the left side, we see example code for training a neural network for classifi
 These are two complete runnable examples, which show all important steps in training a
 neural network.
 
+<details><summary>Data preparation</summary>
+
 <table>
 <thead>
-<tr><td>Julia</td><td>R</td></tr>
+<tr><td><b>Julia</b></td><td><b>R</b></td></tr>
 </thead>
 <tbody>
 <tr>
 <td>
-
-<details><summary>Data preparation</summary>
 
 ```julia
 # Set a seed
@@ -78,7 +78,36 @@ y_train = y[:, trainidxs]
 y_test = y[:, testidxs]
 ```
 
+</td>
+<td>
+
+```julia
+# Set a seed
+juliaEval("import Random; Random.seed!(1);")
+
+# Load data and split it into training and test data
+x <- as.matrix(iris[, 1:4])
+labels <- iris[, "Species"]
+nsamples <- nrow(iris)
+testidxs <- sample(x, nsamples)
+y <- Flux.onehotbatch(labels, unique(labels))
+```
+
+</td>
+</tr>
+
+</tbody>
+</table>
+
 </details>
+
+<table>
+<thead>
+<tr><td><b>Julia</b></td><td><b>R</b></td></tr>
+</thead>
+<tbody>
+<tr>
+<td>
 
 ```julia
 # Load necessary features
@@ -119,19 +148,6 @@ accuracy(x_test, y_test)
 </td>
 <td>
 
-<details><summary>Data preparation</summary>
-
-```julia
-# Set a seed
-juliaEval("import Random; Random.seed!(1);")
-
-# Load data and split it into training and test data
-x <- as.matrix(iris[, 1:4])
-labels <- iris[, "Species"]
-y <- Flux.onehotbatch(labels, unique(labels))
-```
-
-</details>
 
 ```R
 library(JuliaConnectoR)
@@ -160,7 +176,7 @@ loss <- juliaEval(")
 
 The following example code shows how the `JuliaConnectoR` can be used to use the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
 
-```{r}
+```R
 library(JuliaConnectoR)
 
 # Test BoltzmannMachines package
