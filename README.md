@@ -40,21 +40,54 @@ For a detailed description of the functions with some examples, and for more det
 
 ## Using Flux
 
+With the `JuliaConnectoR` it is possible to use e. g. use the Flux package for training a neural network on the famous `iris` data set.
+
+On the left side, we see example code for training a neural network for classification on the famous `iris` data set. On the right side, the corresponding R code is shown.
+
+These are two complete runnable examples, which show all important steps in training a
+neural network.
+
+<table>
+<thead>
+<tr><td>Julia</td><td>R</td></tr>
+</thead>
+<tbody>
+<tr>
+<td>
+
+<details><summary>Data preparation</summary>
+
+```julia
+# Set a seed
+import Random
+Random.seed!(1)
+
+# Load data and split it into training and test data
+using RDatasets
+iris = dataset("datasets", "iris")
+x = convert(Matrix{Float32}, (iris[:, 1:4]))'
+nsamples = size(iris, 1)
+testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
+trainidxs = setdiff(1:nsamples, testidxs)
+x_train = x[:, trainidxs]
+x_test = x[:, testidxs]
+labels_train = iris[trainidxs, :Species]
+labels_test = iris[testidxs, :Species]
+y = Flux.onehotbatch(labels, unique(labels))
+y_train = y[:, trainidxs]
+y_test = y[:, testidxs]
+```
+
+</details>
+
 ```julia
 # Load necessary features
 import Flux
 using Statistics
 
-# Data preparation
-using RDatasets
-iris = dataset("datasets", "iris")
-x = convert(Matrix{Float32}, (iris[:, 1:4]))'
-labels = iris[:, :Species]
-y = Flux.onehotbatch(labels, unique(labels))
-
-# Train model
-srand(1)
+# Train the Flux model
 model = Flux.Chain(
+      Flux.Dense(4, 4, Flux.relu),
       Flux.Dense(4, 4, Flux.relu),
       Flux.Dense(4, 3),
       Flux.softmax)
@@ -63,20 +96,65 @@ loss = (x, y) -> Flux.crossentropy(model(x), y)
 
 opt = Flux.ADAM()
 
-epochs = 1500
-losses = Vector{Float32}(undef, epochs);
+epochs = 2500
+losses_train = Vector{Float32}(undef, epochs);
+losses_test = Vector{Float32}(undef, epochs);
 for i in 1:epochs
-   Flux.train!(loss, Flux.params(model), [(x, y)], opt)
-   losses[i] = loss(x, y)
+   Flux.train!(loss, Flux.params(model), [(x_train, y_train)], opt)
+   losses_train[i] = loss(x_train, y_train)
+   # monitor overfitting
+   losses_test[i] = loss(x_test, y_test)
 end
 
-# (Losses could be plotted)
+# Plot losses
+# TODO
 
 # Evaluate model
 accuracy = (x, y) ->
       mean(Flux.onecold(model(x)) .== Flux.onecold(y))
-accuracy(x, y)
+accuracy(x_train, y_train)
+accuracy(x_test, y_test)
 ```
+
+</td>
+<td>
+
+<details><summary>Data preparation</summary>
+
+```julia
+# Set a seed
+juliaEval("import Random; Random.seed!(1);")
+
+# Load data and split it into training and test data
+x <- as.matrix(iris[, 1:4])
+labels <- iris[, "Species"]
+y <- Flux.onehotbatch(labels, unique(labels))
+```
+
+</details>
+
+```R
+library(JuliaConnectoR)
+# load Flux features available in R
+juliaImport("Flux", importInternal = TRUE)
+# don't need that in R
+juliaEval("using Statistics")
+
+juliaEval("import Random; Random.seed(1)")
+model = Flux.Chain(
+      Flux.Dense(4, 4, Flux.relu),
+      Flux.Dense(4, 3),
+      Flux.softmax)
+
+loss <- juliaEval(")
+```
+
+</td>
+<tr>
+
+</tbody>
+</table>
+
 
 ### Using the *BoltzmannMachines* in R
 
