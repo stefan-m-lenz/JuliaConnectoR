@@ -38,6 +38,46 @@ For a detailed description of the functions with some examples, and for more det
 
 ## Examples
 
+## Using Flux
+
+```julia
+# Load necessary features
+import Flux
+using Statistics
+
+# Data preparation
+using RDatasets
+iris = dataset("datasets", "iris")
+x = convert(Matrix{Float32}, (iris[:, 1:4]))'
+labels = iris[:, :Species]
+y = Flux.onehotbatch(labels, unique(labels))
+
+# Train model
+srand(1)
+model = Flux.Chain(
+      Flux.Dense(4, 4, Flux.relu),
+      Flux.Dense(4, 3),
+      Flux.softmax)
+
+loss = (x, y) -> Flux.crossentropy(model(x), y)
+
+opt = Flux.ADAM()
+
+epochs = 1500
+losses = Vector{Float32}(undef, epochs);
+for i in 1:epochs
+   Flux.train!(loss, Flux.params(model), [(x, y)], opt)
+   losses[i] = loss(x, y)
+end
+
+# (Losses could be plotted)
+
+# Evaluate model
+accuracy = (x, y) ->
+      mean(Flux.onecold(model(x)) .== Flux.onecold(y))
+accuracy(x, y)
+```
+
 ### Using the *BoltzmannMachines* in R
 
 The following example code shows how the `JuliaConnectoR` can be used to use the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
