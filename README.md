@@ -42,9 +42,11 @@ For a detailed description of the functions with some examples, and for more det
 
 With the `JuliaConnectoR` it is possible to use e. g. use the Flux package for training a neural network on the famous `iris` data set.
 
+You can see, that the translation from Julia to R code is rather straightforward:
+
 On the left side, we see example code for training a neural network for classification on the famous `iris` data set. On the right side, a translation to corresponding R code is shown.
 
-These are two complete runnable examples, which show all important steps in training a
+Both are two complete runnable examples, which show all important steps in training a
 neural network.
 
 <details><summary>Data preparation</summary>
@@ -58,7 +60,7 @@ neural network.
 <td>
 
 ```julia
-# Set a seed
+# Import packages and set a seed
 import Flux
 using Random
 Random.seed!(1);
@@ -82,7 +84,6 @@ end
 using RDatasets
 iris = dataset("datasets", "iris")
 x = convert(Matrix{Float64}, (iris[:, 1:4]))'
-
 data = rand_split_data(x, iris[:, :Species])
 ```
 
@@ -97,7 +98,6 @@ rand_split_data <- juliaEval('
       using Random
       Random.seed!(1);
 
-      # Load data and split it into training and test data
       function rand_split_data(x, labels)
          nsamples = size(x, 2)
          testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
@@ -113,7 +113,6 @@ rand_split_data <- juliaEval('
                y_train = y_train, y_test = y_test)
       end')
 
-# Load data and split it into training and test data
 x <- as.matrix(iris[, 1:4])
 labels <- iris[, "Species"]
 data <- rand_split_data(t(x), labels)
@@ -147,31 +146,33 @@ model = Flux.Chain(
       Flux.Dense(4, 3),
       Flux.softmax)
 
-loss = (x, y) -> Flux.crossentropy(model(x), y)
+loss(model, x, y) = Flux.crossentropy(model(x), y)
 
-opt = Flux.ADAM()
-
-epochs = 2500
-losses_train = Vector{Float32}(undef, epochs);
-losses_test = Vector{Float32}(undef, epochs);
-for i in 1:epochs
-   # Training
-   Flux.train!(loss, Flux.params(model),
-         [(data.x_train, data.y_train)], opt)
-
-   losses_train[i] = loss(x_train, y_train)
-   # monitor overfitting
-   losses_test[i] = loss(x_test, y_test)
+function train_network!(model, x, y; epochs, callback)
+   opt = Flux.ADAM()
+   loss_(x, y) = loss(model, x, y)
+   for i in 1:epochs
+      Flux.train!(loss_, Flux.params(model), [(x, y)], opt)
+      callback(i)
+   end
 end
 
-# Plot losses
-# TODO
+epochs = 2500
+train_losses = Vector{Float32}(undef, epochs);
+test_losses = Vector{Float32}(undef, epochs);
+train_network!(model, data.x_train, data.y_train, epochs = epochs,
+      callback = (i) -> begin
+         train_losses[i] = loss(model, data.x_train, data.y_train)
+         test_losses[i] = loss(model, data.x_test, data.y_test)
+      end)
+
+# (Could plot losses here)
 
 # Evaluate model
-accuracy = (x, y) ->
+accuracy(model, x, y) =
       mean(Flux.onecold(model(x)) .== Flux.onecold(y))
-accuracy(x_train, y_train)
-accuracy(x_test, y_test)
+accuracy(model, data.x_train, data.y_train)
+accuracy(model, data.x_test, data.y_test)
 ```
 
 </td>
@@ -182,16 +183,41 @@ accuracy(x_test, y_test)
 library(JuliaConnectoR)
 # load Flux features available in R
 juliaImport("Flux", importInternal = TRUE)
-# don't need that in R
-juliaEval("using Statistics")
+
+juliaEval("using Statistics") # don't need that in R
 
 juliaEval("import Random; Random.seed(1)")
-model = Flux.Chain(
-      Flux.Dense(4, 4, Flux.relu),
-      Flux.Dense(4, 3),
+model <- Flux.Chain(
+      Flux.Dense(4L, 4L, Flux.relu),
+      Flux.Dense(4L, 4L, Flux.relu),
+      Flux.Dense(4L, 3L),
       Flux.softmax)
 
-loss <- juliaEval(")
+loss <- juliaEval("loss(model, x, y) = Flux.crossentropy(model(x), y)")
+
+train_network <- juliaEval('
+   function train_network!(model, x, y; epochs, callback)
+      opt = Flux.ADAM()
+      loss_(x, y) = loss(model, x, y)
+      for i in 1:epochs
+         Flux.train!(loss_, Flux.params(model), [(x, y)], opt)
+         callback(i)
+      end
+   end')
+
+epochs <- 2500
+train_losses <- rep(0, epochs)
+test_losses <- rep(0, epochs)
+train_network(model, data$x_train, data$y_train, epochs = epochs,
+      callback = function(i) {
+         train_losses[i] <- loss(model, data$x_train, data$y_train)
+         test_losses[i] <- loss(model, data$x_test, data$y_test)
+      })
+
+accuracy <- juliaEval("accuracy(model, x, y) =
+      mean(Flux.onecold(model(x)) .== Flux.onecold(y))")
+accuracy(model, data$x_train, data$y_train)
+accuracy(model, data$x_test, data$y_test)
 ```
 
 </td>
