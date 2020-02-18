@@ -42,7 +42,7 @@ For a detailed description of the functions with some examples, and for more det
 
 With the `JuliaConnectoR` it is possible to use e. g. use the Flux package for training a neural network on the famous `iris` data set.
 
-On the left side, we see example code for training a neural network for classification on the famous `iris` data set. On the right side, the corresponding R code is shown.
+On the left side, we see example code for training a neural network for classification on the famous `iris` data set. On the right side, a translation to corresponding R code is shown.
 
 These are two complete runnable examples, which show all important steps in training a
 neural network.
@@ -59,38 +59,64 @@ neural network.
 
 ```julia
 # Set a seed
-import Random
-Random.seed!(1)
+import Flux
+using Random
+Random.seed!(1);
 
 # Load data and split it into training and test data
+function rand_split_data(x, labels)
+   nsamples = size(x, 2)
+   testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
+   trainidxs = setdiff(1:nsamples, testidxs)
+   x_train = x[:, trainidxs]
+   x_test = x[:, testidxs]
+   labels_train = labels[trainidxs]
+   labels_test = labels[testidxs]
+   y = Flux.onehotbatch(labels, unique(labels))
+   y_train = y[:, trainidxs]
+   y_test = y[:, testidxs]
+   (x_train = x_train, x_test = x_test,
+         y_train = y_train, y_test = y_test)
+end
+
 using RDatasets
 iris = dataset("datasets", "iris")
-x = convert(Matrix{Float32}, (iris[:, 1:4]))'
-nsamples = size(iris, 1)
-testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
-trainidxs = setdiff(1:nsamples, testidxs)
-x_train = x[:, trainidxs]
-x_test = x[:, testidxs]
-labels_train = iris[trainidxs, :Species]
-labels_test = iris[testidxs, :Species]
-y = Flux.onehotbatch(labels, unique(labels))
-y_train = y[:, trainidxs]
-y_test = y[:, testidxs]
+x = convert(Matrix{Float64}, (iris[:, 1:4]))'
+
+data = rand_split_data(x, iris[:, :Species])
 ```
 
 </td>
 <td>
 
-```julia
-# Set a seed
-juliaEval("import Random; Random.seed!(1);")
+```R
+library(JuliaConnectoR)
+# The Julia code can simply be reused
+rand_split_data <- juliaEval('
+      import Flux
+      using Random
+      Random.seed!(1);
+
+      # Load data and split it into training and test data
+      function rand_split_data(x, labels)
+         nsamples = size(x, 2)
+         testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
+         trainidxs = setdiff(1:nsamples, testidxs)
+         x_train = x[:, trainidxs]
+         x_test = x[:, testidxs]
+         labels_train = labels[trainidxs]
+         labels_test = labels[testidxs]
+         y = Flux.onehotbatch(labels, unique(labels))
+         y_train = y[:, trainidxs]
+         y_test = y[:, testidxs]
+         (x_train = x_train, x_test = x_test,
+               y_train = y_train, y_test = y_test)
+      end')
 
 # Load data and split it into training and test data
 x <- as.matrix(iris[, 1:4])
 labels <- iris[, "Species"]
-nsamples <- nrow(iris)
-testidxs <- sample(x, nsamples)
-y <- Flux.onehotbatch(labels, unique(labels))
+data <- rand_split_data(t(x), labels)
 ```
 
 </td>
@@ -129,7 +155,10 @@ epochs = 2500
 losses_train = Vector{Float32}(undef, epochs);
 losses_test = Vector{Float32}(undef, epochs);
 for i in 1:epochs
-   Flux.train!(loss, Flux.params(model), [(x_train, y_train)], opt)
+   # Training
+   Flux.train!(loss, Flux.params(model),
+         [(data.x_train, data.y_train)], opt)
+
    losses_train[i] = loss(x_train, y_train)
    # monitor overfitting
    losses_test[i] = loss(x_test, y_test)

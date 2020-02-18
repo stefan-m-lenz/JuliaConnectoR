@@ -938,6 +938,18 @@ test_that("Object with unexported function defined in different modules", {
 })
 
 
+test_that("AbstractArrays are transferred by reference and can be translated to struct", {
+   a <- juliaEval('using SparseArrays
+             A = sparse([1, 2, 3], [1, 2, 3], [0, 2, 0])')
+   expect_s3_class(a, "JuliaArray")
+   # indexing
+   expect_equal(a[[2,2]], 2)
+   # backtranslation
+   expect_true(juliaCall("issparse", juliaGet(a)))
+   testEcho(a)
+})
+
+
 test_that("Boltzmann machine can be trained and used", {
    skip_on_cran()
 

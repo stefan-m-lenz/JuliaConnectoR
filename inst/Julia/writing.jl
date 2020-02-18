@@ -36,7 +36,7 @@ function write_int32(communicator, i::Int)
    write_bin(communicator, Int32(i))
 end
 
-function write_int32s(communicator, intarr::AbstractArray{Int})
+function write_int32s(communicator, intarr::Array{Int})
    for i in intarr
       write_int32(communicator, i)
    end
@@ -58,8 +58,7 @@ function write_dimensions(communicator, arr::AbstractArray)
 end
 
 
-function write_element(communicator, arr::AbstractArray{String})
-
+function write_element(communicator, arr::Array{String})
    write_bin(communicator, TYPE_ID_STRING)
    write_dimensions(communicator, arr)
    for i in eachindex(arr)
@@ -72,16 +71,12 @@ function write_element(communicator, arr::AbstractArray{String})
    write_bin(communicator, 0x00)
 end
 
-function write_element(communicator, arr::AbstractArray{F}
-      ) where {F <: SEND_AS_DOUBLE}
-
+function write_element(communicator, arr::Array{F}) where {F <: SEND_AS_DOUBLE}
    attributes = (("JLTYPE", string(F)), )
    write_element(communicator, convert(Array{Float64}, arr), attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Float64},
-      attributes = ())
-
+function write_element(communicator, arr::Array{Float64}, attributes = ())
    write_bin(communicator, TYPE_ID_FLOAT64)
    write_dimensions(communicator, arr)
    for f in arr
@@ -90,7 +85,8 @@ function write_element(communicator, arr::AbstractArray{Float64},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{UInt8}, attributes = ())
+function write_uint8array_element(communicator, arr::AbstractArray{UInt8},
+      attributes = ())
 
    if length(arr) == 1
       attributes = tuple(attributes..., ("JLDIM", 1))
@@ -104,14 +100,18 @@ function write_element(communicator, arr::AbstractArray{UInt8}, attributes = ())
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{T},
+function write_element(communicator, arr::Array{UInt8}, attributes = ())
+   write_uint8array_element(communicator, arr, attributes)
+end
+
+function write_element(communicator, arr::Array{T},
       ) where {T <: SEND_AS_INT32}
 
    attributes = (("JLTYPE", string(T)), )
    write_element(communicator, convert(Array{Int32}, arr), attributes, true)
 end
 
-function write_element(communicator, arr::AbstractArray{Int32},
+function write_element(communicator, arr::Array{Int32},
       attributes = (), isothertype::Bool = false)
 
    if !isothertype
@@ -130,7 +130,7 @@ function write_element(communicator, arr::AbstractArray{Int32},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Int64})
+function write_element(communicator, arr::Array{Int64})
 
    arrmin, arrmax = extrema(arr)
    if arrmin >= typemin(Int32) && arrmax <= typemax(Int32)
@@ -148,7 +148,7 @@ function write_element(communicator, arr::AbstractArray{Int64})
    end
 end
 
-function write_element(communicator, arr::AbstractArray{T},
+function write_element(communicator, arr::Array{T},
       ) where {T <: SEND_AS_RAW_TYPES}
 
    if length(arr) == 1
@@ -156,10 +156,10 @@ function write_element(communicator, arr::AbstractArray{T},
    else
       attributes = (("JLTYPE", string(T)), )
    end
-   write_element(communicator, reinterpret(UInt8, arr), attributes)
+   write_uint8array_element(communicator, reinterpret(UInt8, arr), attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Complex{Float64}},
+function write_element(communicator, arr::Array{Complex{Float64}},
       attributes = ())
 
    if length(arr) == 1
@@ -175,14 +175,14 @@ function write_element(communicator, arr::AbstractArray{Complex{Float64}},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{C},
+function write_element(communicator, arr::Array{C},
       ) where {C <: SEND_AS_COMPLEX}
 
    attributes = (("JLTYPE", string(C)), )
    write_element(communicator, convert.(Complex{Float64}, arr), attributes)
 end
 
-function write_element(communicator, arr::AbstractArray{Bool})
+function write_element(communicator, arr::Array{Bool})
    write_bin(communicator, TYPE_ID_BOOL)
    write_dimensions(communicator, arr)
    for d in arr
@@ -190,23 +190,38 @@ function write_element(communicator, arr::AbstractArray{Bool})
    end
 end
 
-function write_element(communicator, arr::AbstractArray)
+function write_array_element(communicator, arr::AbstractArray)
 
+   attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
+
+   arrsize = size(arr)
+
+   arr2 = arr[:] # R lists support only 1 dimension
+   if length(arrsize) > 1
+      # we have a multidimensional array:
+      # add the dimensions as attribute to be able to reconstruct it
+      attributes["JLDIM"] = collect(arrsize)
+   end
+
+   ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
+         Dict{Symbol, Any}(), attributes)
+   write_element(communicator, ellist)
+end
+
+function write_element(communicator, arr::Array)
    if full_translation.x
-      arrsize = size(arr)
-      attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))
-
-      arr2 = arr[:] # R lists support only 1 dimension
-      if length(arrsize) > 1
-         # we have a multidimensional array:
-         # add the dimensions as attribute to be able to reconstruct it
-         attributes["JLDIM"] = collect(arrsize)
-      end
-
-      ellist = ElementList(undefs_replaced(arr2), Vector{Symbol}(),
-            Dict{Symbol, Any}(), attributes)
-      write_element(communicator, ellist)
+      write_array_element(communicator, arr)
    else
+      write_object_reference(communicator, arr, OBJECT_CLASS_ID_ARRAY)
+   end
+end
+
+function write_element(communicator, arr::AbstractArray)
+   if full_translation.x
+      # translate as struct because you can never be sure of the implementation
+      write_struct_element(communicator, arr)
+   else
+      # allow indexing as an array
       write_object_reference(communicator, arr, OBJECT_CLASS_ID_ARRAY)
    end
 end
@@ -427,7 +442,7 @@ end
 
 function write_element(communicator, i::T) where {T <: SEND_AS_RAW_TYPES}
    attributes = (("JLTYPE", string(T)), )
-   write_element(communicator, reinterpret(UInt8, [i]), attributes)
+   write_uint8array_element(communicator, reinterpret(UInt8, [i]), attributes)
 end
 
 function write_element(communicator, b::Bool)
