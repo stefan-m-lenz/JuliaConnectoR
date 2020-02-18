@@ -986,6 +986,19 @@ test_that("Boltzmann machine can be trained and used", {
 })
 
 
+test_that("juliaPut", {
+   x <- juliaPut(c(1,2,3))
+   expect_s3_class(x, "JuliaArrayProxy")
+   expect_equal(x[[1]], 1)
+
+   x <- juliaPut(juliaEval("(1,2,3)"))
+   expect_s3_class(x, "JuliaArrayProxy")
+   expect_equal(x[[3]], 3)
+
+   x <- juliaPut(juliaEval("(a=1,b=2,c=3)"))
+   expect_s3_class(x, "JuliaStructProxy")
+   expect_equal(x$b, 2)
+})
 
 # # It takes very long to laod Flux, so don't include by default:
 # test_that("Flux model can be transferred", {

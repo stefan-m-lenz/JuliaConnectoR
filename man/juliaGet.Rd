@@ -19,7 +19,4 @@ If the corresponding Julia objects do not contain external references,
 translated objects can also saved in R and safely be restored in Julia.
 
 Modifying objects is possible and changes in R will be translated back to Julia.
-
-Calling this function on an object that is not a Julia proxy object will simply
-return the object.
 }

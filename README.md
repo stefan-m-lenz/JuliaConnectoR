@@ -118,7 +118,7 @@ rand_split_data <- juliaEval('
 
 x <- as.matrix(iris[, 1:4])
 labels <- iris[, "Species"]
-data <- rand_split_data(t(x), labels)
+data <- juliaPut(rand_split_data(t(x), labels))
 ```
 
 </td>
@@ -189,7 +189,7 @@ juliaImport("Flux", importInternal = TRUE)
 
 juliaEval("using Statistics") # don't need that in R
 
-juliaEval("import Random; Random.seed(1)")
+juliaEval("import Random; Random.seed!(1)")
 model <- Flux.Chain(
       Flux.Dense(4L, 4L, Flux.relu),
       Flux.Dense(4L, 4L, Flux.relu),
@@ -213,8 +213,8 @@ train_losses <- rep(0, epochs)
 test_losses <- rep(0, epochs)
 train_network(model, data$x_train, data$y_train, epochs = epochs,
       callback = function(i) {
-         train_losses[i] <- loss(model, data$x_train, data$y_train)
-         test_losses[i] <- loss(model, data$x_test, data$y_test)
+         train_losses[i] <<- loss(model, data$x_train, data$y_train)
+         test_losses[i] <<- loss(model, data$x_test, data$y_test)
       })
 
 accuracy <- juliaEval("accuracy(model, x, y) =

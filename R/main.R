@@ -271,16 +271,9 @@ juliaExpr <- function(expr) {
 #'
 #' Modifying objects is possible and changes in R will be translated back to Julia.
 #'
-#' Calling this function on an object that is not a Julia proxy object will simply
-#' return the object.
-#'
 #' @param x a reference to a Julia object
 juliaGet <- function(x) {
    UseMethod("juliaGet", x)
-}
-
-juliaGet.default <- function(x) {
-   x
 }
 
 juliaGet.JuliaProxy <- function(x) {
@@ -289,6 +282,30 @@ juliaGet.JuliaProxy <- function(x) {
    tryCatch({ret <- juliaCall("identity", x)},
        finally = {juliaCall("RConnector.full_translation!", FALSE)})
    ret
+}
+
+#' Create a Julia proxy object from an R object
+#'
+#' This function creates a proxy object for a Julia object that would
+#' otherwise be translated to an R object.
+#' This is useful to prevent multiple translations of large objects.
+#' To see which objects are translated by default, please see the
+#' \link{JuliaConnector-package} documentation.
+#'
+#' @param x an R object (can also be a translated Julia object)
+#'
+#' @examples
+#' # Transfer a large vector to Julia and use it in multiple calls
+#' x <- juliaPut(rnorm(100))
+#' # x is just a reference to a Julia vector now
+#' juliaEval("using Statistics")
+#' juliaCall("mean", x)
+#' juliaCall("var", x)
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
+juliaPut <- function(x) {
+   juliaCall("RConnector.EnforcedProxy", x)
 }
 
 

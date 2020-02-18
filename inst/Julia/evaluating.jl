@@ -116,13 +116,12 @@ end
 
 
 function evaluate!(objref::ObjectReference)
+   getobj(obj::ImmutableObjectReference) = obj.obj
+   getobj(obj) = obj
+
    try
       obj = sharedheap[objref.ref].obj
-      if obj isa ImmutableObjectReference
-         return obj.obj
-      else
-         return obj
-      end
+      return getobj(obj)
    catch ex
       error("Object reference " * string(objref.ref, base = 16) *
             " could not be resolved")

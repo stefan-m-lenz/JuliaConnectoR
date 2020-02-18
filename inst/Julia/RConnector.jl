@@ -35,6 +35,7 @@ const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 const SEND_AS_COMPLEX = Complex{T} where T <: Union{
       Int8, Int16, Int32, Int64, Float16, Float32}
 
+include("sharing.jl")
 include("communicating.jl")
 include("handling_undefined.jl")
 include("reading.jl")
