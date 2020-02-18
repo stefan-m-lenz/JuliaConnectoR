@@ -23,9 +23,9 @@
             | '0xcb' callback
             | '0xfc' named_function
             | '0xee' expression
-    object_class_id = '0x5c' (* class JuliaStruct *)
+    object_class_id = '0x5c' (* class JuliaStructProxy *)
                     | '0xaf' (* anonymous function reference *)
-                    | '0xaa' (* class JuliaArray *)
+                    | '0xaa' (* class JuliaArrayProxy *)
                     | '0x00' (* no information *)
     object_reference = 8 * byte
     anonymous_function_reference = 8 * byte

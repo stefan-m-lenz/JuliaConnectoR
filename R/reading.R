@@ -124,10 +124,10 @@ readObjectReference <- function() {
    ref <- readBin(pkgLocal$con, "raw", 8) # 64 bit reference
    obj <- juliaHeapReference(ref)
    if (objectClassId == OBJECT_CLASS_ID_STRUCT) {
-      class(obj) <- c("JuliaStruct", "JuliaObject")
+      class(obj) <- c("JuliaStructProxy", "JuliaProxy")
       return(obj)
    } else if (objectClassId == OBJECT_CLASS_ID_ARRAY) {
-      class(obj) <- c("JuliaArray", "JuliaObject")
+      class(obj) <- c("JuliaArrayProxy", "JuliaProxy")
       return(obj)
    } else if (objectClassId == OBJECT_CLASS_ID_ANONYMOUS_FUNCTION) {
       fun <- juliaFun("RConnector.callanonymous", ref)

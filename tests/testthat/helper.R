@@ -13,7 +13,7 @@ jlRefsRemoved <- function(x) {
          }
       }
       return(x)
-   } else if (is.environment(x) && inherits(x, "JuliaObject")) {
+   } else if (is.environment(x) && inherits(x, "JuliaProxy")) {
       return(jlRefsRemoved(juliaGet(x)))
    } else {
       return(x)
@@ -24,7 +24,7 @@ jlRefsRemoved <- function(x) {
 testEcho <- function(x, comparableInJulia = TRUE) {
    if (is.list(x)) {
       expect_identical(jlRefsRemoved(x), jlRefsRemoved(juliaEcho(x)))
-   } else if (is.environment(x) && inherits(x, "JuliaObject")) {
+   } else if (is.environment(x) && inherits(x, "JuliaProxy")) {
       if (comparableInJulia) {
          expect_true(juliaCall("==", x, juliaEcho(x)))
       }

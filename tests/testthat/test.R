@@ -300,7 +300,7 @@ test_that("Immutable struct usable by reference and translated", {
                 x::Int
              end')
    jlRef <- juliaEval("TestImmutableStruct(1)")
-   expect_s3_class(jlRef, "JuliaStruct")
+   expect_s3_class(jlRef, "JuliaStructProxy")
    refEcho <- juliaEcho(jlRef)
    expect_true(juliaCall("==", jlRef, refEcho))
    expect_equal(refEcho$x, 1)
@@ -616,7 +616,7 @@ test_that("Errors are handled gracefully", {
 
 test_that("Vectors of objects can be accessed by index via proxy", {
    x <- juliaEval("[ [1;2;3], [4;5;6], [7;8;9] ]")
-   expect_s3_class(x, "JuliaArray")
+   expect_s3_class(x, "JuliaArrayProxy")
    expect_equal(x[[1]][2], 2)
    expect_equal(x[[2]][2], 5)
    x[[1]][1] <- 17L
@@ -941,7 +941,7 @@ test_that("Object with unexported function defined in different modules", {
 test_that("AbstractArrays are transferred by reference and can be translated to struct", {
    a <- juliaEval('using SparseArrays
              A = sparse([1, 2, 3], [1, 2, 3], [0, 2, 0])')
-   expect_s3_class(a, "JuliaArray")
+   expect_s3_class(a, "JuliaArrayProxy")
    # indexing
    expect_equal(a[[2,2]], 2)
    # backtranslation

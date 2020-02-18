@@ -11,7 +11,7 @@
 #'    When replacing a range of elements in an array type, it is possible to
 #'    replace multiple elements with single elements. In all other cases,
 #'    the length of the replacement must match the length of elements to replace.
-#' @name AccessOrMutate.JuliaObject
+#' @name AccessMutate.JuliaProxy
 #' @examples
 #' #TODO
 #' #juliaEval("bla")
@@ -22,30 +22,30 @@ NULL
 # index: conversion to int
 # doku item indexing. ?`$.data.frame` -> Extract.data.frame
 
-#' @rdname AccessOrMutate.JuliaObject
-`$.JuliaStruct` <- function(x, name) {
+#' @rdname AccessMutate.JuliaProxy
+`$.JuliaStructProxy` <- function(x, name) {
    juliaCall("RConnector.getprop", x, name)
 }
 
-#' @rdname AccessOrMutate.JuliaObject
-`$<-.JuliaStruct` <- function(x, name, value) {
+#' @rdname AccessMutate.JuliaProxy
+`$<-.JuliaStructProxy` <- function(x, name, value) {
    juliaCall("RConnector.setprop!", x, name, value)
    x
 }
 
 
-#' @rdname AccessOrMutate.JuliaObject
-`[.JuliaObject` <- function(x, ...) {
+#' @rdname AccessMutate.JuliaProxy
+`[.JuliaProxy` <- function(x, ...) {
    ret <- do.call(juliaCall, c("RConnector.getidxs", x, list(...)))
-   if (!is.list(ret) && !inherits(ret, "JuliaObject")) {
+   if (!is.list(ret) && !inherits(ret, "JuliaProxy")) {
       return(list(ret)) # compatibility with translated behaviour of translated objects
    } else {
       return(ret)
    }
 }
 
-#' @rdname AccessOrMutate.JuliaObject
-`[<-.JuliaObject` <- function(x, i, j, k, value) {
+#' @rdname AccessMutate.JuliaProxy
+`[<-.JuliaProxy` <- function(x, i, j, k, value) {
    if (missing(k)) {
       if (missing(j)) {
          juliaCall("RConnector.setidxs!", x, value, i)
@@ -60,13 +60,13 @@ NULL
 
 # TODO [] auf arrays: so wie liste?
 
-#' @rdname AccessOrMutate.JuliaObject
-`[[.JuliaArray` <- function(x, ...) {
+#' @rdname AccessMutate.JuliaProxy
+`[[.JuliaArrayProxy` <- function(x, ...) {
    do.call(juliaCall, c("RConnector.getidx", x, list(...)))
 }
 
-#' @rdname AccessOrMutate.JuliaObject
-`[[<-.JuliaArray` <- function(x, i, j, k, value) {
+#' @rdname AccessMutate.JuliaProxy
+`[[<-.JuliaArrayProxy` <- function(x, i, j, k, value) {
    if (missing(k)) {
       if (missing(j)) {
          juliaCall("RConnector.setidx!", x, value, i)
@@ -80,29 +80,29 @@ NULL
 }
 
 
-#' @rdname AccessOrMutate.JuliaObject
-`[[.JuliaStruct` <- function(x, name) {
+#' @rdname AccessMutate.JuliaProxy
+`[[.JuliaStructProxy` <- function(x, name) {
    juliaCall("RConnector.getprop", x, name)
 }
 
-#' @rdname AccessOrMutate.JuliaObject
-`[[<-.JuliaStruct` <- function(x, name, value) {
+#' @rdname AccessMutate.JuliaProxy
+`[[<-.JuliaStructProxy` <- function(x, name, value) {
    juliaCall("RConnector.setprop!", x, name, value)
    x
 }
 
 
-length.JuliaArray <- function(x) {
+length.JuliaArrayProxy <- function(x) {
    juliaCall("length", x)
 }
 
 
-dim.JuliaArray <- function(x) {
+dim.JuliaArrayProxy <- function(x) {
    unlist(juliaCall("size", x))
 }
 
 
-print.JuliaObject <- function(x, ...) {
+print.JuliaProxy <- function(x, ...) {
    cat(paste0("<Julia object of type ", juliaCall("typeof", x), ">\n",
               juliaCall("repr", x)))
 }
