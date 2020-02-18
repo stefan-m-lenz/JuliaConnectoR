@@ -11,6 +11,8 @@ It is also possible to pass R functions as arguments in place of Julia functions
 From a technical perspective, R data structures are serialized with an optimized custom streaming format,
 sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
 The results of function calls are likewise translated back to R.
+Complex Julia structures can either be used by
+reference via proxy objects in R or fully translated to R data structures.
 
 ## Installation
 
@@ -23,7 +25,7 @@ The package requires that [Julia (Version &ge; 1.0) is installed](https://julial
 
 ## Overview
 
-The following functions are exported by the package:
+The following table lists the most important functions exported by the package:
 
 | Function name | Description |
 |---------------|-------------|
@@ -32,6 +34,7 @@ The following functions are exported by the package:
 | `juliaCall` | Call any Julia function by name. Not needed for functions attached via `juliaImport`/`juliaUsing` or created via `juliaFun`. |
 | `juliaEval` | Evaluate a simple Julia expression (and return the result) |
 | `juliaLet` | Evaluate Julia expressions with R variables in place of Julia variables employing a `let` block (and return the result) |
+| `juliaGet` | Fully translate a Julia object to an R object |
 | `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
 For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.3.1/JuliaConnectoR.pdf).
