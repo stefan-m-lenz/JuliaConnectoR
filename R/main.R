@@ -288,9 +288,10 @@ juliaGet.JuliaProxy <- function(x) {
 #'
 #' This function creates a proxy object for a Julia object that would
 #' otherwise be translated to an R object.
-#' This is useful to prevent multiple translations of large objects.
+#' This is useful to prevent many translations of large objects
+#' if it is necessary performance reasons.
 #' To see which objects are translated by default, please see the
-#' \link{JuliaConnector-package} documentation.
+#' \link{JuliaConnectoR-package} documentation.
 #'
 #' @param x an R object (can also be a translated Julia object)
 #'

@@ -12,14 +12,15 @@ juliaPut(x)
 \description{
 This function creates a proxy object for a Julia object that would
 otherwise be translated to an R object.
-This is useful to prevent multiple translations of large objects.
+This is useful to prevent many translations of large objects
+if it is necessary performance reasons.
 To see which objects are translated by default, please see the
-\link{JuliaConnector-package} documentation.
+\link{JuliaConnectoR-package} documentation.
 }
 \examples{
 # Transfer a large vector to Julia and use it in multiple calls
 x <- juliaPut(rnorm(100))
-# x is just a reference to a Julia vector nor
+# x is just a reference to a Julia vector now
 juliaEval("using Statistics")
 juliaCall("mean", x)
 juliaCall("var", x)
