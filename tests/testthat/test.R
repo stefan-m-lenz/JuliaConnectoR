@@ -444,6 +444,10 @@ test_that("Echo: Tuples", {
    testEcho(juliaEval("(1, 2.0)"))
    testEcho(juliaEval("((1, 2.0), 3.0)"))
    testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
+
+   testEcho(juliaEval("(Ref(false), Ref(true))"))
+   # TODO
+   #testEcho(juliaGet(juliaEval("(Ref(false), Ref(true))")))
 })
 
 
