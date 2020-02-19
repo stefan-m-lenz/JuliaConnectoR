@@ -485,10 +485,6 @@ function write_element(communicator, p::EnforcedProxy{T}) where {T <: AbstractAr
    write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_ARRAY)
 end
 
-function write_element(communicator, p::EnforcedProxy{T}) where {T <: NamedTuple}
-   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_STRUCT)
-end
-
 function write_element(communicator, p::EnforcedProxy{T}) where {T <: Tuple}
    write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_ARRAY)
 end
