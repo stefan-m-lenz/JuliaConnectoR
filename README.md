@@ -43,24 +43,13 @@ For a detailed description of the functions with some examples, and for more det
 
 ## Using Flux
 
-With the `JuliaConnectoR` it is possible to use e. g. use the Flux package for training a neural network on the famous `iris` data set.
+With the `JuliaConnectoR` it is possible to use, e. g., the [Flux](https://github.com/FluxML/Flux.jl) Julia package for training a neural network on the famous `iris` data set.
 
-You can see, that the translation from Julia to R code is rather straightforward:
+You can see that the translation from Julia to R code is rather straightforward:
 
-On the left side, we see example code for training a neural network for classification on the famous `iris` data set. On the right side, a translation to corresponding R code is shown.
+Below we see example code for training a neural network for classification on the famous `iris` data set in Julia and its translation in R. Both the Julia version of the script and the R version are two complete runnable examples, showing all important steps in training a neural network.
 
-Both are two complete runnable examples, which show all important steps in training a
-neural network.
-
-<details><summary>Data preparation</summary>
-
-<table>
-<thead>
-<tr><td><b>Julia</b></td><td><b>R</b></td></tr>
-</thead>
-<tbody>
-<tr>
-<td>
+<details><summary>Julia script: Data preparation</summary>
 
 ```julia
 # Import packages and set a seed
@@ -90,52 +79,9 @@ x = convert(Matrix{Float64}, (iris[:, 1:4]))'
 data = rand_split_data(x, iris[:, :Species])
 ```
 
-</td>
-<td>
-
-```R
-library(JuliaConnectoR)
-# The Julia code can simply be reused
-rand_split_data <- juliaEval('
-      import Flux
-      using Random
-      Random.seed!(1);
-
-      function rand_split_data(x, labels)
-         nsamples = size(x, 2)
-         testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
-         trainidxs = setdiff(1:nsamples, testidxs)
-         x_train = x[:, trainidxs]
-         x_test = x[:, testidxs]
-         labels_train = labels[trainidxs]
-         labels_test = labels[testidxs]
-         y = Flux.onehotbatch(labels, unique(labels))
-         y_train = y[:, trainidxs]
-         y_test = y[:, testidxs]
-         (x_train = x_train, x_test = x_test,
-               y_train = y_train, y_test = y_test)
-      end')
-
-x <- as.matrix(iris[, 1:4])
-labels <- iris[, "Species"]
-data <- juliaPut(rand_split_data(t(x), labels))
-```
-
-</td>
-</tr>
-
-</tbody>
-</table>
-
 </details>
 
-<table>
-<thead>
-<tr><td><b>Julia</b></td><td><b>R</b></td></tr>
-</thead>
-<tbody>
-<tr>
-<td>
+<details><summary>Julia script: model training and evaluation</summary>
 
 ```julia
 # Load necessary features
@@ -178,16 +124,48 @@ accuracy(model, data.x_train, data.y_train)
 accuracy(model, data.x_test, data.y_test)
 ```
 
-</td>
-<td>
+</details>
 
+<details><summary>Adapted R/JuliaConnectoR script: data preparation</summary>
+
+```R
+library(JuliaConnectoR)
+# The Julia code can simply be reused
+rand_split_data <- juliaEval('
+      import Flux
+      using Random
+      Random.seed!(1);
+
+      function rand_split_data(x, labels)
+         nsamples = size(x, 2)
+         testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
+         trainidxs = setdiff(1:nsamples, testidxs)
+         x_train = x[:, trainidxs]
+         x_test = x[:, testidxs]
+         labels_train = labels[trainidxs]
+         labels_test = labels[testidxs]
+         y = Flux.onehotbatch(labels, unique(labels))
+         y_train = y[:, trainidxs]
+         y_test = y[:, testidxs]
+         (x_train = x_train, x_test = x_test,
+               y_train = y_train, y_test = y_test)
+      end')
+
+x <- as.matrix(iris[, 1:4])
+labels <- iris[, "Species"]
+data <- juliaPut(rand_split_data(t(x), labels))
+```
+
+</details>
+
+<details open><summary>Adapter R/JuliaConnectoR script: model training and evaluation</summary>
 
 ```R
 library(JuliaConnectoR)
 # load Flux features available in R
 juliaImport("Flux", importInternal = TRUE)
 
-juliaEval("using Statistics") # don't need that in R
+juliaEval("using Statistics") # for Julia code only
 
 juliaEval("import Random; Random.seed!(1)")
 model <- Flux.Chain(
@@ -223,14 +201,10 @@ accuracy(model, data$x_train, data$y_train)
 accuracy(model, data$x_test, data$y_test)
 ```
 
-</td>
-<tr>
-
-</tbody>
-</table>
+</summary>
 
 
-### Using the *BoltzmannMachines* in R
+### Using *BoltzmannMachines* in R
 
 The following example code shows how the `JuliaConnectoR` can be used to use the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
 
