@@ -493,6 +493,11 @@ function write_element(communicator, p::EnforcedProxy{T}) where {T <: Tuple}
    write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_ARRAY)
 end
 
+function write_element(communicator, p::EnforcedProxy)
+   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_STRUCT)
+end
+
+
 function write_expression(communicator, str::AbstractString)
    write_bin(communicator, TYPE_ID_EXPRESSION)
    write_string(communicator, str)

@@ -1002,6 +1002,9 @@ test_that("juliaPut", {
    x <- juliaPut(juliaEval("(a=1,b=2,c=3)"))
    expect_s3_class(x, "JuliaStructProxy")
    expect_equal(x$b, 2)
+
+   x <- juliaPut("bla")
+   expect_equal(as.character(juliaCall("typeof", x)), "String")
 })
 
 # # It takes very long to laod Flux, so don't include by default:
