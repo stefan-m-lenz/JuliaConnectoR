@@ -726,6 +726,13 @@ test_that("Callback functions", {
    expect_equal(outputenv$output, c(17, 18, 17))
 })
 
+test_that("Callback function calling Julia erroring in Julia", {
+   f <- juliaEval('(x) -> error("Error")')
+   g <- function(x) {cat("OK"); f(x); print("NotOK"); x}
+   output <- capture.output(expect_error(juliaCall("map", g, c(1,2,3))))
+   expect_equal(output, "OK")
+})
+
 
 test_that("Callback function might have error in R", {
 

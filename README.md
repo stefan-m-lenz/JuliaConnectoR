@@ -68,14 +68,16 @@ function rand_split_data(x, labels)
    y = Flux.onehotbatch(labels, unique(labels))
    y_train = y[:, trainidxs]
    y_test = y[:, testidxs]
-   (x_train = x_train, x_test = x_test,
-         y_train = y_train, y_test = y_test)
+   (training = (x = x_train, y = y_train),
+         test = (x = x_test, y = y_test))
 end
 
 using RDatasets
 iris = dataset("datasets", "iris")
 x = convert(Matrix{Float64}, (iris[:, 1:4]))'
 data = rand_split_data(x, iris[:, :Species])
+trainingdata = data.training
+testdata = data.test
 ```
 
 </details>
@@ -95,6 +97,7 @@ model = Flux.Chain(
       Flux.softmax)
 
 loss(model, x, y) = Flux.crossentropy(model(x), y)
+loss(model, data::NamedTuple) = loss(model, data.x, data.y)
 
 function train_network!(model, x, y; epochs, callback)
    opt = Flux.ADAM()
@@ -108,19 +111,19 @@ end
 epochs = 2500
 train_losses = Vector{Float32}(undef, epochs);
 test_losses = Vector{Float32}(undef, epochs);
-train_network!(model, data.x_train, data.y_train, epochs = epochs,
+train_network!(model, trainingdata.x, trainingdata.y, epochs = epochs,
       callback = (i) -> begin
-         train_losses[i] = loss(model, data.x_train, data.y_train)
-         test_losses[i] = loss(model, data.x_test, data.y_test)
+         train_losses[i] = loss(model, trainingdata)
+         test_losses[i] = loss(model, testdata)
       end)
 
 # (Could plot losses here)
 
 # Evaluate model
-accuracy(model, x, y) =
-      mean(Flux.onecold(model(x)) .== Flux.onecold(y))
-accuracy(model, data.x_train, data.y_train)
-accuracy(model, data.x_test, data.y_test)
+accuracy(model, data) =
+      mean(Flux.onecold(model(data.x)) .== Flux.onecold(data.y))
+accuracy(model, trainingdata)
+accuracy(model, testdata)
 ```
 
 </details>
@@ -146,13 +149,15 @@ rand_split_data <- juliaEval('
          y = Flux.onehotbatch(labels, unique(labels))
          y_train = y[:, trainidxs]
          y_test = y[:, testidxs]
-         (x_train = x_train, x_test = x_test,
-               y_train = y_train, y_test = y_test)
+         (training = (x = x_train, y = y_train),
+               test = (x = x_test, y = y_test))
       end')
 
 x <- as.matrix(iris[, 1:4])
 labels <- iris[, "Species"]
-data <- juliaPut(rand_split_data(t(x), labels))
+data <- rand_split_data(t(x), labels)
+trainingdata <- data$training
+testdata <- data$test
 ```
 
 </details>
@@ -166,14 +171,15 @@ juliaImport("Flux", importInternal = TRUE)
 
 juliaEval("using Statistics") # for Julia code only
 
-juliaEval("import Random; Random.seed!(1)")
+juliaEval("import Random; Random.seed!(1);")
 model <- Flux.Chain(
       Flux.Dense(4L, 4L, Flux.relu),
       Flux.Dense(4L, 4L, Flux.relu),
       Flux.Dense(4L, 3L),
       Flux.softmax)
 
-loss <- juliaEval("loss(model, x, y) = Flux.crossentropy(model(x), y)")
+loss <- juliaEval('loss(model, x, y) = Flux.crossentropy(model(x), y)
+                  loss(model, data::NamedTuple) = loss(model, data.x, data.y)')
 
 train_network <- juliaEval('
    function train_network!(model, x, y; epochs, callback)
@@ -188,18 +194,18 @@ train_network <- juliaEval('
 epochs <- 2500
 train_losses <- rep(0, epochs)
 test_losses <- rep(0, epochs)
-train_network(model, data$x_train, data$y_train, epochs = epochs,
+train_network(model, trainingdata$x, trainingdata$y, epochs = epochs,
       callback = function(i) {
-         train_losses[i] <<- loss(model, data$x_train, data$y_train)
-         test_losses[i] <<- loss(model, data$x_test, data$y_test)
+         train_losses[i] <<- loss(model, trainingdata)
+         test_losses[i] <<- loss(model, testdata)
       })
 
 # TODO plot losses
 
-accuracy <- juliaEval("accuracy(model, x, y) =
-      mean(Flux.onecold(model(x)) .== Flux.onecold(y))")
-accuracy(model, data$x_train, data$y_train)
-accuracy(model, data$x_test, data$y_test)
+accuracy <- juliaEval("accuracy(model, data) =
+      mean(Flux.onecold(model(data.x)) .== Flux.onecold(data.y))")
+accuracy(model, trainingdata)
+accuracy(model, testdata)
 ```
 
 </summary>

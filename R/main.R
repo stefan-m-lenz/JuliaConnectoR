@@ -382,15 +382,23 @@ handleCallbacksAndOutput <- function() {
       if (messageType == CALL_INDICATOR) {
          call <- readCall()
          callbackfun <- get(call$name, pkgLocal$callbacks)
-         tryCatch(answerCallback(callbackfun, call$args),
-                 error = function(e) {
-                    warning(e)
-                    writeFailMessage(as.character(e))
-                  })
+         callbackSuccess <- FALSE
+         tryCatch({
+            answerCallback(callbackfun, call$args)
+            callbackSuccess <- TRUE
+            }, error = function(e) {
+               writeFailMessage(as.character(e))
+            })
+         if (!callbackSuccess) {
+            return(readMessageType())
+         }
       } else if (messageType == STDOUT_INDICATOR) {
          readOutput(writeTo = stdout())
       } else if (messageType == STDERR_INDICATOR) {
          readOutput(writeTo = stderr())
+      } else if (messageType == FAIL_INDICATOR) {
+         errorMsg <- readString()
+         stop(errorMsg, domain = NA)
       } else {
          return(messageType)
       }

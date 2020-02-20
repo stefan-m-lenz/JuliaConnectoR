@@ -116,7 +116,7 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
             return evaluate!(answer)
          elseif firstbyte == CALL_INDICATOR
             call = read_call(communicator)
-            result = evaluate!(call)
+            result = evaluate_checked!(call)
             write_message(communicator, result)
          elseif firstbyte == FAIL_INDICATOR
             r_errormsg = read_string(communicator)
