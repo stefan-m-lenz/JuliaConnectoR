@@ -14,8 +14,9 @@ TYPE_ID_OBJECT_REFERENCE <- as.raw(0xce)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
 
 OBJECT_CLASS_ID_ARRAY <- as.raw(0xaa)
-OBJECT_CLASS_ID_STRUCT <- as.raw(0x5c)
 OBJECT_CLASS_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
+OBJECT_CLASS_ID_STRUCT <- as.raw(0x5c)
+
 
 CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
@@ -270,6 +271,14 @@ juliaExpr <- function(expr) {
 #' translated objects can also saved in R and safely be restored in Julia.
 #'
 #' Modifying objects is possible and changes in R will be translated back to Julia.
+#'
+#' @note
+#'
+#' Objects containing cicular references cannot be translated back to Julia.
+#'
+#' If Julia objects contain external references such as pointers,
+#' they cannot be translated back to Julia after the Julia process
+#' has been stopped and restarted.
 #'
 #' @param x a reference to a Julia object
 juliaGet <- function(x) {

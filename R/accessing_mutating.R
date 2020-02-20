@@ -17,10 +17,8 @@
 #' #juliaEval("bla")
 NULL
 
-
 # TODO docu operators
 # index: conversion to int
-# doku item indexing. ?`$.data.frame` -> Extract.data.frame
 
 #' @rdname AccessMutate.JuliaProxy
 `$.JuliaStructProxy` <- function(x, name) {
@@ -38,7 +36,7 @@ NULL
 `[.JuliaProxy` <- function(x, ...) {
    ret <- do.call(juliaCall, c("RConnector.getidxs", x, list(...)))
    if (!is.list(ret) && !inherits(ret, "JuliaProxy")) {
-      return(list(ret)) # compatibility with translated behaviour of translated objects
+      return(as.list(ret)) # compatibility with translated behaviour of translated objects
    } else {
       return(ret)
    }
@@ -58,7 +56,6 @@ NULL
    x
 }
 
-# TODO [] auf arrays: so wie liste?
 
 #' @rdname AccessMutate.JuliaProxy
 `[[.JuliaArrayProxy` <- function(x, ...) {
@@ -92,13 +89,15 @@ NULL
 }
 
 
+#' @rdname AccessMutate.JuliaProxy
 length.JuliaArrayProxy <- function(x) {
    juliaCall("length", x)
 }
 
 
+#' @rdname AccessMutate.JuliaProxy
 dim.JuliaArrayProxy <- function(x) {
-   unlist(juliaCall("size", x))
+   juliaCall("RConnector.getdim", x)
 }
 
 

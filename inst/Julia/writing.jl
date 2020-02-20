@@ -295,13 +295,17 @@ function write_element(communicator, f::Function)
 end
 
 function write_element(communicator, t::Tuple)
-   write_bin(communicator, TYPE_ID_LIST)
-   attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
-   ellist = ElementList(
-         Vector{Any}(collect(t)),
-         Vector{Symbol}(), Dict{Symbol, Any}(),
-         attributes)
-   write_list(communicator, ellist)
+   if full_translation.x
+      write_bin(communicator, TYPE_ID_LIST)
+      attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
+      ellist = ElementList(
+            Vector{Any}(collect(t)),
+            Vector{Symbol}(), Dict{Symbol, Any}(),
+            attributes)
+      write_list(communicator, ellist)
+   else
+      write_object_reference(communicator, t, OBJECT_CLASS_ID_ARRAY)
+   end
 end
 
 function write_element(communicator, ellist::ElementList)
@@ -332,7 +336,11 @@ function write_element(communicator, obj::Module)
 end
 
 function write_element(communicator, obj::NamedTuple)
-   write_struct_element(communicator, obj)
+   if full_translation.x
+      write_struct_element(communicator, obj)
+   else
+      write_object_reference(communicator, obj, OBJECT_CLASS_ID_STRUCT)
+   end
 end
 
 function write_element(communicator, d::T) where {T2, T <: Type{T2}}

@@ -77,10 +77,7 @@ test_that("Test loading and importing a complex package", {
              end
              ') # tests also trailing whitespace
    juliaImport("StatsBase")
-   expectedMeanAndVar <- list(2,1)
-   attr(expectedMeanAndVar, "JLTYPE") <- "Tuple{Float64, Float64}"
-   expect(all(as.numeric(StatsBase.mean_and_var(c(1,2,3))) == c(2,1)),
-          "Trivial mean and var calculation")
+   expect_equivalent(juliaGet(StatsBase.mean_and_var(c(1,2,3))), list(2,1))
    StatsBase.renyientropy(rnorm(100), 1)
 })
 
@@ -328,7 +325,7 @@ test_that("Multidimensional object arrays work", {
    testEcho(content)
    x <- juliaLet("map(MultiTestStruct, c)", c = content)
    testEcho(x)
-   expect_equivalent(juliaCall("size", x), list(4,5,6))
+   expect_equivalent(dim(x), c(4,5,6))
 
    expect_equivalent(juliaGet(x[1,1,1]), list(juliaGet(x[[1,1,1]])))
 
@@ -357,7 +354,7 @@ test_that("Multidimensional object arrays work", {
 
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
-   expect_equivalent(juliaCall("size", x), list(0,0,0))
+   expect_equivalent(dim(x), c(0,0,0))
 })
 
 
@@ -441,20 +438,28 @@ test_that("Echo: Pairs", {
 
 # Test Tuples
 test_that("Echo: Tuples", {
+   x <- juliaEval("(1, 17, 18)")
+   expect_equal(x[[2]], 17)
+   expect_equal(juliaGet(x[1]), juliaGet(juliaEval("(1,)")))
+   expect_length(x, 3)
+   expect_length(x[1:2], 2)
+
    testEcho(juliaEval("(1, 2.0)"))
    testEcho(juliaEval("((1, 2.0), 3.0)"))
    testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
 
    testEcho(juliaEval("(Ref(false), Ref(true))"))
-   # TODO
-   #testEcho(juliaGet(juliaEval("(Ref(false), Ref(true))")))
+   testEcho(juliaEval("Tuple{}()"))
 })
 
 
 # Test Named Tuples
 test_that("Echo: Named Tuples", {
    namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
-   expect_type(namedTuple, "list")
+   expect_s3_class(namedTuple, "JuliaStructProxy")
+   expect_equal(namedTuple$y, 13)
+   expect_type(juliaGet(namedTuple), "list")
+   expect_equal(juliaGet(namedTuple)$y, 13)
    testEcho(namedTuple)
 })
 
@@ -470,9 +475,9 @@ test_that("Echo: Module", {
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
    expect_equivalent(d[juliaExpr(":bla")][[1]], 1)
-   expect_equivalent(d[juliaExpr(":bla"), juliaExpr(":bla")], c(1, 1))
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":bla")], as.list(c(1, 1)))
    expect_equal(d[[juliaExpr(":bla")]], 1)
-   expect_equivalent(d[juliaExpr(":blup")],list(3))
+   expect_equal(d[juliaExpr(":blup")],list(3))
    d[juliaExpr(":blup")] <- 4
    expect_equal(d[[juliaExpr(":blup")]], 4)
    d[[juliaExpr(":blup")]] <- 5
@@ -482,7 +487,9 @@ test_that("Echo: Dictionary", {
    expect_setequal(d2[["values"]], list(1, 5))
 
    d[juliaExpr(":hi"), juliaExpr(":hello")] <- c(15, 14)
-   expect_equivalent(d[juliaExpr(":bla"), juliaExpr(":hi")], c(1, 15))
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":hi")], as.list(c(1, 15)))
+   d[juliaExpr(":hi"), juliaExpr(":hello")] <- as.list(c(16, 17))
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":hello"), juliaExpr(":hi")], as.list(c(1, 17, 16)))
    expect_length(d[juliaExpr(":bla"), juliaExpr(":hi"), juliaExpr(":hello"), juliaExpr(":hello")], 4)
 
    d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
@@ -994,6 +1001,7 @@ test_that("juliaPut", {
    x <- juliaPut(c(1,2,3))
    expect_s3_class(x, "JuliaArrayProxy")
    expect_equal(x[[1]], 1)
+   #expect_equal(x[1:2], c(1,2)) # TODO
 
    x <- juliaPut(juliaEval("(1,2,3)"))
    expect_s3_class(x, "JuliaArrayProxy")

@@ -18,8 +18,7 @@ reference via proxy objects in R or fully translated to R data structures.
 
 The package can be installed in R via `devtools`:
 
-    library(devtools)
-    install_github("stefan-m-lenz/JuliaConnectoR")
+    devtools::install_github("stefan-m-lenz/JuliaConnectoR")
 
 The package requires that [Julia (Version &ge; 1.0) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
@@ -195,6 +194,8 @@ train_network(model, data$x_train, data$y_train, epochs = epochs,
          test_losses[i] <<- loss(model, data$x_test, data$y_test)
       })
 
+# TODO plot losses
+
 accuracy <- juliaEval("accuracy(model, x, y) =
       mean(Flux.onecold(model(x)) .== Flux.onecold(y))")
 accuracy(model, data$x_train, data$y_train)
@@ -213,7 +214,7 @@ library(JuliaConnectoR)
 
 # Test BoltzmannMachines package
 # If not installed, install the current version via
-# juliaEval('using Pkg; Pkg.add(PackageSpec(name = "BoltzmannMachines", rev = "master"))')
+# juliaEval('using Pkg; Pkg.add("BoltzmannMachines"))')
 
 # Set a random seed in Julia
 juliaEval("using Random; Random.seed!(5);")

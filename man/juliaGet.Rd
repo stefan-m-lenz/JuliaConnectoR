@@ -20,3 +20,10 @@ translated objects can also saved in R and safely be restored in Julia.
 
 Modifying objects is possible and changes in R will be translated back to Julia.
 }
+\note{
+Objects containing cicular references cannot be translated back to Julia.
+
+If Julia objects contain external references such as pointers,
+they cannot be translated back to Julia after the Julia process
+has been stopped and restarted.
+}

@@ -98,7 +98,11 @@ end
 
 # indexing dictionary with e.g. d[c("hi", "you")]
 function getidxs(d::AbstractDict{K, V}, keys::Vararg{K}) where {K, V}
-   map(k -> d[k], keys)
+   ret = Vector{V}(undef, length(keys))
+   for i in eachindex(keys)
+      ret[i] = d[keys[i]]
+   end
+   ret
 end
 
 
@@ -176,4 +180,8 @@ function setidxs!(d::AbstractDict{K, V}, values::Vector, keys::Vararg{K}) where 
    check_lengths_for_assignment(keys, values)
    map(i -> d[keys[i]] = values[i], eachindex(keys))
    return nothing
+end
+
+function getdim(x::T) where {T <: Union{AbstractArray, Tuple}}
+   collect(size(x))
 end

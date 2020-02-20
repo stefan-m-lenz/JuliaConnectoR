@@ -146,12 +146,6 @@
 #' values in Julia. The behaviour regarding data frames and missing values
 #' can change in future versions of the package.
 #'
-#' Objects containing cicular references cannot be translated back to Julia.
-#'
-#' If Julia objects contain external references such as pointers,
-#' they cannot be translated back to Julia after the Julia process
-#' has been stopped and restarted.
-#'
 #' Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 #' \code{integer} values in R will be translated to \code{double} numbers.
 #' This may lead to a inaccurate results for very large numbers,

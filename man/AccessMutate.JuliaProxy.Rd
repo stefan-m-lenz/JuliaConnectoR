@@ -10,6 +10,8 @@
 \alias{[[<-.JuliaArrayProxy}
 \alias{[[.JuliaStructProxy}
 \alias{[[<-.JuliaStructProxy}
+\alias{length.JuliaArrayProxy}
+\alias{dim.JuliaArrayProxy}
 \title{Access or mutate Julia objects}
 \usage{
 \method{$}{JuliaStructProxy}(x, name)
@@ -27,6 +29,10 @@
 \method{[[}{JuliaStructProxy}(x, name)
 
 \method{[[}{JuliaStructProxy}(x, name) <- value
+
+\method{length}{JuliaArrayProxy}(x)
+
+\method{dim}{JuliaArrayProxy}(x)
 }
 \arguments{
 \item{x}{a Julia proxy object}
