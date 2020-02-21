@@ -125,10 +125,12 @@ function read_element(communicator)
       object_class = read_bin(communicator, 1)
       ref = parseheapref(read_bin(communicator, 8))
       return ObjectReference(ref)
-   elseif  typeid == TYPE_ID_CALLBACK
+   elseif typeid == TYPE_ID_CALLBACK
       callbackid = read_string(communicator)
       callback = callbackfun(callbackid, communicator)
       return callback
+   elseif typeid == TYPE_ID_SYMBOL
+      return Symbol(read_string(communicator))
    else
       dimensions = read_dimensions(communicator)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)

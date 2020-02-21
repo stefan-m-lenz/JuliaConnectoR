@@ -314,12 +314,8 @@ function write_element(communicator, ellist::ElementList)
 end
 
 function write_element(communicator, obj::Symbol)
-   ellist = ElementList(
-         Vector{Any}(),
-         [:name],
-         Dict{Symbol, Any}(:name => string(obj)),
-         Dict{String, Any}("JLTYPE" => "Symbol"))
-   write_element(communicator, ellist)
+   write_bin(communicator, TYPE_ID_SYMBOL)
+   write_string(communicator, string(obj))
 end
 
 function write_element(communicator, obj::Module)

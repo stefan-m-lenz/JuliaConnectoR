@@ -158,6 +158,8 @@ readElement <- function() {
    } else if (typeId == TYPE_ID_CALLBACK) {
       callbackId <- readString()
       return(get(callbackId, pkgLocal$callbacks))
+   } else if (typeId == TYPE_ID_SYMBOL) {
+      return(as.symbol(readString()))
    } else {
       dimensions <- readDimensions()
       nElements <- prod(dimensions)

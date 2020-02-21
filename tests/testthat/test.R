@@ -470,14 +470,21 @@ test_that("Echo: Module", {
    testEcho(juliaEval("TestModule"))
 })
 
+test_that("Echo: Symbol", {
+   x <- juliaEval(":asymbol")
+   expect_true(is.symbol(x))
+   expect_true(juliaCall("isa", as.symbol("s"), juliaExpr("Symbol")))
+   testEcho(x)
+})
+
 
 # Test Dictionary
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
    expect_equivalent(d[juliaExpr(":bla")][[1]], 1)
    expect_equal(d[juliaExpr(":bla"), juliaExpr(":bla")], as.list(c(1, 1)))
-   expect_equal(d[[juliaExpr(":bla")]], 1)
-   expect_equal(d[juliaExpr(":blup")],list(3))
+   expect_equal(d[[as.symbol("bla")]], 1)
+   expect_equal(d[as.symbol("blup")],list(3))
    d[juliaExpr(":blup")] <- 4
    expect_equal(d[[juliaExpr(":blup")]], 4)
    d[[juliaExpr(":blup")]] <- 5
@@ -502,6 +509,9 @@ test_that("Echo: Dictionary", {
    d2 <- juliaGet(d)
    expect_setequal(d2[["keys"]], list("bla", "blup"))
    expect_setequal(d2[["values"]], list(1,2))
+
+   d$bla <- 17
+   expect_equal(d$bla, 17)
 
    d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
    expect_equal(length(juliaCall("keys", d)), 1)

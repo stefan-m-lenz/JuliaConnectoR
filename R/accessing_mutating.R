@@ -5,7 +5,7 @@
 #'
 #' @param x a Julia proxy object
 #' @param i,j,k,... indexes for specifying the elements to extract or replace
-#' @param name a character string (TODO symbol) giving the name of a property
+#' @param name the name of a property
 #'   of a struct type or a key in a Julia dictionary (type \code{AbstractDict})
 #' @param value a suitable replacement value.
 #'    When replacing a range of elements in an array type, it is possible to
@@ -34,7 +34,7 @@ NULL
 
 #' @rdname AccessMutate.JuliaProxy
 `[.JuliaProxy` <- function(x, ...) {
-   ret <- do.call(juliaCall, c("RConnector.getidxs", x, list(...)))
+   ret <- do.call(juliaCall, quote = TRUE, c("RConnector.getidxs", x, list(...)))
    if (!is.list(ret) && !inherits(ret, "JuliaProxy")) {
       return(as.list(ret)) # compatibility with translated behaviour of translated objects
    } else {
@@ -59,7 +59,7 @@ NULL
 
 #' @rdname AccessMutate.JuliaProxy
 `[[.JuliaArrayProxy` <- function(x, ...) {
-   do.call(juliaCall, c("RConnector.getidx", x, list(...)))
+   do.call(juliaCall, quote = TRUE, c("RConnector.getidx", x, list(...)))
 }
 
 #' @rdname AccessMutate.JuliaProxy

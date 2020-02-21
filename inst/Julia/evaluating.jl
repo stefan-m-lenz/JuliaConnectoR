@@ -89,8 +89,6 @@ function evaluate!(list::ElementList)
          elseif constructor <: NamedTuple
             return NamedTuple{Tuple(list.names)}(
                   [list.namedelements[name] for name in list.names])
-         elseif constructor <: Symbol
-            return Symbol(list.namedelements[:name])
          elseif constructor <: Module
             return Module(Symbol(list.namedelements[:name]))
          elseif constructor <: CircularReference

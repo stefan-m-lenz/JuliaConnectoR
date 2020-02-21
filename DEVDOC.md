@@ -19,10 +19,11 @@
             | '0x05' dimensions {boolean}
             | '0x06' dimensions {string} attributes
             | '0x07' list
+            | '0x5b' string (* name of symbol *)
             | '0x5e' object_class_id object_reference
             | '0xcb' callback
-            | '0xfc' named_function
             | '0xee' expression
+            | '0xfc' named_function
     object_class_id = '0x5c' (* class JuliaStructProxy *)
                     | '0xaf' (* anonymous function reference *)
                     | '0xaa' (* class JuliaArrayProxy *)

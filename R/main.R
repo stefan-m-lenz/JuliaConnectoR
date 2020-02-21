@@ -12,6 +12,7 @@ TYPE_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
 TYPE_ID_NAMED_FUNCTION <- as.raw(0xfc)
 TYPE_ID_OBJECT_REFERENCE <- as.raw(0xce)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
+TYPE_ID_SYMBOL <- as.raw(0x5b)
 
 OBJECT_CLASS_ID_ARRAY <- as.raw(0xaa)
 OBJECT_CLASS_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
@@ -35,7 +36,8 @@ TYPE_IDS <- list(
    "integer" = TYPE_ID_INTEGER,
    "logical" = TYPE_ID_LOGICAL,
    "character" = TYPE_ID_STRING,
-   "list" = TYPE_ID_LIST)
+   "list" = TYPE_ID_LIST,
+   "symbol" = TYPE_ID_SYMBOL)
 
 
 # support versions lower than 3.3.0
@@ -229,7 +231,7 @@ juliaFun <- function(name, ...) {
       # This will be treated as a callback function,
       # if it is passed to Julia.
       f <- function(...) {
-         do.call(juliaCall, c(name, args, list(...)))
+         do.call(juliaCall, quote = TRUE, c(name, args, list(...)))
       }
    }
 
@@ -371,7 +373,7 @@ juliaLet <- function(expr, ...) {
       stop("Arguments must have names")
    } else {
       args <- c("RConnector.mainevallet", expr, args)
-      do.call(juliaCall, args)
+      do.call(juliaCall, args, quote = TRUE)
    }
 }
 

@@ -1,4 +1,4 @@
-function getprop(value, name::String)
+function getprop(value, name)
    getproperty(value, Symbol(name))
 end
 
@@ -7,12 +7,8 @@ function getprop(d::AbstractDict{K, V}, key::K) where {K, V}
    d[key]
 end
 
-function getprop(d::AbstractDict{String, V}, key::String) where V
-   d[key]
-end
 
-
-function setprop!(value, name::String, x)
+function setprop!(value, name, x)
    setproperty!(value, Symbol(name), x)
    return nothing
 end

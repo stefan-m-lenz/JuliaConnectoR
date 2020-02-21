@@ -131,6 +131,9 @@ writeElement <- function(elem) {
       } else if (typeId == TYPE_ID_LIST) {
          writeBin(typeId, pkgLocal$con)
          writeList(elem)
+      } else if (typeId == TYPE_ID_SYMBOL) {
+         writeBin(typeId, pkgLocal$con)
+         writeString(as.character(elem))
       }
    }
 }
