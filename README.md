@@ -191,6 +191,20 @@ train_network <- juliaEval('
       end
    end')
 
+plotLoss <- function(epoch, loss_train, loss_test, epochs) {
+   if (epoch == 1) {
+      ymax <- max(loss_train, loss_test)
+      plot(x = c(1, 1), y = c(loss_train, loss_test),
+           xlim = c(0, epochs), ylim = c(0, ymax*1.1),
+           col = c("red", "blue"), xlab = "Epoch", ylab = "Loss")
+      legend("topright", legend = c("Training data", "Test data"),
+             col = c("red", "blue"), pch = 1)
+   } else {
+      points(x = c(epoch, epoch), y = c(loss_train, loss_test),
+             col = c("red", "blue"))
+   }
+}
+
 epochs <- 2500
 train_losses <- rep(0, epochs)
 test_losses <- rep(0, epochs)
@@ -198,9 +212,8 @@ train_network(model, trainingdata$x, trainingdata$y, epochs = epochs,
       callback = function(i) {
          train_losses[i] <<- loss(model, trainingdata)
          test_losses[i] <<- loss(model, testdata)
+         plotLoss(i, train_losses[i], test_losses[i], epochs)
       })
-
-# TODO plot losses
 
 accuracy <- juliaEval("accuracy(model, data) =
       mean(Flux.onecold(model(data.x)) .== Flux.onecold(data.y))")
@@ -210,6 +223,12 @@ accuracy(model, testdata)
 
 </summary>
 
+Using the callback makes it possible to plot the training curve
+during the training.
+This example runs so fast, that it is not really possible to watch the
+training progress.
+In our case, it would be better to optimize the training function to accumulate the losses in Julia and plot them in the end of the training.
+However, the example demonstrates the principle of how callback functions can be used to watch the progress during the training.
 
 ### Using *BoltzmannMachines* in R
 
