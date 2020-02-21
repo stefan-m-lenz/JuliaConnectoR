@@ -12,7 +12,7 @@
 \alias{[[<-.JuliaStructProxy}
 \alias{length.JuliaArrayProxy}
 \alias{dim.JuliaArrayProxy}
-\title{Access or mutate Julia objects}
+\title{Access or mutate Julia objects via proxy objects}
 \usage{
 \method{$}{JuliaStructProxy}(x, name)
 
@@ -37,7 +37,7 @@
 \arguments{
 \item{x}{a Julia proxy object}
 
-\item{name}{a character string (TODO symbol) giving the name of a property
+\item{name}{the name of a property
 of a struct type or a key in a Julia dictionary (type \code{AbstractDict})}
 
 \item{value}{a suitable replacement value.

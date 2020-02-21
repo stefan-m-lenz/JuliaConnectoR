@@ -1,4 +1,4 @@
-#' Access or mutate Julia objects
+#' Access or mutate Julia objects via proxy objects
 #'
 #' @description
 #' Extract or replace parts of Julia proxy objects

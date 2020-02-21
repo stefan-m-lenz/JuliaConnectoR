@@ -274,13 +274,29 @@ juliaExpr <- function(expr) {
 #'
 #' Modifying objects is possible and changes in R will be translated back to Julia.
 #'
+#' The following table shows the translation of Julia objects into R objects.
+#'
+#' \tabular{lcl}{
+#' \strong{Julia} \tab  \tab \strong{R} \cr
+#'  \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
+#'  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
+#'  \code{Tuple} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
+#'  \code{NamedTuple} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named elements \cr
+#'  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
+#'  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
+#' }
+#'
 #' @note
 #'
 #' Objects containing cicular references cannot be translated back to Julia.
 #'
-#' If Julia objects contain external references such as pointers,
-#' they cannot be translated back to Julia after the Julia process
-#' has been stopped and restarted.
+#' It is safe to translate objects that contain external references from Julia to R.
+#' The pointers will be copied as values and the finalization of the translated
+#' Julia objects is prevented.
+#' The original objects are garbage collected after all direct or
+#' indirect copies are garbage collected.
+#' Note, however, that these translated objects cannot be translated back to Julia
+#' after the Julia process has been stopped and restarted.
 #'
 #' @param x a reference to a Julia object
 juliaGet <- function(x) {

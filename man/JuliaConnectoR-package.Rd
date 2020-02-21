@@ -70,6 +70,7 @@ The type correspondences of the basic R data types in Julia are the following:
 \code{character} \tab \eqn{\rightarrow}{-->} \tab \code{String} \cr
 \code{complex} \tab \eqn{\rightarrow}{-->} \tab \code{Complex{Float64}} \cr
 \code{raw}  \tab \eqn{\rightarrow}{-->} \tab \code{UInt8} \cr
+\code{symbol} \tab \eqn{\rightarrow}{-->} \tab \code{Symbol} \cr
 }
 
 R vectors of length 1 of the types in the table above will be translated to the types shown.
@@ -109,8 +110,7 @@ It should not be necessary to worry too much
 about the translations from Julia to R because the resulting R objects should be
 intuitive to handle.
 
-The following table shows how the primitive types
-of Julia are translated to R:
+The following table shows how basic R-compatible types of Julia are translated to R:
 \tabular{lcl}{
 \strong{Julia} \tab  \tab \strong{R} \cr
  \code{Float64}\tab \eqn{\rightarrow}{-->} \tab\code{double} \cr
@@ -125,26 +125,20 @@ of Julia are translated to R:
  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
 }
 
-Non-primitive objects are translated as follows:
-\tabular{lcl}{
-\strong{Julia} \tab  \tab \strong{R} \cr
- \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{vector} or \code{array} of corresponding type \cr
- \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
- \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
- \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
- \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
- \code{Function} \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
-}
+Julia \code{Array}s of these types are translated to \code{vector}s or \code{array}s of the corresponding types in R.
 
-Julia functions that have been translated to R can also be translated back to the
+Julia object of other types, in particular \code{struct}s, \code{Tuple}s, \code{NamedTuple}s,
+and \code{AbstractArray}s of other types are transferred by reference in the form of proxy objects.
+Elements and properties of these proxy objects can be accessed and mutated via the operators \code{`[[`},
+\code{`[`}, and \code{`$`} (see \link{AccessMutate.JuliaProxy}).
+
+A full translation of the proxy objects into R objects, which also allows saving these objects in R,
+is possible via \code{\link{juliaGet}}.
+
+Julia functions are translated to R functions that call the Julia function.
+These functions can also be translated back to the
 corresponding Julia functions when used as argument of another function
 (see \code{\link{juliaFun}}).
-
-It is safe to translate objects that contain external references from Julia to R.
-The pointers will be copied as values and the finalization of the translated
-Julia objects is prevented.
-The original objects are garbage collected after all direct or
-indirect copies are garbage collected.
 
 }
 }
