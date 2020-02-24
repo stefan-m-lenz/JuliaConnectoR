@@ -64,6 +64,14 @@ writeListAttributes <- function(theAttributes) {
    writeAttributes(theAttributes)
 }
 
+
+writeCallback <- function(elem) {
+   writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
+   callbackId <- registerCallback(elem)
+   writeString(callbackId)
+}
+
+
 writeObjectReference <- function(objectClassId, ref) {
    writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
    writeBin(objectClassId, pkgLocal$con)
@@ -78,8 +86,7 @@ writeElement <- function(elem) {
       return()
    }
 
-   elemType <- typeof(elem)
-   if (elemType == "closure") {
+   if (is.function(elem)) {
       if (!is.null(attr(elem, "JLTYPE"))) {
          writeExpression(attr(elem, "JLTYPE"))
       } else if (!is.null(attr(elem, "JLFUN"))) {
@@ -88,14 +95,13 @@ writeElement <- function(elem) {
          writeObjectReference(OBJECT_CLASS_ID_ANONYMOUS_FUNCTION,
                               attr(elem, "JLREF")$ref)
       } else {
-         writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
-         callbackId <- registerCallback(elem)
-         writeString(callbackId)
+        writeCallback(elem)
       }
-   } else if (elemType == "environment" && inherits(elem, "JuliaProxy")) {
+   } else if (inherits(elem, "JuliaProxy")) {
       writeObjectReference(as.raw(0x00), # Julia doesn't care about the class)
                            get("ref", elem))
    } else {
+      elemType <- typeof(elem)
       typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {
          warning(paste0("Type ", elemType, ", of element ", elem,

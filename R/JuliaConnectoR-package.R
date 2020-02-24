@@ -78,7 +78,7 @@
 #' R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
 #' the most specific supertype of the list elements after translation to Julia.
 #'
-#' An R function (type \code{closure}) that is handed to Julia as argument in a function
+#' An R function that is handed to Julia as argument in a function
 #' call is translated to a Julia callback function that will call the given R function.
 #'
 #' Strings with attribute \code{"JLEXPR"}
