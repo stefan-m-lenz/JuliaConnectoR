@@ -26,8 +26,6 @@ STDERR_INDICATOR <- as.raw(0x5e)
 FAIL_INDICATOR <- as.raw(0xff)
 BYEBYE <- as.raw(0xbb)
 
-LOAD_MODE_USING <- 0L
-LOAD_MODE_IMPORT <- 1L
 
 TYPE_IDS <- list(
    "double" = TYPE_ID_DOUBLE,

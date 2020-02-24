@@ -355,6 +355,12 @@ test_that("Multidimensional object arrays work", {
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
    expect_equivalent(dim(x), c(0,0,0))
+
+   # Two dimensions
+   content <- juliaEval("rand(2,3)")
+   x <- juliaLet("map(MultiTestStruct, c)", c = content)
+   x[[1,2]] <- juliaEval("MultiTestStruct(3.0)")
+   expect_equal(x[[1,2]]$f, 3)
 })
 
 

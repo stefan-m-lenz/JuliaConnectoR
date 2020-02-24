@@ -35,7 +35,7 @@ getFunctionList <- function(funnames, rPrefix, juliaPrefix,
 }
 
 
-attachJuliaPackage <- function(modulePath, alias, mode,
+attachJuliaPackage <- function(modulePath, alias, importViaUsing = FALSE,
                                importInternal = FALSE) {
    ensureJuliaConnection()
 
@@ -49,16 +49,14 @@ attachJuliaPackage <- function(modulePath, alias, mode,
       alias <- moduleName
    }
 
-   if (mode == LOAD_MODE_USING) {
+   if (importViaUsing) {
       loadMode <- "using"
       juliaPrefixExported <- ""
       rPrefixExported <- ""
-   } else if (mode == LOAD_MODE_IMPORT) {
+   } else {
       loadMode <- "import"
       juliaPrefixExported <- paste0(absoluteModulePath, ".")
       rPrefixExported <- paste0(alias, ".")
-   } else {
-      stop(paste("Unknown mode:", mode))
    }
 
    juliaEval(paste(loadMode, modulePath))
@@ -78,7 +76,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
    juliaPrefixInternal <- paste0(absoluteModulePath, ".")
    rPrefixInternal <- paste0(alias, ".")
 
-   if (mode == LOAD_MODE_USING) {
+   if (importViaUsing) {
       list2env(envir = funenv,
                getFunctionList(pkgContent$exportedFunctions,
                                rPrefixInternal, juliaPrefixInternal))
@@ -175,7 +173,7 @@ attachJuliaPackage <- function(modulePath, alias, mode,
 juliaUsing <- function(modulePath, alias = NULL,
                        importInternal = FALSE) {
    attachJuliaPackage(modulePath, alias,
-                      mode = LOAD_MODE_USING,
+                      importViaUsing = TRUE,
                       importInternal = importInternal)
    invisible()
 }
@@ -248,7 +246,6 @@ juliaUsing <- function(modulePath, alias = NULL,
 juliaImport <- function(modulePath, alias = NULL,
                         importInternal = FALSE) {
    attachJuliaPackage(modulePath, alias,
-                      mode = LOAD_MODE_IMPORT,
                       importInternal = importInternal)
    invisible()
 }
