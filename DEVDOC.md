@@ -25,6 +25,7 @@
             | '0xee' expression
             | '0xfc' named_function
     object_class_id = '0x5c' (* class JuliaStructProxy *)
+                    | '0x5a' (* class JuliaSimpleArrayProxy *)
                     | '0xaf' (* anonymous function reference *)
                     | '0xaa' (* class JuliaArrayProxy *)
                     | '0x00' (* no information *)

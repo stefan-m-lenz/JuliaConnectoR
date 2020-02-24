@@ -6,6 +6,7 @@
 \alias{$<-.JuliaStructProxy}
 \alias{[.JuliaProxy}
 \alias{[<-.JuliaProxy}
+\alias{[.JuliaSimpleArrayProxy}
 \alias{[[.JuliaArrayProxy}
 \alias{[[<-.JuliaArrayProxy}
 \alias{[[.JuliaStructProxy}
@@ -21,6 +22,8 @@
 \method{[}{JuliaProxy}(x, ...)
 
 \method{[}{JuliaProxy}(x, i, j, k) <- value
+
+\method{[}{JuliaSimpleArrayProxy}(x, ...)
 
 \method{[[}{JuliaArrayProxy}(x, ...)
 
@@ -53,24 +56,24 @@ and \code{[[<-} to access or modify parts of Julia objects via their proxy objec
 For an intuitive understanding, best see the examples below.
 }
 \details{
-The \code{$} operator allows to access properties of Julia \code{struct}s
+The operators \code{$} and \code{[[} allow to access properties of Julia \code{struct}s
 and \code{NamedTuple}s via their proxy objects.
-For dictionaries (Julia type \code{AbstractDict}), the \code{$} operator
+For dictionaries (Julia type \code{AbstractDict}), \code{$} and \code{[[}
 can also be used to look up string keys.
 Fields of \code{mutable struct}s and dictionary elements with string keys
-can be set via the \code{$<-} operator.
+can be set via \code{$<-} and \code{[[<-}.
 
-The \code{[}, \code{[<-}, \code{[[}, and \code{[[<-}
-operators relay to the \code{getindex} and \code{setindex!} Julia functions for
-collections.
+For \code{AbstractArray}s, the \code{[}, \code{[<-}, \code{[[}, and \code{[[<-}
+operators relay to the \code{getindex} and \code{setindex!} Julia functions.
 The \code{[[} and \code{[[<-} operators are used to access or mutate a single element.
 With \code{[} and \code{[<-}, a range of objects is accessed or mutated.
+The elements of \code{Tuple}s can also be accessed via \code{[} and \code{[[}.
 
 The dimensions of proxy objects for Julia \code{AbstractArray}s and \code{Tuple}s
 can be queried via \code{length} and \code{dim}.
 }
 \examples{
-# (Mutable) struct access
+# (Mutable) struct
 juliaEval("mutable struct MyStruct
              x::Int
           end")
@@ -79,7 +82,7 @@ MyStruct <- juliaFun("MyStruct")
 s <- MyStruct(1L)
 s$x
 s$x <- 2
-s$x
+s[["x"]]
 
 # Array
 x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))

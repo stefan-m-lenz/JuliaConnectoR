@@ -15,8 +15,10 @@ TYPE_ID_EXPRESSION <- as.raw(0xee)
 TYPE_ID_SYMBOL <- as.raw(0x5b)
 
 OBJECT_CLASS_ID_ARRAY <- as.raw(0xaa)
+OBJECT_CLASS_ID_SIMPLE_ARRAY <- as.raw(0x5a)
 OBJECT_CLASS_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
 OBJECT_CLASS_ID_STRUCT <- as.raw(0x5c)
+OBJECT_CLASS_ID_NO_INFO <- as.raw(0x00)
 
 
 CALL_INDICATOR <- as.raw(0x01)
@@ -331,7 +333,14 @@ juliaGet.JuliaProxy <- function(x) {
 #' JuliaConnectoR:::stopJulia()
 #' }
 juliaPut <- function(x) {
-   juliaCall("RConnector.EnforcedProxy", x)
+   if (inherits(x, "JuliaProxy")) {
+      stop("Argument is already a Julia object")
+   } else if (is.list(x) && !is.null(attr(x, "JLTYPE"))) {
+      # a translated julia object
+      juliaCall("identity", x)
+   } else {
+      juliaCall("RConnector.EnforcedProxy", x)
+   }
 }
 
 

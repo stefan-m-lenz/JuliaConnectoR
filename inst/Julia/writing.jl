@@ -485,18 +485,13 @@ function write_element(communicator, n::Nothing)
    write_bin(communicator, TYPE_ID_NOTHING)
 end
 
-function write_element(communicator, p::EnforcedProxy{T}) where {T <: AbstractArray}
-   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_ARRAY)
-end
-
-function write_element(communicator, p::EnforcedProxy{T}) where {T <: Tuple}
-   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_ARRAY)
+function write_element(communicator, p::EnforcedProxy{T}) where {T <: Array}
+   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_SIMPLE_ARRAY)
 end
 
 function write_element(communicator, p::EnforcedProxy)
-   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_STRUCT)
+   write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_NO_INFO)
 end
-
 
 function write_expression(communicator, str::AbstractString)
    write_bin(communicator, TYPE_ID_EXPRESSION)

@@ -133,8 +133,14 @@ readObjectReference <- function() {
       fun <- juliaFun("RConnector.callanonymous", ref)
       attr(fun, "JLREF") <- obj
       return(fun)
+   } else if (objectClassId == OBJECT_CLASS_ID_SIMPLE_ARRAY) {
+      class(obj) <- c("JuliaSimpleArrayProxy", "JuliaArrayProxy", "JuliaProxy")
+      return(obj)
+   } else if (objectClassId == OBJECT_CLASS_ID_NO_INFO) {
+      class(obj) <- "JuliaProxy"
+      return(obj)
    } else {
-      stop(paste("Unknwon object class", objectClassId))
+      stop(paste("Unknown object class", objectClassId))
    }
 }
 

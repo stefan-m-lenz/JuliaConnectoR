@@ -1037,20 +1037,21 @@ test_that("Boltzmann machine can be trained and used", {
 
 test_that("juliaPut", {
    x <- juliaPut(c(1,2,3))
-   expect_s3_class(x, "JuliaArrayProxy")
+   expect_s3_class(x, "JuliaSimpleArrayProxy")
    expect_equal(x[[1]], 1)
-   #expect_equal(x[1:2], c(1,2)) # TODO
+   expect_equal(x[1:2], c(1,2))
+   expect_type(x[3], "double")
+   x[2:3] <- 0
+   expect_equal(juliaCall("sum", x), 1)
 
-   x <- juliaPut(juliaEval("(1,2,3)"))
-   expect_s3_class(x, "JuliaArrayProxy")
-   expect_equal(x[[3]], 3)
-
-   x <- juliaPut(juliaEval("(a=1,b=2,c=3)"))
-   expect_s3_class(x, "JuliaStructProxy")
-   expect_equal(x$b, 2)
+   expect_error(juliaPut(juliaEval("(a=1,b=2,c=3)")))
 
    x <- juliaPut("bla")
    expect_equal(as.character(juliaCall("typeof", x)), "String")
+
+   # use on translated object
+   x <- juliaGet(juliaEval("[(1,2), (2,3)]"))
+   expect_s3_class(juliaPut(x), "JuliaArrayProxy")
 })
 
 # # It takes very long to laod Flux, so don't include by default:

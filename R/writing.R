@@ -98,7 +98,8 @@ writeElement <- function(elem) {
         writeCallback(elem)
       }
    } else if (inherits(elem, "JuliaProxy")) {
-      writeObjectReference(as.raw(0x00), # Julia doesn't care about the class)
+      # (Julia doesn't care about the class)
+      writeObjectReference(as.raw(OBJECT_CLASS_ID_NO_INFO),
                            get("ref", elem))
    } else {
       elemType <- typeof(elem)
