@@ -225,9 +225,9 @@ accuracy(model, testdata)
 
 Using the callback makes it possible to plot the training curve
 during the training.
-This example runs so fast, that it is not really possible to watch the
+This example runs so fast that it is not really possible to watch the
 training progress.
-In our case, it would be better to optimize the training function to accumulate the losses in Julia and plot them in the end of the training.
+In our case it would be better to optimize the training function to accumulate the losses in Julia and plot them in the end of the training.
 However, the example demonstrates the principle of how callback functions can be used to watch the progress during the training.
 
 ### Using *BoltzmannMachines* in R
