@@ -545,6 +545,15 @@ test_that("Object with bitstype", {
 })
 
 
+test_that("Exotic objects handled gracefully", {
+   x <- quote(1 + 1)
+   expect_type(x, "language")
+   expect_warning({ y <- juliaEcho(list(x = x))},
+                  regexp = "not translatable", all = FALSE)
+   expect_null(y$x)
+})
+
+
 # Test complex constructor with all kinds of types
 test_that("Complex Julia object with different member type", {
    juliaEval('struct TestTypeWithAllKindsOfStuff

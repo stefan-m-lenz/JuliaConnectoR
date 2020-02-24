@@ -98,8 +98,10 @@ writeElement <- function(elem) {
    } else {
       typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {
-         writeBin(TYPE_ID_NULL, pkgLocal$con)
-         warning(paste0("Could not coerce type of element ", elem, ". Writing NULL."))
+         warning(paste0("Type ", elemType, ", of element ", elem,
+                        " not translatable. Writing NULL.\n"))
+         writeElement(NULL)
+         return()
       }
 
       if (typeId <= TYPE_ID_RAW) {
