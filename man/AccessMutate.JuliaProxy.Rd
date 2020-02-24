@@ -37,20 +37,80 @@
 \arguments{
 \item{x}{a Julia proxy object}
 
-\item{name}{the name of a property
-of a struct type or a key in a Julia dictionary (type \code{AbstractDict})}
+\item{name}{the field of a struct type, the name of a member in a \code{NamedTuple},
+or a key in a Julia dictionary (type \code{AbstractDict})}
 
 \item{value}{a suitable replacement value.
 When replacing a range of elements in an array type, it is possible to
 replace multiple elements with single elements. In all other cases,
-the length of the replacement must match the length of elements to replace.}
+the length of the replacement must match the number of elements to replace.}
 
-\item{i, j, k, ...}{indexes for specifying the elements to extract or replace}
+\item{i, j, k, ...}{index(es) for specifying the elements to extract or replace}
 }
 \description{
-Extract or replace parts of Julia proxy objects
+Apply the R operators \code{$} and \code{$<-}, \code{[} and \code{[<-}, \code{[[}
+and \code{[[<-} to access or modify parts of Julia objects via their proxy objects.
+For an intuitive understanding, best see the examples below.
+}
+\details{
+The \code{$} operator allows to access properties of Julia \code{struct}s
+and \code{NamedTuple}s via their proxy objects.
+For dictionaries (Julia type \code{AbstractDict}), the \code{$} operator
+can also be used to look up string keys.
+Fields of \code{mutable struct}s and dictionary elements with string keys
+can be set via the \code{$<-} operator.
+
+The \code{[}, \code{[<-}, \code{[[}, and \code{[[<-}
+operators relay to the \code{getindex} and \code{setindex!} Julia functions for
+collections.
+The \code{[[} and \code{[[<-} operators are used to access or mutate a single element.
+With \code{[} and \code{[<-}, a range of objects is accessed or mutated.
+
+The dimensions of proxy objects for Julia \code{AbstractArray}s and \code{Tuple}s
+can be queried via \code{length} and \code{dim}.
 }
 \examples{
-#TODO
-#juliaEval("bla")
+# (Mutable) struct access
+juliaEval("mutable struct MyStruct
+             x::Int
+          end")
+
+MyStruct <- juliaFun("MyStruct")
+s <- MyStruct(1L)
+s$x
+s$x <- 2
+s$x
+
+# Array
+x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))
+x
+length(x)
+x[[1]]
+x[[1]]$x
+x[[1]] <- MyStruct(2L)
+x[2:3]
+x[2:3] <- MyStruct(2L)
+x
+
+# Tuple
+x <- juliaEval("(1, 2, 3)")
+x[[1]]
+x[1:2]
+length(x)
+
+# NamedTuple
+x <- juliaEval("(a=1, b=2)")
+x$a
+
+# Dictionary
+strDict <- juliaEval('Dict("hi" => 1, "hello" => 2)')
+strDict
+strDict$hi
+strDict$hi <- 0
+strDict[["hi"]] <- 2
+strDict["howdy", "greetings"] <- c(2, 3)
+strDict["hi", "howdy"]
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

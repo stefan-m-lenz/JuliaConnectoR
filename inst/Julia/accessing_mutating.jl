@@ -141,7 +141,7 @@ function setidxs!(collection, value,
 end
 
 # replace single element in multidimensional array
-function setidxs!(collection, value, key::Vararg{<:Float64})
+function setidxs!(collection, value, key::Vararg{<:Union{Int, Float64}})
    intkey = map(Int, key)
    setindex!(collection, value, intkey...)
    return nothing
