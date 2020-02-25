@@ -13,8 +13,15 @@ const TYPE_ID_STRING = 0x06
 const TYPE_ID_LIST = 0x07
 const TYPE_ID_EXPRESSION = 0xee
 const TYPE_ID_CALLBACK = 0xcb
-const TYPE_ID_ANONYMOUS_FUNCTION = 0xaf
 const TYPE_ID_NAMED_FUNCTION = 0xfc
+const TYPE_ID_OBJECT_REFERENCE = 0xce
+const TYPE_ID_SYMBOL = 0x5b
+
+const OBJECT_CLASS_ID_ARRAY = 0xaa
+const OBJECT_CLASS_ID_SIMPLE_ARRAY = 0x5a
+const OBJECT_CLASS_ID_ANONYMOUS_FUNCTION = 0xaf
+const OBJECT_CLASS_ID_STRUCT = 0x5c
+const OBJECT_CLASS_ID_NO_INFO = 0x00
 
 const CALL_INDICATOR = 0x01
 const RESULT_INDICATOR = 0x00
@@ -31,11 +38,13 @@ const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 const SEND_AS_COMPLEX = Complex{T} where T <: Union{
       Int8, Int16, Int32, Int64, Float16, Float32}
 
+include("sharing.jl")
 include("communicating.jl")
 include("handling_undefined.jl")
 include("reading.jl")
 include("evaluating.jl")
 include("writing.jl")
 include("exporting.jl")
+include("accessing_mutating.jl")
 
 end

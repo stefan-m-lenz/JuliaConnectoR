@@ -10,7 +10,16 @@ TYPE_ID_LIST <- as.raw(0x07)
 TYPE_ID_CALLBACK <- as.raw(0xcb)
 TYPE_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
 TYPE_ID_NAMED_FUNCTION <- as.raw(0xfc)
+TYPE_ID_OBJECT_REFERENCE <- as.raw(0xce)
 TYPE_ID_EXPRESSION <- as.raw(0xee)
+TYPE_ID_SYMBOL <- as.raw(0x5b)
+
+OBJECT_CLASS_ID_ARRAY <- as.raw(0xaa)
+OBJECT_CLASS_ID_SIMPLE_ARRAY <- as.raw(0x5a)
+OBJECT_CLASS_ID_ANONYMOUS_FUNCTION <- as.raw(0xaf)
+OBJECT_CLASS_ID_STRUCT <- as.raw(0x5c)
+OBJECT_CLASS_ID_NO_INFO <- as.raw(0x00)
+
 
 CALL_INDICATOR <- as.raw(0x01)
 RESULT_INDICATOR <- as.raw(0x00)
@@ -19,8 +28,6 @@ STDERR_INDICATOR <- as.raw(0x5e)
 FAIL_INDICATOR <- as.raw(0xff)
 BYEBYE <- as.raw(0xbb)
 
-LOAD_MODE_USING <- 0L
-LOAD_MODE_IMPORT <- 1L
 
 TYPE_IDS <- list(
    "double" = TYPE_ID_DOUBLE,
@@ -29,7 +36,8 @@ TYPE_IDS <- list(
    "integer" = TYPE_ID_INTEGER,
    "logical" = TYPE_ID_LOGICAL,
    "character" = TYPE_ID_STRING,
-   "list" = TYPE_ID_LIST)
+   "list" = TYPE_ID_LIST,
+   "symbol" = TYPE_ID_SYMBOL)
 
 
 # support versions lower than 3.3.0
@@ -52,7 +60,24 @@ emptyfun <- function(...) {}
 # for holding local package variables:
 # - the Julia connection object ("con")
 # - the port where Julia is listening ("port")
+# - the last callback id ("lastCallbackId")
+# - references to callback functions passed to Julia ("callbacks")
 pkgLocal <- new.env(parent = emptyenv())
+pkgLocal$callbacks <- new.env(parent = emptyenv())
+pkgLocal$lastCallbackId <- -1L
+
+
+registerCallback <- function(callback) {
+   while (TRUE) {
+      pkgLocal$lastCallbackId <- (pkgLocal$lastCallbackId + 1L) %% 2147483647L
+      callbackId <- as.character(pkgLocal$lastCallbackId)
+      if (is.null(pkgLocal$callbacks[[callbackId]])) {
+         break
+      }
+   }
+   assign(envir = pkgLocal$callbacks, callbackId, callback)
+   callbackId
+}
 
 
 .onLoad <- function(libname, pkgname) {
@@ -109,12 +134,13 @@ juliaCall <- function(name, ...) {
 doCallJulia <- function(name, jlargs) {
    writeBin(CALL_INDICATOR, pkgLocal$con)
    writeString(name)
-   callbacks <- writeList(jlargs)
-   messageType <- handleCallbacksAndOutput(callbacks)
+   writeList(jlargs)
+   messageType <- handleCallbacksAndOutput()
    if (messageType == RESULT_INDICATOR) {
-      return(readElement(callbacks))
+      return(readElement())
    } else if (messageType == FAIL_INDICATOR) {
-      stop(readString())
+      errorMsg <- readString()
+      stop(errorMsg, domain = NA)
    } else {
       print(paste(c("Message type not supported (yet): ", messageType)))
       stopJulia()
@@ -125,8 +151,9 @@ doCallJulia <- function(name, jlargs) {
 releaseFinalizedRefs <- function() {
    if (!is.null(pkgLocal$finalizedRefs)) {
       try({
-         doCallJulia("RConnector.decrefcounts",
+         callbackrefs <- doCallJulia("RConnector.decrefcounts",
                      list(pkgLocal$finalizedRefs))
+         rm(envir = pkgLocal$callbacks, list = callbackrefs)
       })
 
       pkgLocal$finalizedRefs <- NULL
@@ -204,7 +231,7 @@ juliaFun <- function(name, ...) {
       # This will be treated as a callback function,
       # if it is passed to Julia.
       f <- function(...) {
-         do.call(juliaCall, c(name, args, list(...)))
+         do.call(juliaCall, quote = TRUE, c(name, args, list(...)))
       }
    }
 
@@ -233,6 +260,87 @@ juliaFun <- function(name, ...) {
 juliaExpr <- function(expr) {
    attr(expr, "JLEXPR") <- TRUE
    return(expr)
+}
+
+
+#' Translate a Julia proxy object to an R object
+#'
+#' R objects of class \code{JuliaProxy} are references to Julia objects in the Julia session.
+#' These R objects are also called "proxy objects".
+#' With this function it is possible to translate these objects into R objects.
+#'
+#' If the corresponding Julia objects do not contain external references,
+#' translated objects can also saved in R and safely be restored in Julia.
+#'
+#' Modifying objects is possible and changes in R will be translated back to Julia.
+#'
+#' The following table shows the translation of Julia objects into R objects.
+#'
+#' \tabular{lcl}{
+#' \strong{Julia} \tab  \tab \strong{R} \cr
+#'  \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
+#'  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
+#'  \code{Tuple} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
+#'  \code{NamedTuple} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named elements \cr
+#'  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
+#'  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
+#' }
+#'
+#' @note
+#'
+#' Objects containing cicular references cannot be translated back to Julia.
+#'
+#' It is safe to translate objects that contain external references from Julia to R.
+#' The pointers will be copied as values and the finalization of the translated
+#' Julia objects is prevented.
+#' The original objects are garbage collected after all direct or
+#' indirect copies are garbage collected.
+#' Note, however, that these translated objects cannot be translated back to Julia
+#' after the Julia process has been stopped and restarted.
+#'
+#' @param x a reference to a Julia object
+juliaGet <- function(x) {
+   UseMethod("juliaGet", x)
+}
+
+juliaGet.JuliaProxy <- function(x) {
+   juliaCall("RConnector.full_translation!", TRUE)
+   ret <- NULL
+   tryCatch({ret <- juliaCall("identity", x)},
+       finally = {juliaCall("RConnector.full_translation!", FALSE)})
+   ret
+}
+
+#' Create a Julia proxy object from an R object
+#'
+#' This function creates a proxy object for a Julia object that would
+#' otherwise be translated to an R object.
+#' This is useful to prevent many translations of large objects
+#' if it is necessary performance reasons.
+#' To see which objects are translated by default, please see the
+#' \link{JuliaConnectoR-package} documentation.
+#'
+#' @param x an R object (can also be a translated Julia object)
+#'
+#' @examples
+#' # Transfer a large vector to Julia and use it in multiple calls
+#' x <- juliaPut(rnorm(100))
+#' # x is just a reference to a Julia vector now
+#' juliaEval("using Statistics")
+#' juliaCall("mean", x)
+#' juliaCall("var", x)
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
+juliaPut <- function(x) {
+   if (inherits(x, "JuliaProxy")) {
+      stop("Argument is already a Julia object")
+   } else if (is.list(x) && !is.null(attr(x, "JLTYPE"))) {
+      # a translated julia object
+      juliaCall("identity", x)
+   } else {
+      juliaCall("RConnector.EnforcedProxy", x)
+   }
 }
 
 
@@ -288,27 +396,34 @@ juliaLet <- function(expr, ...) {
       stop("Arguments must have names")
    } else {
       args <- c("RConnector.mainevallet", expr, args)
-      do.call(juliaCall, args)
+      do.call(juliaCall, args, quote = TRUE)
    }
 }
 
 
-handleCallbacksAndOutput <- function(callbacks) {
+handleCallbacksAndOutput <- function() {
    repeat {
       messageType <- readMessageType()
       if (messageType == CALL_INDICATOR) {
          call <- readCall()
-         callbackIdx <- strtoi(call$name, base = 10)
-         callbackfun <- callbacks[[callbackIdx]]
-         tryCatch(answerCallback(callbackfun, call$args),
-                 error = function(e) {
-                    warning(e)
-                    writeFailMessage(as.character(e))
-                  })
+         callbackfun <- get(call$name, pkgLocal$callbacks)
+         callbackSuccess <- FALSE
+         tryCatch({
+            answerCallback(callbackfun, call$args)
+            callbackSuccess <- TRUE
+            }, error = function(e) {
+               writeFailMessage(as.character(e))
+            })
+         if (!callbackSuccess) {
+            return(readMessageType())
+         }
       } else if (messageType == STDOUT_INDICATOR) {
          readOutput(writeTo = stdout())
       } else if (messageType == STDERR_INDICATOR) {
          readOutput(writeTo = stderr())
+      } else if (messageType == FAIL_INDICATOR) {
+         errorMsg <- readString()
+         stop(errorMsg, domain = NA)
       } else {
          return(messageType)
       }
@@ -327,7 +442,7 @@ juliaHeapReference <- function(ref) {
    ret$ref <- ref
    reg.finalizer(ret, function(e) {
       # remove reference (see releaseFinalizedRefs)
-      pkgLocal$finalizedRefs <- c(pkgLocal$finalizedRefs, e$ref)
+      pkgLocal$finalizedRefs <- c(pkgLocal$finalizedRefs, get("ref", e))
    })
    ret
 }

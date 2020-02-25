@@ -2,6 +2,11 @@ struct Fail
    message::String
 end
 
+function Fail(msg, origex)
+   Fail(msg * "\nOriginal error:\n" * sprint(showerror, origex, backtrace()))
+end
+
+
 struct ElementList
    positionalelements::Vector{Any}
    names::Vector{Symbol}
@@ -44,7 +49,7 @@ function read_attributes(communicator)
    attributes = Dict{String, Any}()
    for i in 1:nattributes
       name = read_string(communicator)
-      attributes[name] = read_element(communicator, Vector{Function}())
+      attributes[name] = read_element(communicator)
    end
    attributes
 end
@@ -106,23 +111,26 @@ function read_dimensions(communicator)
 end
 
 
-function read_element(communicator, callbacks::Vector{Function})
+function read_element(communicator)
    typeid = read_bin(communicator, UInt8)
 
    if typeid == TYPE_ID_LIST
-      return read_list(communicator, callbacks)
+      return read_list(communicator)
    elseif typeid == TYPE_ID_NOTHING
       return nothing
    elseif typeid == TYPE_ID_EXPRESSION
       return read_expression(communicator)
-   elseif typeid == TYPE_ID_ANONYMOUS_FUNCTION
+   elseif typeid == TYPE_ID_OBJECT_REFERENCE
+      # not needed in Julia, ignore for now
+      object_class = read_bin(communicator, 1)
       ref = parseheapref(read_bin(communicator, 8))
-      return ((sharedheap[ref].obj)::AnonymousFunctionReference).f
-   elseif  typeid == TYPE_ID_CALLBACK
-      callbackid = read_int(communicator)
+      return ObjectReference(ref)
+   elseif typeid == TYPE_ID_CALLBACK
+      callbackid = read_string(communicator)
       callback = callbackfun(callbackid, communicator)
-      push!(callbacks, callback)
       return callback
+   elseif typeid == TYPE_ID_SYMBOL
+      return Symbol(read_string(communicator))
    else
       dimensions = read_dimensions(communicator)
       nelements = dimensions == 0 ? 1 : reduce(*, dimensions)
@@ -174,7 +182,7 @@ function convert_reshape_element(element, attributes, dimensions)
          type = maineval(typestr)
          element = convert.(type, element)
       catch ex
-         return Fail("Conversion to type \"$typestr\" failed. Original error: $ex")
+         return Fail("Conversion to type \"$typestr\" failed", ex)
       end
    end
    return reshape_element(element, dimensions)
@@ -201,7 +209,7 @@ function convert_reshape_raw(element, attributes, dimensions)
             return String(element)
          end
       catch ex
-         return Fail("Conversion to type \"$typestr\" failed. Original error: $ex")
+         return Fail("Conversion to type \"$typestr\" failed", ex)
       end
    end
    return reshape_element(element, dimensions)
@@ -213,17 +221,17 @@ function read_expression(communicator)
    try
       return maineval(exprstr)
    catch ex
-      return Fail("Evaluation of \"$exprstr\" failed. Original error $ex")
+      return Fail("Evaluation of \"$exprstr\" failed", ex)
    end
 end
 
 
-function read_list(communicator, callbacks::Vector{Function})
+function read_list(communicator)
 
    npositional = read_int(communicator)
    positionalelements = Vector{Any}(undef, npositional)
    for i in 1:npositional
-      positionalelements[i] = read_element(communicator, callbacks)
+      positionalelements[i] = read_element(communicator)
    end
 
    fails = Vector{Fail}(
@@ -234,14 +242,13 @@ function read_list(communicator, callbacks::Vector{Function})
    namedelements = Dict{Symbol, Any}()
    for i in 1:nnamed
       name = read_string(communicator)
-      namedelement = read_element(communicator, callbacks)
+      namedelement = read_element(communicator)
       try
          sym = Symbol(name)
          namedelements[sym] = namedelement
          names[i] = sym
       catch ex
-         push!(fails,
-               Fail("Ignored element with name $name because of: $ex"))
+         push!(fails, Fail("Ignored element with name $name", ex))
       end
    end
 
@@ -258,15 +265,15 @@ function findfield(name::AbstractString)
 end
 
 
-function read_call(communicator, callbacks::Vector{Function})
+function read_call(communicator)
    name = read_string(communicator)
    fails = Vector{Fail}()
    fun = () -> nothing
    try
       fun = findfield(name)
    catch ex
-      push!(fails, Fail("Unable to identify function: $ex"))
+      push!(fails, Fail("Unable to identify function", ex))
    end
-   args = read_list(communicator, callbacks)
+   args = read_list(communicator)
    Call(fun, args, fails)
 end

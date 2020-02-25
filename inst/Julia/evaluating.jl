@@ -35,27 +35,39 @@ function mostspecifictype(v::Vector)
    mapreduce(typeof, typejoin, v)
 end
 
-
-function evaluate!(call::Call)
-   # check parsing first
-   fails = collectfails(call)
+function parsingcheck(el)
+   fails = collectfails(el)
    if !isempty(fails)
-      return Fail("Parsing failed. Reason: " * string(fails))
+      error(string(fails))
+   end
+   nothing
+end
+
+function evaluate_checked!(call::Call)
+   # check parsing first
+   try
+      parsingcheck(call)
+   catch ex
+      return Fail("Parsing failed", ex)
    end
 
+   try
+      return evaluate!(call)
+   catch ex
+      return Fail("Evaluation failed", ex)
+   end
+end
+
+
+function evaluate!(call::Call)
    # evaluate arguments
    evaluate!(call.args)
 
    # the actual function call
-   result = Fail("")
-   try
-      result = Base.invokelatest(call.fun,
-            call.args.positionalelements...; call.args.namedelements...)
-   catch ex
-      result = Fail("Evaluation failed. Original error: $ex")
-   end
-   result
+   Base.invokelatest(call.fun,
+         call.args.positionalelements...; call.args.namedelements...)
 end
+
 
 function evaluate!(list::ElementList)
    # recursively evaluate sub-elements first
@@ -68,36 +80,30 @@ function evaluate!(list::ElementList)
 
    jltype = get(list.attributes, "JLTYPE", "")
    if !isempty(jltype)
-      try
-         constructor = findfield(jltype)
-         if length(list.names) > 0
-            if constructor <: AbstractDict
-               return Base.invokelatest(constructor, zip(
-                     list.namedelements[:keys],
-                     list.namedelements[:values]))
-            elseif constructor <: NamedTuple
-               return NamedTuple{Tuple(list.names)}(
-                     [list.namedelements[name] for name in list.names])
-            elseif constructor <: Symbol
-               return Symbol(list.namedelements[:name])
-            elseif constructor <: Module
-               return Module(Symbol(list.namedelements[:name]))
-            elseif constructor <: CircularReference
-               error("Circular references cannot be reconstructed")
-            else
-               return reconstruct_struct(constructor, list)
-            end
+      constructor = findfield(jltype)
+      if length(list.names) > 0
+         if constructor <: AbstractDict
+            return Base.invokelatest(constructor, zip(
+                  list.namedelements[:keys],
+                  list.namedelements[:values]))
+         elseif constructor <: NamedTuple
+            return NamedTuple{Tuple(list.names)}(
+                  [list.namedelements[name] for name in list.names])
+         elseif constructor <: Module
+            return Module(Symbol(list.namedelements[:name]))
+         elseif constructor <: CircularReference
+            error("Circular references cannot be reconstructed")
          else
-            if constructor <: Tuple
-               return Base.invokelatest(constructor, list.positionalelements)
-            else
-               # array type (or AbstractSet)
-               return reconstruct_array(constructor, list.positionalelements,
-                     list.attributes)
-            end
+            return reconstruct_struct(constructor, list)
          end
-      catch ex
-         return Fail("Construction of type $jltype failed. Original error: $ex")
+      else
+         if constructor <: Tuple
+            return Base.invokelatest(constructor, list.positionalelements)
+         else
+            # array type (or AbstractSet)
+            return reconstruct_array(constructor, list.positionalelements,
+                  list.attributes)
+         end
       end
    elseif isempty(list.namedelements)
       return converttomostspecifictype(list.positionalelements)
@@ -105,6 +111,21 @@ function evaluate!(list::ElementList)
       return list
    end
 end
+
+
+function evaluate!(objref::ObjectReference)
+   getobj(obj::ImmutableObjectReference) = obj.obj
+   getobj(obj) = obj
+
+   try
+      obj = sharedheap[objref.ref].obj
+      return getobj(obj)
+   catch ex
+      error("Object reference " * string(objref.ref, base = 16) *
+            " could not be resolved")
+   end
+end
+
 
 function evaluate!(item)
    item
@@ -118,6 +139,9 @@ end
 
 
 function mainevalcmd(str::String)
+   if isempty(str)
+      return nothing
+   end
    strippedstr = strip(str)
    ret = include_string(Main, str)
    if strippedstr[end] == ';'

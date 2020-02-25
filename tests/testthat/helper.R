@@ -13,15 +13,22 @@ jlRefsRemoved <- function(x) {
          }
       }
       return(x)
+   } else if (is.environment(x) && inherits(x, "JuliaProxy")) {
+      return(jlRefsRemoved(juliaGet(x)))
    } else {
       return(x)
    }
 }
 
 
-testEcho <- function(x) {
+testEcho <- function(x, comparableInJulia = TRUE) {
    if (is.list(x)) {
       expect_identical(jlRefsRemoved(x), jlRefsRemoved(juliaEcho(x)))
+   } else if (is.environment(x) && inherits(x, "JuliaProxy")) {
+      if (comparableInJulia) {
+         expect_true(juliaCall("==", x, juliaEcho(x)))
+      }
+      testEcho(juliaGet(x))
    } else {
       expect_equivalent(x, juliaEcho(x))
    }

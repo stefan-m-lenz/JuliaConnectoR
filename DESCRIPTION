@@ -1,7 +1,7 @@
 Package: JuliaConnectoR
 Type: Package
 Title: A Functionally Oriented Interface for Integrating 'Julia' with R
-Version: 0.3.1
+Version: 0.4.0
 Author: Stefan Lenz [aut, cre] (0000-0001-9135-1743), Harald Binder [aut] (0000-0002-5666-8662)
 Maintainer: Stefan Lenz <stefan-m-lenz@web.de>
 Authors@R: c(person("Stefan", "Lenz", role = c("aut", "cre"),
@@ -13,7 +13,6 @@ Description: This package provides a functionally oriented interface linking R a
     It allows to import and call 'Julia' functions directly as R functions.
 License: MIT + file LICENCE
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.0.2
 Suggests:
     testthat (>= 2.1.0)

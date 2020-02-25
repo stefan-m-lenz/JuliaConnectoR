@@ -1,61 +1,3 @@
-mutable struct SharedObject
-   obj::Any
-   refcount::UInt64
-end
-
-function SharedObject(obj)
-   SharedObject(obj, UInt32(1))
-end
-
-mutable struct AnonymousFunctionReference
-   f::Function
-end
-
-
-const sharedheap = Dict{UInt64, SharedObject}()
-
-function sharedheapref!(obj)
-   ref = UInt64(pointer_from_objref(obj))
-   sharedheap[ref] = SharedObject(obj)
-   ref
-end
-
-function parseheapref(ref::Vector{UInt8})
-   UInt64(reinterpret(UInt64, ref)[1])
-end
-
-
-function decrefcount(ref::UInt64)
-   newrefcount = sharedheap[ref].refcount - 1
-   if newrefcount == 0
-      delete!(sharedheap, ref)
-   else
-      sharedheap[ref].refcount = newrefcount
-   end
-end
-
-function decrefcounts(refs::Vector{UInt8})
-   for ref in reinterpret(UInt64, refs)
-      decrefcount(ref)
-   end
-end
-
-
-function sharedfinalizer(newobj, oldobjref::UInt64)
-   # If a new Julia heap object is recreated via backtranslation from R,
-   # it must reference the original object such that this one lives on.
-   # It must be prevented that the old object is garbage collected because
-   # this might finalize resources that are needed for the copy to work.
-   if haskey(sharedheap, oldobjref)
-      sharedheap[oldobjref].refcount += 1
-      finalizer(obj -> decrefcount(oldobjref), newobj)
-   else
-      @warn "Please be sure that the revived objects " *
-            "do not contain external references."
-   end
-end
-
-
 struct CircularReference
    objref::UInt64
 end
@@ -83,16 +25,19 @@ function read_bin(c::CommunicatoR, x)
    read(c.io, x)
 end
 
+"""
+    serve(port_hint; keeprunnning = false, portfile = "")
+Starts the JuliaConnectoR server, which will accept connections.
 
-function shareref!(communicator::CommunicatoR, obj)
-   ref = sharedheapref!(obj)
-   refexists = ref in communicator.objrefs
-   push!(communicator.objrefs, ref)
-   ref, refexists
-end
+It is attempted to start the server at the port given via `port_hint`.
+The actual port may be different. If the argument `portfile` is specified,
+the real port is written to the file with the given name
+as decimal number in form of a string.
 
-
-function serve(port_hint::Int; multiclient::Bool = false,
+If the argument `keeprunning` is set to `true`, the server will keep running
+after a disconnect from the client. This is useful for debugging.
+"""
+function serve(port_hint::Int; keeprunning::Bool = false,
       portfile::String = "")
 
    realport, server = listenany(port_hint)
@@ -108,7 +53,7 @@ function serve(port_hint::Int; multiclient::Bool = false,
    # Prevents crash when run as script and interrupted
    ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
 
-   if multiclient
+   if keeprunning
       while true
          sock = accept(server)
          @async serve_repl(sock)
@@ -126,12 +71,11 @@ function serve_repl(sock)
 
    while isopen(sock)
       call = Call()
-      callbacks = Vector{Function}()
       try
          firstbyte = read_bin(communicator, 1)
          if length(firstbyte) == 1 && firstbyte[1] == CALL_INDICATOR
             # Parse incoming function call
-            call = read_call(communicator, callbacks)
+            call = read_call(communicator)
          else
             if !(length(firstbyte) == 0 || firstbyte[1] == BYEBYE)
                close(sock)
@@ -146,14 +90,19 @@ function serve_repl(sock)
                "Original error: $ex")
       end
 
-      result = evaluate!(call)
-      write_message(communicator, result, callbacks)
+      result = evaluate_checked!(call)
+      write_message(communicator, result)
    end
 end
 
 
-function callbackfun(callbackid::Int, communicator::CommunicatoR)
-   (args...; kwargs...) -> begin
+function callbackfun(callbackid::String, communicator::CommunicatoR)
+
+   callbackfinalizer = CallbackFinalizer(callbackid)
+
+   ret = (args...; kwargs...) -> begin
+      stayalivewithme(callbackfinalizer)
+
       posargs = isempty(args) ? Vector{Any}() : collect(Any, args)
       callbackargs = ElementList(posargs, Dict{Symbol, Any}(kwargs))
       write_callback_message(communicator, callbackid, callbackargs)
@@ -162,35 +111,31 @@ function callbackfun(callbackid::Int, communicator::CommunicatoR)
       while true
          firstbyte = read_bin(communicator, 1)[1]
          if firstbyte == RESULT_INDICATOR
-            callbacks = Vector{Function}()
-            answer = read_element(communicator, callbacks)
-            fails = collectfails(answer)
-            if isempty(fails)
-               ret =  evaluate!(answer)
-               return ret
-            else
-               return Fail("Parsing failed. Reason: " * string(fails))
-            end
+            answer = read_element(communicator)
+            parsingcheck(answer)
+            return evaluate!(answer)
          elseif firstbyte == CALL_INDICATOR
-            callbacks = Vector{Function}()
-            call = read_call(communicator, callbacks)
-            result = evaluate!(call)
-            write_message(communicator, result, callbacks)
+            call = read_call(communicator)
+            result = evaluate_checked!(call)
+            write_message(communicator, result)
          elseif firstbyte == FAIL_INDICATOR
             r_errormsg = read_string(communicator)
-            throw(ErrorException("Error in R callback: "* r_errormsg))
+            error("Error in R callback: " * r_errormsg)
          else
             error("Unexpected leading byte: " * string(firstbyte))
          end
       end
    end
+
+   registered_callbacks[ret] = callbackid
+   ret
 end
 
 
 function callanonymous(functionref::Vector{UInt8}, args...; kwargs...)
-   anofunref::AnonymousFunctionReference =
-         sharedheap[parseheapref(functionref)].obj
-   ret = anofunref.f(args...; kwargs...)
+   objref::ImmutableObjectReference = sharedheap[parseheapref(functionref)].obj
+   f::Function = objref.obj
+   ret = f(args...; kwargs...)
    ret
 end
 

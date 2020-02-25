@@ -1,5 +1,9 @@
+Sys.unsetenv("R_TESTS")
+
+
 test_that("Some smoke tests", {
-   expect((juliaCall("prod", c(1,2,3)) == 6), "Product")
+   expect_equal(juliaCall("prod", c(1,2,3)), 6)
+   juliaEval("")
    juliaCall("string", list())
    juliaCall("string", list(as.integer(1), "bla" = 23L))
    juliaEval("String[]")
@@ -76,10 +80,7 @@ test_that("Test loading and importing a complex package", {
              end
              ') # tests also trailing whitespace
    juliaImport("StatsBase")
-   expectedMeanAndVar <- list(2,1)
-   attr(expectedMeanAndVar, "JLTYPE") <- "Tuple{Float64, Float64}"
-   expect(all(as.numeric(StatsBase.mean_and_var(c(1,2,3))) == c(2,1)),
-          "Trivial mean and var calculation")
+   expect_equivalent(juliaGet(StatsBase.mean_and_var(c(1,2,3))), list(2,1))
    StatsBase.renyientropy(rnorm(100), 1)
 })
 
@@ -253,23 +254,61 @@ test_that("Echo: 1-element UInt128 Vector", {
 
 
 test_that("Echo: List with NULL elements", {
-   x <- list(1, NULL, 3)
-   expect_equivalent(juliaEcho(x), x)
+   x <- juliaGet(juliaEcho(list(1, NULL, 3)))
+   expect_equal(x[[1]], 1)
+   expect_null(x[[2]])
+   expect_equal(x[[3]], 3)
+   expect_equal(length(x), 3)
    testEcho(juliaEval('[1, nothing, 3]'))
    x <- list("bla", NULL)
-   expect_equivalent(x, juliaEcho(x))
+   expect_equal(x[[1]], "bla")
+   expect_null(x[[2]])
    x <- list(NULL, NULL)
-   expect_equivalent(x, juliaEcho(x))
+   expect_null(x[[1]])
+   expect_null(x[[2]])
 })
 
 
-test_that("Mutable struct has reference", {
+test_that("Mutable struct usable by reference", {
    juliaEval('mutable struct TestMutableStruct
                 x::Int
              end')
-   jlRefEnv <- attr(juliaEval("TestMutableStruct(1)"), "JLREF")
+   jlRef <- juliaEval("TestMutableStruct(1)")
+   refEcho <- juliaEcho(jlRef)
+   expect_true(juliaCall("==", jlRef, refEcho))
+   expect_true(all(get("ref", jlRef) == get("ref", refEcho)))
+   expect_equal(refEcho$x, 1)
+   refEcho$x <- 2L
+   expect_equal(jlRef$x, 2)
+   ref <- get("ref", jlRef)
+   jlRef <- NULL
+   refEcho <- NULL
+   invisible(gc())
+   juliaEval("1")
+   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
+
+   # Test behaviuor with juliaGet:
+   # The reference must be attached
+   jlRefEnv <- attr(juliaGet(juliaEval("TestMutableStruct(1)")), "JLREF")
    expect_true(is.environment(jlRefEnv))
    expect_true(is.raw(jlRefEnv$ref))
+})
+
+
+test_that("Immutable struct usable by reference and translated", {
+   juliaEval('struct TestImmutableStruct
+                x::Int
+             end')
+   jlRef <- juliaEval("TestImmutableStruct(1)")
+   expect_s3_class(jlRef, "JuliaStructProxy")
+   refEcho <- juliaEcho(jlRef)
+   expect_true(juliaCall("==", jlRef, refEcho))
+   expect_equal(refEcho$x, 1)
+   ref <- get("ref", jlRef)
+   expect_equal(juliaGet(jlRef)$x, 1)
+   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
+   gc()
+   juliaEval("1")
 })
 
 
@@ -280,25 +319,51 @@ test_that("Currying in juliaFun works", {
 })
 
 
-test_that("Multidimensional object arrays keep their dimensions", {
+test_that("Multidimensional object arrays work", {
    juliaEval("struct MultiTestStruct
                 f::Float64
               end")
 
-   content <- juliaEval("rand(1,2,3)")
+   content <- juliaEval("rand(4,5,6)")
    testEcho(content)
    x <- juliaLet("map(MultiTestStruct, c)", c = content)
    testEcho(x)
-   expect_equivalent(juliaCall("size", x), list(1,2,3))
-   attr(x, "JLDIM") <- c(1L, 2L, 4L)
-   expect_error(juliaEcho(x), regexp = "Incorrect dimensions")
+   expect_equivalent(dim(x), c(4,5,6))
+
+   expect_equivalent(juliaGet(x[1,1,1]), list(juliaGet(x[[1,1,1]])))
+
+   x[[1,2,3]] <- juliaEval("MultiTestStruct(17.0)")
+   expect_equal(x[[1,2,3]]$f, 17)
+
+   x[1,2,2] <- juliaEval("MultiTestStruct(19.0)")
+   expect_equal(x[[1,2,2]]$f, 19)
+
+   x[1,2,2] <- list(juliaEval("MultiTestStruct(19.0)"))
+   expect_equal(x[[1,2,2]]$f, 19)
+
+   expect_equal(dim(x[3:4, 4:5, 1]), c(2,2,1))
+   expect_equal(dim(x[3:4, as.integer(4:5), 1L]), c(2,2,1))
+
+   x[3:4, as.integer(4:5), 1L] <- juliaEval("MultiTestStruct(20.0)")
+   expect_equal(juliaGet(x[[3, 4, 1]])$f, 20)
+   expect_equal(juliaGet(x[[4, 5, 1]])$f, 20)
+
+   y <- juliaGet(x)
+   attr(y, "JLDIM") <- c(1L, 2L, 3L)
+   expect_error(juliaEcho(y), regexp = "Incorrect dimensions")
 
    # Must also work with dimensions of zero
    testEcho(juliaEval("Matrix{MultiTestStruct}(undef, 0, 0)"))
 
    x <- juliaEval("Array{MultiTestStruct}(undef, 0, 0, 0)")
    testEcho(x)
-   expect_equivalent(juliaCall("size", x), list(0,0,0))
+   expect_equivalent(dim(x), c(0,0,0))
+
+   # Two dimensions
+   content <- juliaEval("rand(2,3)")
+   x <- juliaLet("map(MultiTestStruct, c)", c = content)
+   x[[1,2]] <- juliaEval("MultiTestStruct(3.0)")
+   expect_equal(x[[1,2]]$f, 3)
 })
 
 
@@ -308,21 +373,23 @@ test_that("Arrays with undef entries are translated", {
              end")
 
    # all undefs
-   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"),
+            comparableInJulia = FALSE)
 
    # undefs and values
    juliaLet("x = Vector{MutableTestStruct}(undef, 3);
              x[1] = MutableTestStruct(x1);
              x[2] = MutableTestStruct(x2);
             x", x1 = 1.0, x2 = 2.0)
-   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"))
+   testEcho(juliaEval("Vector{MutableTestStruct}(undef, 3)"),
+            comparableInJulia = FALSE)
 
    # multidimensional arrays with undefs and values
    x <- juliaLet("x = Array{MutableTestStruct}(undef, 2, 3, 4);
              x[1,1,1] = MutableTestStruct(x1);
             x[2,2,2] = MutableTestStruct(x2);
             x", x1 = 1.0, x2 = 2.0)
-   testEcho(x)
+   testEcho(x, comparableInJulia = FALSE)
    expect_equal(x[[1]]$f, 1)
 })
 
@@ -380,15 +447,28 @@ test_that("Echo: Pairs", {
 
 # Test Tuples
 test_that("Echo: Tuples", {
+   x <- juliaEval("(1, 17, 18)")
+   expect_equal(x[[2]], 17)
+   expect_equal(juliaGet(x[1]), juliaGet(juliaEval("(1,)")))
+   expect_length(x, 3)
+   expect_length(x[1:2], 2)
+
    testEcho(juliaEval("(1, 2.0)"))
    testEcho(juliaEval("((1, 2.0), 3.0)"))
    testEcho(juliaLet("collect(zip(x,y))", x = c(1L,2L, 3L), y = c(1,0,1)))
+
+   testEcho(juliaEval("(Ref(false), Ref(true))"))
+   testEcho(juliaEval("Tuple{}()"))
 })
 
 
 # Test Named Tuples
 test_that("Echo: Named Tuples", {
    namedTuple <- juliaLet("y=2*x; z = 3*u + 1; (x=y, y=z)", x=2, u=4)
+   expect_s3_class(namedTuple, "JuliaStructProxy")
+   expect_equal(namedTuple$y, 13)
+   expect_type(juliaGet(namedTuple), "list")
+   expect_equal(juliaGet(namedTuple)$y, 13)
    testEcho(namedTuple)
 })
 
@@ -399,16 +479,57 @@ test_that("Echo: Module", {
    testEcho(juliaEval("TestModule"))
 })
 
+test_that("Echo: Symbol", {
+   x <- juliaEval(":asymbol")
+   expect_true(is.symbol(x))
+   expect_true(juliaCall("isa", as.symbol("s"), juliaExpr("Symbol")))
+   testEcho(x)
+})
+
 
 # Test Dictionary
 test_that("Echo: Dictionary", {
    d <- juliaEval("Dict(:bla => 1.0, :blup => 3.0)")
-   testEcho(d)
+   expect_equivalent(d[juliaExpr(":bla")][[1]], 1)
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":bla")], as.list(c(1, 1)))
+   expect_equal(d[[as.symbol("bla")]], 1)
+   expect_equal(d[as.symbol("blup")],list(3))
+   d[juliaExpr(":blup")] <- 4
+   expect_equal(d[[juliaExpr(":blup")]], 4)
+   d[[juliaExpr(":blup")]] <- 5
+   expect_equal(d[[juliaExpr(":blup")]], 5)
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], juliaGet(juliaEval("[:bla, :blup]")))
+   expect_setequal(d2[["values"]], list(1, 5))
+
+   d[juliaExpr(":hi"), juliaExpr(":hello")] <- c(15, 14)
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":hi")], as.list(c(1, 15)))
+   d[juliaExpr(":hi"), juliaExpr(":hello")] <- as.list(c(16, 17))
+   expect_equal(d[juliaExpr(":bla"), juliaExpr(":hello"), juliaExpr(":hi")], as.list(c(1, 17, 16)))
+   expect_length(d[juliaExpr(":bla"), juliaExpr(":hi"), juliaExpr(":hello"), juliaExpr(":hello")], 4)
+
    d <- juliaLet("Dict(zip(x, y))", x = c("bla", "blup"), y = c(1,2))
-   testEcho(d)
+   expect_equal(d[["bla"]], 1)
+   expect_equivalent(d["blup"], list(2))
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], list("bla", "blup"))
+   expect_setequal(d2[["values"]], list(1, 2))
+
+   d2 <- juliaGet(d)
+   expect_setequal(d2[["keys"]], list("bla", "blup"))
+   expect_setequal(d2[["values"]], list(1,2))
+
+   d$bla <- 17
+   expect_equal(d$bla, 17)
+
    d <- juliaLet("Dict(zip(x, y))", x = list("bla"), y = list(1))
+   expect_equal(length(juliaCall("keys", d)), 1)
    testEcho(d)
+
    d <- juliaLet("Dict(zip(x, y))", x = list(), y = list())
+   d2 <- juliaGet(d)
+   expect_length(d2[["keys"]], 0)
+   expect_length(d2[["values"]], 0)
    testEcho(d)
 })
 
@@ -417,8 +538,10 @@ test_that("Echo: Dictionary", {
 test_that("Echo: Set", {
    s1 <- juliaEval("Set([1; 2; 3; 4])")
    s2 <- juliaEval("Set([1; 2])")
-   expect_length(setdiff(juliaEval("Set([1; 2; 3; 4])"), c(1,2,3,4)), 0)
-   expect_length(setdiff(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2), c(3,4)), 0)
+   expect_length(setdiff(juliaGet(juliaEval("Set([1; 2; 3; 4])")),
+                         c(1,2,3,4)), 0)
+   expect_length(setdiff(juliaGet(juliaLet("setdiff(s1, s2)", s1 = s1, s2 = s2)),
+                         c(3,4)), 0)
    testEcho(s1)
 })
 
@@ -428,6 +551,15 @@ test_that("Object with bitstype", {
    uuidregex <- '^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}$'
    juliaImport("UUIDs")
    expect_match(juliaCall("string", UUIDs.uuid4()), uuidregex)
+})
+
+
+test_that("Exotic objects handled gracefully", {
+   x <- quote(1 + 1)
+   expect_type(x, "language")
+   expect_warning({ y <- juliaEcho(list(x = x))},
+                  regexp = "not translatable", all = FALSE)
+   expect_null(y$x)
 })
 
 
@@ -521,7 +653,50 @@ test_that("Errors are handled gracefully", {
 })
 
 
+test_that("Vectors of objects can be accessed by index via proxy", {
+   x <- juliaEval("[ [1;2;3], [4;5;6], [7;8;9] ]")
+   expect_s3_class(x, "JuliaArrayProxy")
+   expect_equal(x[[1]][2], 2)
+   expect_equal(x[[2]][2], 5)
+   x[[1]][1] <- 17L
+   expect_equal(x[[1]][1], 17)
+   expect_equal(x[2:3][[1]][[1]], 4)
+   x[2:3][[1]][[1]] <- 18L
+   expect_equal(x[2:3][[1]][[1]], 18)
+
+   expect_equal(x[[1]][x[[2]] == 5], 2) # logical indexing
+
+   # juliaGet version must behave in the same way as the proxy version
+   y <- juliaGet(x)
+   expect_equal(x[[2]], y[[2]])
+   expect_equal(x[[1]][2], y[[1]][2])
+   expect_equal(x[[2]][2], y[[2]][2])
+   x[[1]][1] <- 17L
+   y[[1]][1] <- 17L
+   expect_equal(x[[1]][1], 17)
+   expect_equal(y[[1]][1], 17)
+   x[2:3][[1]][[1]] <- 18L
+   y <- juliaGet(x)
+   expect_equal(y[2:3][[1]][[1]], 18)
+   expect_equal(x[2:3][[1]][1], y[2:3][[1]][1])
+   expect_equal(x[[2]], y[[2]])
+
+   # Multiple dimensions
+   y <- juliaEval("map( x-> [1;x;3], rand(2,2,2))")
+   expect_equivalent(y[c(1,2)][[1]], y[[1]])
+   expect_equivalent(y[c(1,3)][[2]], y[[3]])
+   y[c(1,3)] <- juliaEval("[[17.0], [18.0]]")
+   expect_equivalent(juliaGet(y[1]), list(17))
+   expect_equivalent(juliaGet(y[3]), list(18))
+   expect_equivalent(juliaGet(y)[c(4,5)], juliaGet(y[c(4,5)]))
+})
+
+
 test_that("Callback functions", {
+
+   x <- juliaEcho(function() {})
+   expect_equal(typeof(x), "closure")
+   expect_equal(x, function() {})
 
    outputenv <- new.env(parent = emptyenv())
    outputenv$output <- c()
@@ -580,6 +755,19 @@ test_that("Callback functions", {
 })
 
 
+test_that("Callback function calling Julia erroring in Julia", {
+   f <- juliaEval('(x) -> error("Error")')
+   g <- function(x) {cat("OK"); f(x); print("NotOK"); x}
+   output <- capture.output(expect_error(juliaCall("map", g, c(1,2,3))))
+   expect_equal(output, "OK")
+})
+
+
+test_that("Builtin functions can be used as callback functions", {
+   expect_equal(juliaCall("map", sqrt, c(1,4,9)), c(1,2,3))
+})
+
+
 test_that("Callback function might have error in R", {
 
    fOK <- function(x) { return(x+1) }
@@ -599,7 +787,7 @@ test_that("Julia functions as members are transferred and usable in R", {
    op1 <- juliaFun("+")
    juliaEval('struct FunTestStruct f::Function end')
    funTestStruct <- juliaCall("FunTestStruct", op1)
-   expect_equal(funTestStruct[["f"]](1,2), 3)
+   expect_equal(funTestStruct$f(1,2), 3)
 })
 
 
@@ -642,6 +830,9 @@ test_that("Parametric types are imported", {
 
 
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
+   # if JULIACONNECTOR_SERVER is used, the server must be started with
+   # "keeprunning = true" to work.
+   skip_on_cran()
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
@@ -670,11 +861,20 @@ test_that("Error if Julia is not setup properly", {
 
 
 test_that("Circular references do not lead to a crash", {
-   tryCatch({juliaEval("mutable struct TestRecur
+
+   definition <- 'mutable struct TestRecur
                   r::Union{TestRecur, Int}
-             end")}, error = function(e) {}) # ignore redefinition error
+                  end'
+   try({juliaEval(definition)}, silent = TRUE) # (ignore redefinition error)
+
    r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
-   expect_error(juliaEcho(r), regex = "Circular reference")
+   expect_match(capture.output({print(juliaEcho(r))}), regex = "circular reference", all = FALSE)
+   expect_error(juliaEcho(juliaGet(r)), regex = "Circular reference")
+
+   # reference only
+   r <- juliaEval("r1 = TestRecur(2); r2 = TestRecur(r1); r1.r = r2; r1")
+   expect_match(capture.output({print(juliaEcho(r))}), regex = "circular reference", all = FALSE)
+   expect_equal(juliaCall("typeof", r$r$r), juliaCall("typeof", r))
 })
 
 
@@ -699,19 +899,22 @@ test_that("Anonymous functions can be transferred", {
                f::Function
              end")
    afs <- juliaEval("TestAnonFunStruct(() -> 20)")
-   expect_equal(afs[[1]](), 20)
+   expect_equal(afs$f(), 20)
 })
 
 
 test_that("Test BigInt: a Julia object with external pointers", {
 
-   i1 <- juliaCall("BigInt", 2147483647L)
-   i2 <- juliaCall("BigInt", 2147483647L)
-   p <- juliaCall("prod", list(i1, i2, i1))
-   p2 <- juliaCall("prod", list(i1, i2, i1))
+   # Note: It is not really recommended to translate objects with
+   # external pointers. Nevertheless, it should work and not cause a crash.
+
+   i1 <- juliaGet(juliaCall("BigInt", 2147483647L))
+   i2 <- juliaGet(juliaCall("BigInt", 2147483647L))
+   p <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
+   p2 <- juliaGet(juliaCall("prod", list(i1, i2, i1)))
    juliaCall("GC.gc") # references in sharedheap must survive this
    jldiv <- juliaFun("div")
-   juliaCall("Int", jldiv(jldiv(p,i1), i2))
+   expect_equal(juliaCall("Int", jldiv(jldiv(p,i1), i2)), 2147483647L)
    expect_equal(juliaLet("Int(div(div(p,i1),i2))", p = p, i1 = i1, i2 = i2),
                 2147483647)
 
@@ -738,10 +941,11 @@ test_that("Serialized mutable struct can be restored", {
    juliaEval("mutable struct TestSerializationStruct
                i::Int
              end")
-   x <- juliaEval("TestSerializationStruct(1)")
+   x <- juliaGet(juliaEval("TestSerializationStruct(1)"))
    tmpfile <- tempfile()
    save("x", file = tmpfile)
    x <- NULL
+   #juliaEval("println(RConnector.sharedheap)")
    invisible(gc())
    juliaEval("1")
    juliaCall("GC.gc")
@@ -787,6 +991,18 @@ test_that("Object with unexported function defined in different modules", {
 })
 
 
+test_that("AbstractArrays are transferred by reference and can be translated to struct", {
+   a <- juliaEval('using SparseArrays
+             A = sparse([1, 2, 3], [1, 2, 3], [0, 2, 0])')
+   expect_s3_class(a, "JuliaArrayProxy")
+   # indexing
+   expect_equal(a[[2,2]], 2)
+   # backtranslation
+   expect_true(juliaCall("issparse", juliaGet(a)))
+   testEcho(a)
+})
+
+
 test_that("Boltzmann machine can be trained and used", {
    skip_on_cran()
 
@@ -810,7 +1026,7 @@ test_that("Boltzmann machine can be trained and used", {
    dbm2 <- fitdbm(x, epochs = 1L,
                   pretraining = list(TrainLayer(nhidden = 4L),
                                      TrainLayer(nhidden = 3L)))
-   dbm2
+   dbm2 <- juliaGet(dbm2)
 
    # Use a trained model to generate samples
    gensamples <- samples(dbm, 10L)
@@ -823,12 +1039,43 @@ test_that("Boltzmann machine can be trained and used", {
 })
 
 
+test_that("juliaPut", {
+   x <- juliaPut(c(1,2,3))
+   expect_s3_class(x, "JuliaSimpleArrayProxy")
+   expect_equal(x[[1]], 1)
+   expect_equal(x[1:2], c(1,2))
+   expect_type(x[3], "double")
+   x[2:3] <- 0
+   expect_equal(juliaCall("sum", x), 1)
 
-# # It takes very long to laod Flux, so don't include by default:
-# test_that("Flux model can be transferred", {
-#    juliaUsing("Flux")
-#    juliaImport("Flux.NNlib", importInternal = TRUE)
-#    c <- Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)
-#    expect_equal(c$layers[[1]]$s(0), 0)
-# })
+   expect_error(juliaPut(juliaEval("(a=1,b=2,c=3)")))
+
+   x <- juliaPut("bla")
+   expect_equal(as.character(juliaCall("typeof", x)), "String")
+
+   # use on translated object
+   x <- juliaGet(juliaEval("[(1,2), (2,3)]"))
+   expect_s3_class(juliaPut(x), "JuliaArrayProxy")
+})
+
+
+test_that("Examples from README work", {
+   skip_on_cran()
+   cat("\nExecuting README examples...\n")
+   irisExampleJl <- system.file("examples", "iris-example.jl",
+                                package = "JuliaConnectoR", mustWork = TRUE)
+   irisExampleJuliaCode <- readLines(irisExampleJl)
+   irisExampleJuliaCode <- sub("epochs <-.*", "epochs <- 5", irisExampleJuliaCode)
+   juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
+
+   irisExampleR <- system.file("examples", "iris-example.R",
+                               package = "JuliaConnectoR", mustWork = TRUE)
+   irisExampleRCode <- readLines(irisExampleR)
+   irisExampleRCode <- sub("epochs <-.*", "epochs <- 5", irisExampleRCode)
+   scriptEnv <- new.env(emptyenv())
+   eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
+        envir = scriptEnv)
+   # just test something
+   expect_s3_class(scriptEnv$model, "JuliaProxy")
+})
 

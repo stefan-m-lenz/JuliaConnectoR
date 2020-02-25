@@ -3,17 +3,23 @@
 #' This package provides a functionally oriented interface between R and Julia.
 #' The goal is to call functions from Julia packages directly as R functions.
 #'
+#' This R-package provides a functionally oriented interface between R and Julia.
+#' The goal is to call functions from Julia packages directly as R functions.
 #' Julia functions imported via the \pkg{JuliaConnectoR} can accept and return R variables.
-#' The data structures passed to and returned from Julia are serialized,
-#' sent via TCP and translated to Julia data structures.
-#' Returned results are translated back to R.
-#' Even complex Julia data structures are translated to R in a way that
-#' they can be translated back and passed to Julia again.
+#' It is also possible to pass R functions as arguments in place of Julia functions,
+#' which allows \emph{callbacks} from Julia to R.
 #'
-#' It is also possible to pass function arguments to enable
-#' \emph{callbacks} from Julia to R:
-#' R functions can be passed as arguments and will be invoked by
-#' Julia in place of Julia functions.
+#
+#' From a technical perspective, R data structures are serialized with an optimized custom streaming format,
+#' sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
+#' The results are returned back to R.
+#' Simple objects, which correspond to vectors in R, are directly translated.
+#' Complex Julia structures are by default transferred to R by reference via proxy objects.
+#' This enables an effective and intuitive handling of the Julia objects via R.
+#' It is also possible to fully translate Julia objects to R objects.
+#' These translated objects are annotated with information
+#' about the original Julia objects, such that they can be translated back to Julia.
+#' This makes it also possible to serialize them as R objects.
 #'
 #'
 #' @section Setup:
@@ -38,17 +44,17 @@
 #' \code{\link{juliaLet}} can be used. With \code{\link{juliaLet}} one can use
 #' R variables in a expression.
 #'
-#' \code{\link{juliaExpr}} makes it possible to refer to a Julia object
-#' with a string in R.
+#' \code{\link{juliaExpr}} makes it possible use complex Julia syntax in R via R strings
+#' that contain Julia expressions.
+#'
+#' With \code{\link{juliaGet}}, a full translation of a Julia proxy object into an R object
+#' is performed.
 #
 #' @section Translation:
-#' From a technical perspective, R data structures are serialized with an
-#' optimized, custom streaming format,
-#' sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
-#' The results of function calls are likewise translated back to R.
 #'
-#' Since Julia is more type-sensitive than R,
-#' it is important to know the translations of the data structures.
+#' Since Julia is more type-sensitive than R, and many Julia functions expect to be called
+#' using specific types, it is important to know the translations of the R data structures
+#' to Julia.
 #'
 #' \subsection{Translation from R to Julia}{
 #' The type correspondences of the basic R data types in Julia are the following:
@@ -61,6 +67,7 @@
 #' \code{character} \tab \eqn{\rightarrow}{-->} \tab \code{String} \cr
 #' \code{complex} \tab \eqn{\rightarrow}{-->} \tab \code{Complex{Float64}} \cr
 #' \code{raw}  \tab \eqn{\rightarrow}{-->} \tab \code{UInt8} \cr
+#' \code{symbol} \tab \eqn{\rightarrow}{-->} \tab \code{Symbol} \cr
 #' }
 #'
 #' R vectors of length 1 of the types in the table above will be translated to the types shown.
@@ -77,7 +84,7 @@
 #' R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
 #' the most specific supertype of the list elements after translation to Julia.
 #'
-#' An R function (type \code{closure}) that is handed to Julia as argument in a function
+#' An R function that is handed to Julia as argument in a function
 #' call is translated to a Julia callback function that will call the given R function.
 #'
 #' Strings with attribute \code{"JLEXPR"}
@@ -100,8 +107,7 @@
 #' about the translations from Julia to R because the resulting R objects should be
 #' intuitive to handle.
 #'
-#' The following table shows how the primitive types
-#' of Julia are translated to R:
+#' The following table shows how basic R-compatible types of Julia are translated to R:
 #' \tabular{lcl}{
 #' \strong{Julia} \tab  \tab \strong{R} \cr
 #'  \code{Float64}\tab \eqn{\rightarrow}{-->} \tab\code{double} \cr
@@ -116,26 +122,23 @@
 #'  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
 #' }
 #'
-#' Non-primitive objects are translated as follows:
-#' \tabular{lcl}{
-#' \strong{Julia} \tab  \tab \strong{R} \cr
-#'  \code{Array} of primitive type \tab \eqn{\rightarrow}{-->} \tab \code{vector} or \code{array} of corresponding type \cr
-#'  \code{struct} \tab \eqn{\rightarrow}{-->} \tab \code{list} with the named struct elements \cr
-#'  \code{Array} of \code{struct} type \tab \eqn{\rightarrow}{-->} \tab \code{list} (of \code{list}s) \cr
-#'  \code{AbstractDict} \tab \eqn{\rightarrow}{-->} \tab \code{list} with two sub-lists: "\code{keys}" and "\code{values}" \cr
-#'  \code{AbstractSet} \tab \eqn{\rightarrow}{-->} \tab \code{list} \cr
-#'  \code{Function} \tab \eqn{\rightarrow}{-->} \tab function that calls the Julia function \cr
-#' }
+#' Julia \code{Array}s of these types are translated to \code{vector}s or \code{array}s of the corresponding types in R.
 #'
-#' Julia functions that have been translated to R can also be translated back to the
+#'
+#' Julia functions are translated to R functions that call the Julia function.
+#' These functions can also be translated back to the
 #' corresponding Julia functions when used as argument of another function
 #' (see \code{\link{juliaFun}}).
 #'
-#' It is safe to translate objects that contain external references from Julia to R.
-#' The pointers will be copied as values and the finalization of the translated
-#' Julia objects is prevented.
-#' The original objects are garbage collected after all direct or
-#' indirect copies are garbage collected.
+#'
+#' Julia object of other types, in particular \code{struct}s, \code{Tuple}s, \code{NamedTuple}s,
+#' and \code{AbstractArray}s of other types are transferred by reference in the form of proxy objects.
+#' Elements and properties of these proxy objects can be accessed and mutated via the operators \code{`[[`},
+#' \code{`[`}, and \code{`$`} (see \link{AccessMutate.JuliaProxy}).
+#'
+#' A full translation of the proxy objects into R objects, which also allows saving these objects in R,
+#' is possible via \code{\link{juliaGet}}.
+#'
 #'
 #' }
 #'
@@ -145,12 +148,6 @@
 #' format in Julia. Also, \code{NA}s in R are not translated to \code{missing}
 #' values in Julia. The behaviour regarding data frames and missing values
 #' can change in future versions of the package.
-#'
-#' Objects containing cicular references cannot be translated back to Julia.
-#'
-#' If Julia objects contain external references such as pointers,
-#' they cannot be translated back to Julia after the Julia process
-#' has been stopped and restarted.
 #'
 #' Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 #' \code{integer} values in R will be translated to \code{double} numbers.

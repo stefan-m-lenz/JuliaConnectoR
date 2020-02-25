@@ -13,9 +13,6 @@ writeLogical <- function(b) {
    writeBin(as.logical(b), pkgLocal$con, size = 1)
 }
 
-writeAnonymousFunctionReference <- function(ref) {
-   writeBin(ref, pkgLocal$con)
-}
 
 writeNofAttributes <- function(n) {
    writeBin(as.raw(n), pkgLocal$con)
@@ -68,33 +65,50 @@ writeListAttributes <- function(theAttributes) {
 }
 
 
-writeElement <- function(elem, callbacks = list()) {
+writeCallback <- function(elem) {
+   writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
+   callbackId <- registerCallback(elem)
+   writeString(callbackId)
+}
+
+
+writeObjectReference <- function(objectClassId, ref) {
+   writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
+   writeBin(objectClassId, pkgLocal$con)
+   writeBin(ref, pkgLocal$con)
+}
+
+
+writeElement <- function(elem) {
 
    if (is.null(elem)) {
       writeBin(TYPE_ID_NULL, pkgLocal$con)
-      return(callbacks)
+      return()
    }
 
-   elemType <- typeof(elem)
-   if (elemType == "closure") {
+   if (is.function(elem)) {
       if (!is.null(attr(elem, "JLTYPE"))) {
          writeExpression(attr(elem, "JLTYPE"))
       } else if (!is.null(attr(elem, "JLFUN"))) {
          writeExpression(attr(elem, "JLFUN"))
       } else if (!is.null(attr(elem, "JLREF"))) {
-         # it's an anonymous function
-         writeBin(TYPE_ID_ANONYMOUS_FUNCTION, pkgLocal$con)
-         writeAnonymousFunctionReference(attr(elem, "JLREF")$ref)
+         writeObjectReference(OBJECT_CLASS_ID_ANONYMOUS_FUNCTION,
+                              attr(elem, "JLREF")$ref)
       } else {
-         writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
-         callbacks <- c(callbacks, elem)
-         writeInt(length(callbacks))
+        writeCallback(elem)
       }
+   } else if (inherits(elem, "JuliaProxy")) {
+      # (Julia doesn't care about the class)
+      writeObjectReference(as.raw(OBJECT_CLASS_ID_NO_INFO),
+                           get("ref", elem))
    } else {
-      typeId <- TYPE_IDS[[typeof(elem)]]
+      elemType <- typeof(elem)
+      typeId <- TYPE_IDS[[elemType]]
       if (is.null(typeId)) {
-         writeBin(TYPE_ID_NULL, pkgLocal$con)
-         warning(paste0("Could not coerce type of element ", elem, ". Writing NULL."))
+         warning(paste0("Type ", elemType, ", of element ", elem,
+                        " not translatable. Writing NULL.\n"))
+         writeElement(NULL)
+         return()
       }
 
       if (typeId <= TYPE_ID_RAW) {
@@ -125,11 +139,12 @@ writeElement <- function(elem, callbacks = list()) {
          }
       } else if (typeId == TYPE_ID_LIST) {
          writeBin(typeId, pkgLocal$con)
-         callbacks <- writeList(elem, callbacks)
+         writeList(elem)
+      } else if (typeId == TYPE_ID_SYMBOL) {
+         writeBin(typeId, pkgLocal$con)
+         writeString(as.character(elem))
       }
    }
-
-   return(callbacks)
 }
 
 
@@ -139,7 +154,7 @@ writeExpression <- function(str) {
 }
 
 
-writeList <- function(theList, callbacks = list()) {
+writeList <- function(theList) {
    theNames <- names(theList)
 
    if (is.null(theNames)) {
@@ -156,19 +171,18 @@ writeList <- function(theList, callbacks = list()) {
    npositional <- length(posargs)
    writeInt(npositional)
    for (arg in posargs) {
-      callbacks <- writeElement(arg, callbacks)
+      writeElement(arg)
    }
 
    writeInt(nnamed)
    if (nnamed > 0) {
       for (i in seq_along(namedargs)) {
          writeString(namedNames[i])
-         callbacks <- writeElement(namedargs[[i]], callbacks)
+         writeElement(namedargs[[i]])
       }
    }
 
    writeListAttributes(attributes(theList))
-   return(callbacks)
 }
 
 
