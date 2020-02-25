@@ -1,6 +1,6 @@
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; 
+juliaEval('using Pkg;
            if !("Flux" in keys(Pkg.installed()))
               Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
            end')
