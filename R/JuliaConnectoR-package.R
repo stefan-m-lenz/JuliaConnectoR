@@ -3,17 +3,23 @@
 #' This package provides a functionally oriented interface between R and Julia.
 #' The goal is to call functions from Julia packages directly as R functions.
 #'
+#' This R-package provides a functionally oriented interface between R and Julia.
+#' The goal is to call functions from Julia packages directly as R functions.
 #' Julia functions imported via the \pkg{JuliaConnectoR} can accept and return R variables.
-#' The data structures passed to and returned from Julia are serialized,
-#' sent via TCP and translated to Julia data structures.
-#' Returned results are translated back to R.
-#' Even complex Julia data structures are translated to R in a way that
-#' they can be translated back and passed to Julia again.
+#' It is also possible to pass R functions as arguments in place of Julia functions,
+#' which allows \emph{callbacks} from Julia to R.
 #'
-#' It is also possible to pass function arguments to enable
-#' \emph{callbacks} from Julia to R:
-#' R functions can be passed as arguments and will be invoked by
-#' Julia in place of Julia functions.
+#
+#' From a technical perspective, R data structures are serialized with an optimized custom streaming format,
+#' sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
+#' The results are returned back to R.
+#' Simple objects, which correspond to vectors in R, are directly translated.
+#' Complex Julia structures are by default transferred to R by reference via proxy objects.
+#' This enables an effective and intuitive handling of the Julia objects via R.
+#' It is also possible to fully translate Julia objects to R objects.
+#' These translated objects are annotated with information
+#' about the original Julia objects, such that they can be translated back to Julia.
+#' This makes it also possible to serialize them as R objects.
 #'
 #'
 #' @section Setup:
@@ -38,17 +44,17 @@
 #' \code{\link{juliaLet}} can be used. With \code{\link{juliaLet}} one can use
 #' R variables in a expression.
 #'
-#' \code{\link{juliaExpr}} makes it possible to refer to a Julia object
-#' with a string in R.
+#' \code{\link{juliaExpr}} makes it possible use complex Julia syntax in R via R strings
+#' that contain Julia expressions.
+#'
+#' With \code{\link{juliaGet}}, a full translation of a Julia proxy object into an R object
+#' is performed.
 #
 #' @section Translation:
-#' From a technical perspective, R data structures are serialized with an
-#' optimized, custom streaming format,
-#' sent to a (local) Julia TCP server, and translated to Julia data structures by Julia.
-#' The results of function calls are likewise translated back to R.
 #'
-#' Since Julia is more type-sensitive than R,
-#' it is important to know the translations of the data structures.
+#' Since Julia is more type-sensitive than R, and many Julia functions expect to be called
+#' using specific types, it is important to know the translations of the R data structures
+#' to Julia.
 #'
 #' \subsection{Translation from R to Julia}{
 #' The type correspondences of the basic R data types in Julia are the following:
@@ -118,6 +124,13 @@
 #'
 #' Julia \code{Array}s of these types are translated to \code{vector}s or \code{array}s of the corresponding types in R.
 #'
+#'
+#' Julia functions are translated to R functions that call the Julia function.
+#' These functions can also be translated back to the
+#' corresponding Julia functions when used as argument of another function
+#' (see \code{\link{juliaFun}}).
+#'
+#'
 #' Julia object of other types, in particular \code{struct}s, \code{Tuple}s, \code{NamedTuple}s,
 #' and \code{AbstractArray}s of other types are transferred by reference in the form of proxy objects.
 #' Elements and properties of these proxy objects can be accessed and mutated via the operators \code{`[[`},
@@ -126,10 +139,6 @@
 #' A full translation of the proxy objects into R objects, which also allows saving these objects in R,
 #' is possible via \code{\link{juliaGet}}.
 #'
-#' Julia functions are translated to R functions that call the Julia function.
-#' These functions can also be translated back to the
-#' corresponding Julia functions when used as argument of another function
-#' (see \code{\link{juliaFun}}).
 #'
 #' }
 #'

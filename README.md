@@ -48,9 +48,15 @@ You can see that the translation from Julia to R code is rather straightforward:
 
 Below we see example code for training a neural network for classification on the famous `iris` data set in Julia and its translation in R. Both the Julia version of the script and the R version are two complete runnable examples, showing all important steps in training a neural network.
 
+<!-- Julia-iris-data -->
 <details><summary>Julia script: Data preparation</summary>
 
 ```julia
+using Pkg
+if !("Flux" in keys(Pkg.installed()))
+  Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
+end
+
 # Import packages and set a seed
 import Flux
 using Random
@@ -82,6 +88,7 @@ testdata = data.test
 
 </details>
 
+<!-- Julia-iris-training -->
 <details><summary>Julia script: model training and evaluation</summary>
 
 ```julia
@@ -128,10 +135,17 @@ accuracy(model, testdata)
 
 </details>
 
+<!-- R-iris-data -->
 <details><summary>Adapted R/JuliaConnectoR script: data preparation</summary>
 
 ```R
 library(JuliaConnectoR)
+
+juliaEval('using Pkg; 
+           if !("Flux" in keys(Pkg.installed()))
+              Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
+           end')
+
 # The Julia code can simply be reused
 rand_split_data <- juliaEval('
       import Flux
@@ -162,10 +176,13 @@ testdata <- data$test
 
 </details>
 
+<!-- R-iris-training -->
 <details open><summary>Adapter R/JuliaConnectoR script: model training and evaluation</summary>
 
 ```R
 library(JuliaConnectoR)
+stopifnot(packageVersion("JuliaConnectoR") >= "0.4")
+
 # load Flux features available in R
 juliaImport("Flux", importInternal = TRUE)
 

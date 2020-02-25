@@ -3,8 +3,8 @@
 .git
 JuliaConnectoR.Rproj
 make-manual.R
+JuliaConnectoR.pdf
 DEVDOC.md
 README.md
 LICENSE
 .travis.yml
-make-manual.R

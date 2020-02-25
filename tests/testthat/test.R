@@ -829,6 +829,7 @@ test_that("Parametric types are imported", {
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    # if JULIACONNECTOR_SERVER is used, the server must be started with
    # "keeprunning = true" to work.
+   skip_on_cran()
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
@@ -1054,11 +1055,18 @@ test_that("juliaPut", {
    expect_s3_class(juliaPut(x), "JuliaArrayProxy")
 })
 
-# # It takes very long to laod Flux, so don't include by default:
-# test_that("Flux model can be transferred", {
-#    juliaUsing("Flux")
-#    juliaImport("Flux.NNlib", importInternal = TRUE)
-#    c <- Chain(Dense(10, 5, NNlib.relu), Dense(5, 2), NNlib.softmax)
-#    expect_equal(c$layers[[1]]$s(0), 0)
-# })
+
+test_that("Examples from README work", {
+   skip_on_cran()
+   irisExampleJl <- system.file("examples", "iris-example.jl",
+                                package = "JuliaConnectoR", mustWork = TRUE)
+   juliaEval(paste(readLines(irisExampleJl), collapse = "\n"))
+
+   irisExampleR <- system.file("examples", "iris-example.R",
+                               package = "JuliaConnectoR", mustWork = TRUE)
+   scriptEnv <- new.env(emptyenv())
+   source(irisExampleR, local = scriptEnv)
+   # just test something
+   expect_s3_class(scriptEnv$model, "JuliaProxy")
+})
 
