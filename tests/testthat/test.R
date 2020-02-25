@@ -1,3 +1,6 @@
+Sys.unsetenv("R_TESTS")
+
+
 test_that("Some smoke tests", {
    expect_equal(juliaCall("prod", c(1,2,3)), 6)
    juliaEval("")
@@ -1058,14 +1061,18 @@ test_that("juliaPut", {
 
 test_that("Examples from README work", {
    skip_on_cran()
+   cat("\nExecuting README examples...\n")
    irisExampleJl <- system.file("examples", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
    juliaEval(paste(readLines(irisExampleJl), collapse = "\n"))
 
    irisExampleR <- system.file("examples", "iris-example.R",
                                package = "JuliaConnectoR", mustWork = TRUE)
+   irisExampleRCode <- readLines(irisExampleR)
+   irisExampleRCode <- sub("epochs <-.*", "epochs <- 5", irisExampleRCode)
    scriptEnv <- new.env(emptyenv())
-   source(irisExampleR, local = scriptEnv)
+   eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
+        envir = scriptEnv)
    # just test something
    expect_s3_class(scriptEnv$model, "JuliaProxy")
 })
