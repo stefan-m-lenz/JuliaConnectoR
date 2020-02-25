@@ -250,7 +250,7 @@ However, the example demonstrates the principle of how callback functions can be
 
 ### Using *BoltzmannMachines* in R
 
-The following example code shows how the `JuliaConnectoR` can be used to use the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
+The following example code shows how the `JuliaConnectoR` can be used with the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
 
 ```R
 library(JuliaConnectoR)
