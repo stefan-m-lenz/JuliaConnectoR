@@ -239,7 +239,7 @@ accuracy(model, trainingdata)
 accuracy(model, testdata)
 ```
 
-</summary>
+</details>
 
 Using the callback makes it possible to plot the training curve
 during the training.
