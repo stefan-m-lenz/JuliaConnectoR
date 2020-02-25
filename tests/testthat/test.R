@@ -1064,7 +1064,9 @@ test_that("Examples from README work", {
    cat("\nExecuting README examples...\n")
    irisExampleJl <- system.file("examples", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
-   juliaEval(paste(readLines(irisExampleJl), collapse = "\n"))
+   irisExampleJuliaCode <- readLines(irisExampleJl)
+   irisExampleJuliaCode <- sub("epochs <-.*", "epochs <- 5", irisExampleJuliaCode)
+   juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
 
    irisExampleR <- system.file("examples", "iris-example.R",
                                package = "JuliaConnectoR", mustWork = TRUE)
