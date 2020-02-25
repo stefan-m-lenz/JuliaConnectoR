@@ -53,8 +53,9 @@ Below we see example code for training a neural network for classification on th
 
 ```julia
 using Pkg
-if !("Flux" in keys(Pkg.installed()))
-  Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
+required_pkgs = ["RDatasets", "Flux"]
+for pkg in setdiff(required_pkgs, keys(Pkg.installed()))
+    Pkg.add(pkg)
 end
 
 # Import packages and set a seed
@@ -141,7 +142,7 @@ accuracy(model, testdata)
 ```R
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; 
+juliaEval('using Pkg;
            if !("Flux" in keys(Pkg.installed()))
               Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
            end')
