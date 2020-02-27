@@ -58,7 +58,7 @@ function write_dimensions(communicator, arr::AbstractArray)
 end
 
 
-function write_element(communicator, arr::Array{String})
+function write_element(communicator, arr::Array{String}, attributes = ())
    write_bin(communicator, TYPE_ID_STRING)
    write_dimensions(communicator, arr)
    for i in eachindex(arr)
@@ -68,7 +68,16 @@ function write_element(communicator, arr::Array{String})
          write_string(communicator, "")
       end
    end
-   write_bin(communicator, 0x00)
+   write_attributes(communicator, attributes)
+end
+
+function write_element(communicator, arr::Array{Union{String, Missing}})
+   missings = findall(ismissing, vec(arr))
+   arr2 = copy(arr)
+   arr2[missings] .= ""
+   strarr = convert(Array{String}, arr2)
+   attributes = (("NA", missings), )
+   write_element(communicator, strarr, attributes)
 end
 
 function write_element(communicator, arr::Array{F}) where {F <: SEND_AS_DOUBLE}

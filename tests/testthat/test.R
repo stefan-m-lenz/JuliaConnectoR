@@ -161,6 +161,20 @@ test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
 
 
+test_that("Echo: String with missing values", {
+   x <- c("Yes", "No", NA)
+   y <- juliaEcho(x)
+   expect_true(is.na(y[3]))
+
+   x <- matrix(c("bla", NA, NA, "NA"), nrow = 2)
+   y <- juliaEcho(x)
+   expect_false(is.na(y[1,1]))
+   expect_true(is.na(y[1,2]))
+   expect_true(is.na(y[2,1]))
+   expect_false(is.na(y[2,2]))
+})
+
+
 test_that("Echo: logical vectors", {
    testEcho(juliaEval('Bool[]'))
    testEcho(logical())
@@ -1061,6 +1075,7 @@ test_that("juliaPut", {
 
 test_that("Examples from README work", {
    skip_on_cran()
+   skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
    irisExampleJl <- system.file("examples", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)

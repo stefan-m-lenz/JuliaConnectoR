@@ -183,7 +183,12 @@ readElement <- function() {
          ret <- readLogical(nElements)
       } else if (typeId == TYPE_ID_STRING) {
          ret <- readStrings(nElements)
-         theAttributes <- c(theAttributes, readAttributes())
+         strAttributes <- readAttributes()
+         if ("NA" %in% names(strAttributes)) {
+            ret[strAttributes[["NA"]]] <- NA
+            strAttributes[["NA"]] <- NULL
+         }
+         theAttributes <- c(theAttributes, strAttributes)
       } else if (typeId == TYPE_ID_COMPLEX) {
          ret <- readBin(pkgLocal$con, "complex", nElements)
          theAttributes <- c(theAttributes, readAttributes())

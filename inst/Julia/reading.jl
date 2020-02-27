@@ -150,7 +150,7 @@ function read_element(communicator)
       elseif typeid == TYPE_ID_STRING
          ret = read_strings(communicator, nelements)
          attributes = read_attributes(communicator)
-         return convert_reshape_element(ret, attributes, dimensions)
+         return convert_reshape_string(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_COMPLEX
          ret = read_complexs(communicator, nelements)
          attributes = read_attributes(communicator)
@@ -213,6 +213,21 @@ function convert_reshape_raw(element, attributes, dimensions)
       end
    end
    return reshape_element(element, dimensions)
+end
+
+
+function convert_reshape_string(ret::Array{String}, attributes, dimensions)
+   if haskey(attributes, "NA")
+      ret = convert(Array{Union{String, Missing}}, ret)
+      try
+         for i in attributes["NA"]
+            ret[i] = missing
+         end
+      catch ex
+         return Fail("Translating NAs failed", ex)
+      end
+   end
+   return convert_reshape_element(ret, attributes, dimensions)
 end
 
 

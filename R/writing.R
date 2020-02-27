@@ -133,6 +133,9 @@ writeElement <- function(elem) {
             for (i in 1:length(elem)) {
                writeString(elem[i])
             }
+            if (anyNA(elem)) {
+               attr(elem, "NA") <- which(is.na(elem))
+            }
             writeAttributes(attributes(elem))
          } else {
             writeExpression(elem)
