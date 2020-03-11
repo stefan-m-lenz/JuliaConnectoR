@@ -38,6 +38,10 @@ const SEND_AS_DOUBLE = Union{Float16, Float32, UInt32}
 const SEND_AS_COMPLEX = Complex{T} where T <: Union{
       Int8, Int16, Int32, Int64, Float16, Float32}
 
+const R_NA_INTEGER = Int32(-2147483648)
+const R_NA_REAL = ntoh(reinterpret(Float64,
+      UInt8[0x7f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x07, 0xa2])[1])
+
 include("sharing.jl")
 include("communicating.jl")
 include("handling_undefined.jl")

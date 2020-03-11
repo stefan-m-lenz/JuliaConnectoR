@@ -73,6 +73,16 @@ end
 read_int(communicator) = read_ints(communicator, 1)[1]
 
 
+function read_ints_with_missings(communicator, n::Int)
+   ret = read_ints(communicator, n)
+   if any(isequal(R_NA_INTEGER), ret)
+      return replace(ret, R_NA_INTEGER => missing)
+   else
+      return ret
+   end
+end
+
+
 function read_nattributes(communicator)
    ret = read_bin(communicator, 1)[1]
 end
@@ -141,7 +151,7 @@ function read_element(communicator)
          attributes = read_attributes(communicator)
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_INT
-         ret = read_ints(communicator, nelements)
+         ret = read_ints_with_missings(communicator, nelements)
          attributes = read_attributes(communicator)
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_BOOL

@@ -120,6 +120,14 @@ function write_element(communicator, arr::Array{T},
    write_element(communicator, convert(Array{Int32}, arr), attributes, true)
 end
 
+function write_element(communicator, arr::Array{Union{Missing, T}},
+      ) where {T <: Union{Int32, SEND_AS_INT32}}
+
+   attributes = (("JLTYPE", string(T)), )
+   arr2 = convert(Array{Int32}, replace(arr, missing => R_NA_INTEGER))
+   write_element(communicator, arr2, attributes, true)
+end
+
 function write_element(communicator, arr::Array{Int32},
       attributes = (), isothertype::Bool = false)
 
@@ -139,7 +147,7 @@ function write_element(communicator, arr::Array{Int32},
    write_attributes(communicator, attributes)
 end
 
-function write_element(communicator, arr::Array{Int64})
+function write_element(communicator, arr::Array{Int64}; missings = Int[])
 
    arrmin, arrmax = extrema(arr)
    if arrmin >= typemin(Int32) && arrmax <= typemax(Int32)
@@ -148,13 +156,29 @@ function write_element(communicator, arr::Array{Int64})
       else
          attributes = (("JLTYPE", "Int64"), )
       end
+      if !isempty(missings)
+         @static if Int != Int64
+            attributes = (("JLTYPE", "Union{Missing,Int64}"), )
+         end
+         arr[missings] .= R_NA_INTEGER
+      end
       write_element(communicator, convert(Array{Int32}, arr),
             attributes, true)
    else
       attributes = (("JLTYPE", "Int64"), )
-      write_element(communicator, convert(Array{Float64}, arr), attributes)
+      arr2 = convert(Array{Float64}, arr)
+      if !isempty(missings)
+         attributes = (("JLTYPE", "Union{Missing,Int64}"), )
+         arr2[missings] .= R_NA_REAL
+      end
+      write_element(communicator, arr2, attributes)
       #TODO possible inexactness?
    end
+end
+
+function write_element(communicator, arr::Array{Union{Missing, Int64}})
+   write_element(communicator, replace(arr, missing => 0);
+         missings = findall(ismissing, arr))
 end
 
 function write_element(communicator, arr::Array{T},
