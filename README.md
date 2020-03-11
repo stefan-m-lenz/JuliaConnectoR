@@ -16,11 +16,11 @@ reference via proxy objects in R or fully translated to R data structures.
 
 ## Installation
 
-The package can be installed in R via `devtools`:
+The package can be installed in R (version &ge; 3.2) via `devtools`:
 
     devtools::install_github("stefan-m-lenz/JuliaConnectoR")
 
-The package requires that [Julia (Version &ge; 1.0) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
+The package requires that [Julia (version &ge; 1.0) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
 ## Overview
 
