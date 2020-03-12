@@ -88,6 +88,10 @@ or \code{Array{Int,1}}, in Julia.
 A double matrix such as \code{matrix(c(1,2,3,4), nrow = 2)}
 will be of type \code{Array{Float64,2}}.
 
+Missing values \code{NA} in R are translated to \code{missing} values in Julia.
+R vectors and arrays with missing values are converted to Julia arrays
+of type \code{Array{Missing, T}}, where \code{T} stands for the translated type in the
+table above.
 
 R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
 the most specific supertype of the list elements after translation to Julia.
@@ -155,8 +159,7 @@ is possible via \code{\link{juliaGet}}.
 
 
 The current version does not translate data frames into a useful
-format in Julia. Also, \code{NA}s in R are not translated to \code{missing}
-values in Julia. The behaviour regarding data frames and missing values
+format in Julia. This behavious
 can change in future versions of the package.
 
 Numbers of type \code{Int64} that are too big to be expressed as 32-bit
