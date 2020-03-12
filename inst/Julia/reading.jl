@@ -66,6 +66,16 @@ function read_float64s(communicator, n::Int)
 end
 
 
+function read_float64s_with_missings(communicator, n::Int)
+   ret = read_float64s(communicator, n)
+   if any(isequal(R_NA_REAL), ret)
+      return replace(ret, R_NA_REAL => missing)
+   else
+      return ret
+   end
+end
+
+
 function read_ints(communicator, n::Int)
    map(Int, reinterpret(Int32, read_bin(communicator, 4*n)))
 end
@@ -147,7 +157,7 @@ function read_element(communicator)
 
       attributes = NO_ATTRIBUTES
       if typeid == TYPE_ID_FLOAT64
-         ret = read_float64s(communicator, nelements)
+         ret = read_float64s_with_missings(communicator, nelements)
          attributes = read_attributes(communicator)
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_INT

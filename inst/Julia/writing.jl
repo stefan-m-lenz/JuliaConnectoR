@@ -85,6 +85,18 @@ function write_element(communicator, arr::Array{F}) where {F <: SEND_AS_DOUBLE}
    write_element(communicator, convert(Array{Float64}, arr), attributes)
 end
 
+function write_element(communicator, arr::Array{Union{Missing,F}}
+      ) where {F <: Union{SEND_AS_DOUBLE}}
+   attributes = (("JLTYPE", "Union{Missing," * string(F)* "}"), )
+   arr2 = replace(arr, missing => R_NA_REAL)
+   write_element(communicator, arr2, attributes)
+end
+
+function write_element(communicator, arr::Array{Union{Missing,Float64}})
+   arr2 = replace(arr, missing => R_NA_REAL)
+   write_element(communicator, arr2)
+end
+
 function write_element(communicator, arr::Array{Float64}, attributes = ())
    write_bin(communicator, TYPE_ID_FLOAT64)
    write_dimensions(communicator, arr)
@@ -123,7 +135,7 @@ end
 function write_element(communicator, arr::Array{Union{Missing, T}},
       ) where {T <: Union{Int32, SEND_AS_INT32}}
 
-   attributes = (("JLTYPE", string(T)), )
+   attributes = (("JLTYPE", "Union{Missing," * string(T)* "}"), )
    arr2 = convert(Array{Int32}, replace(arr, missing => R_NA_INTEGER))
    write_element(communicator, arr2, attributes, true)
 end
@@ -434,6 +446,14 @@ end
 function write_element(communicator, f::F) where {F <: SEND_AS_DOUBLE}
    attributes = (("JLTYPE", string(F)), )
    write_element(communicator, Float64(f), attributes)
+end
+
+function write_element(communicator, m::Missing)
+   write_element(communicator, R_NA_REAL)
+end
+
+function write_element(communicator, m::Array{Missing})
+   write_element(communicator, fill(R_NA_REAL, size(m)))
 end
 
 function write_element(communicator, f::Float64, attributes = ())
