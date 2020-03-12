@@ -175,6 +175,88 @@ test_that("Echo: String with missing values", {
 })
 
 
+test_that("Echo: Int vector with missing values", {
+   expect_true(juliaLet("x[1] == 1 && ismissing(x[2]) && x[3] == 3", x = c(1L,NA, 3L)))
+   expect_true(juliaLet("ismissing(x)", x = NA_integer_))
+   x <- juliaEval("[1 missing 3; 3 missing 4 ]")
+   expect_type(x, "integer")
+   expect_true(all(is.na(x[,2])))
+   expect_null(attr(x, "JLTYPE"))
+
+   x <- juliaEval("[2^52 missing 3; 2^53 missing 4 ]")
+   expect_type(x, "double")
+   expect_true(all(is.na(x[,2])))
+   expect_equal(x[1,1], 2^52)
+   expect_equal(x[2,1], 2^53)
+   testEcho(x)
+
+   x <- juliaEval("Union{Int32,Missing}[1 missing 3; 3 missing 4 ]")
+   expect_type(x, "integer")
+   expect_true(all(is.na(x[,2])))
+   expect_equal(x[1,1], 1)
+   expect_equal(x[2,1], 3)
+   testEcho(x)
+
+   x <- juliaEval("Union{Int16,Missing}[-1 missing 3; 3 missing 4 ]")
+   expect_type(x, "integer")
+   expect_true(all(is.na(x[,2])))
+   expect_equal(x[1,1], -1)
+   expect_equal(x[2,1], 3)
+   testEcho(x)
+
+   testEcho(c(1L, 2L, NA, NA))
+   testEcho(matrix(c(1L, 2L, NA, NA), nrow = 2))
+})
+
+
+test_that("Echo: Double vector with missing values", {
+   expect_true(juliaLet("x[1] == 1.0 && ismissing(x[2]) && x[3] == 3.0", x = c(1,NA, 3)))
+   expect_true(juliaLet("ismissing(x)", x = NA_integer_))
+   x <- juliaEval("[1.0 missing 3.0; 3.0 missing 4.0 ]")
+   expect_type(x, "double")
+   expect_true(all(is.na(x[,2])))
+   expect_null(attr(x, "JLTYPE"))
+
+
+   x <- juliaEval("Union{Float32,Missing}[1.0f0 missing 3.0f0; 3.0f0 missing 4.0f0 ]")
+   expect_true(all(is.na(x[,2])))
+   expect_equal(x[1,1], 1)
+   expect_equal(x[2,1], 3)
+   testEcho(x)
+
+   testEcho(c(1, 2, NA, NA))
+   testEcho(matrix(c(1, 2, NA, NA), nrow = 2))
+})
+
+
+test_that("Missing values transferred as NA", {
+   expect_true(is.na(juliaEval("missing")))
+   expect_true(all(is.na(juliaEval("[missing; missing]"))))
+   expect_true(all(is.na(juliaEval("[missing missing; missing missing]"))))
+})
+
+test_that("Logical with missing values", {
+   juliaLet("x[1] && !x[2] && ismissing(x[3])", x = c(TRUE, FALSE, NA))
+   x <- c(TRUE, FALSE, NA)
+   testEcho(x)
+})
+
+test_that("Complex with missing values", {
+   juliaLet("x[1] == 1+1im && x[2] == 2+2im && ismissing(x[3])", x = c(1 +1i, 2+2i, NA))
+   x <- c(1 +1i, 2+2i, NA)
+   testEcho(x)
+
+   x <- juliaEval("[1+1im 1+2im; 0 missing]")
+   expect_equivalent(x, matrix(c(1+1i, 0, 1+2i, NA), nrow = 2))
+   testEcho(x)
+
+   x <- juliaEval("[1.0+im 2.0+im; 0.0 missing]")
+   expect_equal(x, matrix(c(1+1i, 0, 2+1i, NA), nrow = 2))
+   expect_true(is.null(attr(x, "JLTYPE")))
+   testEcho(x)
+})
+
+
 test_that("Echo: logical vectors", {
    testEcho(juliaEval('Bool[]'))
    testEcho(logical())

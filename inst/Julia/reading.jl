@@ -60,6 +60,16 @@ function read_complexs(communicator, n::Int)
    map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
 end
 
+function read_complexs_with_missings(communicator, n::Int)
+   doublepairs = reinterpret(Float64, read_bin(communicator, 16*n))
+   ret = map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
+   if any(isequal(R_NA_COMPLEX), ret)
+      return replace(ret, R_NA_COMPLEX => missing)
+   else
+      return ret
+   end
+end
+
 
 function read_float64s(communicator, n::Int)
    reinterpret(Float64, read_bin(communicator, 8*n))
@@ -172,7 +182,7 @@ function read_element(communicator)
          attributes = read_attributes(communicator)
          return convert_reshape_string(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_COMPLEX
-         ret = read_complexs(communicator, nelements)
+         ret = read_complexs_with_missings(communicator, nelements)
          attributes = read_attributes(communicator)
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_RAW

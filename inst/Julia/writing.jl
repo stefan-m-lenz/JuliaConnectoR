@@ -220,6 +220,21 @@ function write_element(communicator, arr::Array{Complex{Float64}},
    write_attributes(communicator, attributes)
 end
 
+function write_element(communicator,
+      arr::Array{Union{Missing,Complex{Float64}}})
+
+   arr2 = replace(arr, missing => R_NA_COMPLEX)
+   write_element(communicator, arr2)
+end
+
+function write_element(communicator, arr::Array{Union{Missing,C}},
+      ) where {C <: SEND_AS_COMPLEX}
+
+   arr2 = replace(arr, missing => R_NA_COMPLEX)
+   attributes = (("JLTYPE", "Union{Missing," * string(C) * "}"), )
+   write_element(communicator, arr2, attributes)
+end
+
 function write_element(communicator, arr::Array{C},
       ) where {C <: SEND_AS_COMPLEX}
 

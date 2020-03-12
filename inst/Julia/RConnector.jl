@@ -41,6 +41,7 @@ const SEND_AS_COMPLEX = Complex{T} where T <: Union{
 const R_NA_INTEGER = Int32(-2147483648)
 const R_NA_REAL = ntoh(reinterpret(Float64,
       UInt8[0x7f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x07, 0xa2])[1])
+const R_NA_COMPLEX = Complex{Float64}(R_NA_REAL, R_NA_REAL)
 
 include("sharing.jl")
 include("communicating.jl")
