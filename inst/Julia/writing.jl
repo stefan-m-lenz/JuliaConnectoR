@@ -235,6 +235,13 @@ function write_element(communicator, arr::Array{Bool})
    end
 end
 
+function write_element(communicator, arr::Array{Union{Missing,Bool}})
+   arr2 = replace(arr, true => Int32(1), false => Int32(0),
+         missing => R_NA_INTEGER)
+   attributes = (("R_LOGICAL", true), )
+   write_element(communicator, arr2, attributes, true)
+end
+
 function write_array_element(communicator, arr::AbstractArray)
 
    attributes = Dict{String, Any}("JLTYPE" => string(typeof(arr)))

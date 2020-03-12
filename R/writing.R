@@ -123,9 +123,16 @@ writeElement <- function(elem) {
          writeInt(elem)
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_LOGICAL) {
-         writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
-         writeInt(dimensions(elem))
-         writeLogical(elem)
+         if (anyNA(elem)) {
+            writeBin(TYPE_ID_INTEGER, pkgLocal$con)
+            writeInt(dimensions(elem))
+            writeInt(elem)
+            writeAttributes(list("JLTYPE" = "Union{Missing, Bool}"))
+         } else {
+            writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
+            writeInt(dimensions(elem))
+            writeLogical(elem)
+         }
       } else if (typeId == TYPE_ID_STRING) {
          if (is.null(attr(elem, "JLEXPR"))) {
             writeBin(TYPE_ID_STRING, pkgLocal$con)

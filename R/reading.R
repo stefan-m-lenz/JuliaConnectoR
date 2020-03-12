@@ -178,7 +178,12 @@ readElement <- function() {
          theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_INTEGER) {
          ret <- readInts(nElements)
-         theAttributes <- c(theAttributes, readAttributes())
+         newAttrs <- readAttributes()
+         if (!is.null(newAttrs[["R_LOGICAL"]])) {
+            ret <- as.logical(ret)
+            newAttrs[["R_LOGICAL"]] <- NULL
+         }
+         theAttributes <- c(theAttributes, newAttrs)
       } else if (typeId == TYPE_ID_LOGICAL) {
          ret <- readLogical(nElements)
       } else if (typeId == TYPE_ID_STRING) {
