@@ -70,6 +70,15 @@ startJulia <- function() {
 }
 
 
+showUpdateTablesMsg <- function() {
+   message(paste0("Installation of the package \"Tables\" failed, ",
+                  "probably due to unsatisfiable dependencies. \n",
+                  "\"Tables\" is required to translate data frames properly.\n",
+                  "Probable fix: Run juliaEval('import Pkg; Pkg.update()') to update ",
+                  "all Julia packages and restart the R session."))
+}
+
+
 getJuliaExecutablePath <- function() {
    juliaBindir <- Sys.getenv("JULIA_BINDIR")
    if (juliaBindir == "") {
@@ -108,6 +117,15 @@ stopJulia <- function() {
 ensureJuliaConnection <- function() {
    if (is.null(pkgLocal$con)) {
       startJulia()
+
+      # make sure that Tables.jl is available
+      if (juliaEval("isdefined(Tables, :JuliaConnectoR_DummyTables)")) {
+         message("Package \"Tables.jl\" (version >= 1.0) is required. Installing ...")
+         tryCatch({juliaEval('import Pkg; Pkg.add("Tables")')},
+                  error = function(e) {showUpdateTablesMsg()})
+         stopJulia()
+         startJulia()
+      }
    }
 }
 

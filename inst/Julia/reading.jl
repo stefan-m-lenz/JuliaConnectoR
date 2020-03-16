@@ -44,6 +44,28 @@ struct Call
 end
 
 
+struct RDataFrame <: AbstractColumns
+   ellist::ElementList
+end
+
+istable(::Type{RDataFrame}) = true
+columnaccess(::Type{RDataFrame}) = true
+columns(df::RDataFrame) = df
+columnnames(df::RDataFrame) = getfield(getfield(df, :ellist), :names)
+
+function getcolumn(df::RDataFrame, nm::Symbol)
+   getfield(getfield(df, :ellist), :namedelements)[nm]
+end
+
+function getcolumn(df::RDataFrame, i::Int)
+   getfield(getfield(df, :ellist), :namedelements)[getfield(df, :names)[i]]
+end
+
+function getcolumn(df::RDataFrame, ::Type{T}, col::Int, nm::Symbol) where {T}
+   getcolumn(df, nm)
+end
+
+
 function read_attributes(communicator)
    nattributes = read_nattributes(communicator)
    attributes = Dict{String, Any}()

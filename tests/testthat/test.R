@@ -1154,6 +1154,10 @@ test_that("juliaPut", {
    expect_s3_class(juliaPut(x), "JuliaArrayProxy")
 })
 
+test_that("Error message for tables", {
+   capture.output({JuliaConnectoR:::showUpdateTablesMsg()})
+})
+
 
 test_that("Examples from README work", {
    skip_on_cran()
