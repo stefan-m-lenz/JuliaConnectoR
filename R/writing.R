@@ -101,6 +101,11 @@ writeElement <- function(elem) {
       # (Julia doesn't care about the class)
       writeObjectReference(as.raw(OBJECT_CLASS_ID_NO_INFO),
                            get("ref", elem))
+   } else if (inherits(elem, "data.frame")) {
+      writeBin(TYPE_ID_LIST, pkgLocal$con)
+      elem <- as.list(elem)
+      attr(elem, "IS_DF") <- TRUE
+      writeList(elem)
    } else {
       elemType <- typeof(elem)
       typeId <- TYPE_IDS[[elemType]]

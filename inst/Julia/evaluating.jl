@@ -105,6 +105,8 @@ function evaluate!(list::ElementList)
                   list.attributes)
          end
       end
+   elseif get(list.attributes, "IS_DF", false)
+      return RDataFrame(list)
    elseif isempty(list.namedelements)
       return converttomostspecifictype(list.positionalelements)
    else

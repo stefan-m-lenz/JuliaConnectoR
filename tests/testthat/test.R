@@ -1156,6 +1156,23 @@ test_that("juliaPut", {
 
 test_that("Error message for tables", {
    capture.output({JuliaConnectoR:::showUpdateTablesMsg()})
+   expect_null(tryCatch({JuliaConnectoR:::toDataFrame(list(c(1,2), c(1,2,3)))},
+                        error = function(e) {stop(e)},
+                        warning = function(e) {}))
+})
+
+
+test_that("Data frame can be translated", {
+   x <- data.frame(x = c(0, 2, 4), y = c("bla", "blup", "ha"),
+                   stringsAsFactors = FALSE)
+   y <- juliaEcho(x)
+   # TODO accessing mutating of data frame proxies
+   #expect_equal(y$x, c(0,2,4))
+   #expect_equal(y[c(2,1), "x"], data.frame(x = c(2,4), y = c("blup", "ha")))
+   x2 <- juliaGet(juliaEcho(x))
+   expect_s3_class(x2, "data.frame")
+   expect_equal(x2$x, c(0,2,4))
+   expect_equal(x2$y, c("bla", "blup", "ha"))
 })
 
 

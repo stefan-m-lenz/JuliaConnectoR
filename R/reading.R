@@ -145,11 +145,26 @@ readObjectReference <- function() {
 }
 
 
+toDataFrame <- function(aList) {
+   ret <- NULL
+   tryCatch({ret <- data.frame(aList, stringsAsFactors = FALSE)},
+            error = function(e) {
+               warning(paste0("Unable to coerce to data frame. ",
+                              "Returning NULL"))
+            })
+   ret
+}
+
+
 readElement <- function() {
    theAttributes <- list()
    typeId <- readBin(pkgLocal$con, "raw", 1)
    if (typeId == TYPE_ID_LIST) {
-      return(readList())
+      ret <- readList()
+      if (!is.null(attr(ret, "IS_DF"))) {
+         ret <- toDataFrame(ret)
+      }
+      return(ret)
    } else if (typeId == TYPE_ID_NULL) {
       return(NULL)
    } else if (typeId == TYPE_ID_EXPRESSION) {

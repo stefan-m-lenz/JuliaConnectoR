@@ -568,6 +568,16 @@ function write_element(communicator, p::EnforcedProxy)
    write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_NO_INFO)
 end
 
+function write_element(communicator, df::RDataFrame)
+   if full_translation.x
+      getfield(getfield(df, :ellist), :attributes)["IS_DF"] = true
+      write_bin(communicator, TYPE_ID_LIST)
+      write_list(communicator, getfield(df, :ellist))
+   else
+      write_object_reference(communicator, df, OBJECT_CLASS_ID_ARRAY)
+   end
+end
+
 function write_expression(communicator, str::AbstractString)
    write_bin(communicator, TYPE_ID_EXPRESSION)
    write_string(communicator, str)
