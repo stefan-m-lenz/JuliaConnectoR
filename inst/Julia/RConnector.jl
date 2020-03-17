@@ -2,9 +2,9 @@ module RConnector
 
 using Sockets
 using Logging
-import Tables: istable, columnaccess,
-               columns, AbstractColumns,
-               getcolumn, columnnames
+import Main.Tables: istable, columnaccess,
+                    columns, AbstractColumns,
+                    getcolumn, columnnames
 
 const TYPE_ID_NOTHING = 0x00
 const TYPE_ID_FLOAT64 = 0x01
