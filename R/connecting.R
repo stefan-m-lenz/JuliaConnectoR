@@ -121,7 +121,7 @@ ensureJuliaConnection <- function() {
       # make sure that Tables.jl is available
       if (juliaEval("isdefined(Tables, :JuliaConnectoR_DummyTables)")) {
          message("Package \"Tables.jl\" (version >= 1.0) is required. Installing ...")
-         tryCatch({juliaEval('import Pkg; Pkg.add("Tables")')},
+         tryCatch({juliaEval('import Pkg; Pkg.add("Tables"); import Tables;')},
                   error = function(e) {showUpdateTablesMsg()})
          stopJulia()
          startJulia()

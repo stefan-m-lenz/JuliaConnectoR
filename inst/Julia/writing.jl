@@ -285,11 +285,18 @@ end
 
 function write_element(communicator, arr::AbstractArray)
    if full_translation.x
-      # translate as struct because you can never be sure of the implementation
-      write_struct_element(communicator, arr)
+      if !istable(arr) || !try_write_table(arr)
+         # translate as struct because you cannot be sure of the implementation
+         write_struct_element(communicator, arr)
+      end
    else
-      # allow indexing as an array
-      write_object_reference(communicator, arr, OBJECT_CLASS_ID_ARRAY)
+      if istable(arr)
+         obj_class_id = OBJECT_CLASS_ID_ARRAY # TODO
+      else
+         # allow indexing as an array
+         obj_class_id = OBJECT_CLASS_ID_ARRAY
+      end
+      write_object_reference(communicator, arr, obj_class_id)
    end
 end
 
@@ -451,11 +458,15 @@ function write_element(communicator, obj::T) where T
 
    if isstructtype(T)
       if full_translation.x
-         if !isimmutable(obj)
+         if istable(obj) && try_write_table(communicator, obj)
+            return
+         elseif !isimmutable(obj)
             write_mutable_struct_element(communicator, obj)
          else
             write_struct_element(communicator, obj)
          end
+      elseif istable(obj)
+         write_object_reference(communicator, obj, OBJECT_CLASS_ID_ARRAY) # TODO
       else
          write_object_reference(communicator, obj, OBJECT_CLASS_ID_STRUCT)
       end
@@ -568,15 +579,6 @@ function write_element(communicator, p::EnforcedProxy)
    write_object_reference(communicator, p.obj, OBJECT_CLASS_ID_NO_INFO)
 end
 
-function write_element(communicator, df::RDataFrame)
-   if full_translation.x
-      getfield(getfield(df, :ellist), :attributes)["IS_DF"] = true
-      write_bin(communicator, TYPE_ID_LIST)
-      write_list(communicator, getfield(df, :ellist))
-   else
-      write_object_reference(communicator, df, OBJECT_CLASS_ID_ARRAY)
-   end
-end
 
 function write_expression(communicator, str::AbstractString)
    write_bin(communicator, TYPE_ID_EXPRESSION)
@@ -609,4 +611,37 @@ function write_object_reference(communicator, obj, object_class_id::UInt8)
    write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
    write_bin(communicator, object_class_id)
    write_bin(communicator, ref)
+end
+
+
+const empty_element_list = ElementList([])
+
+function try_write_table(communicator, obj)
+   coldict = Dict{Symbol, Any}()
+   attributes = Dict{String, Any}()
+   df = empty_element_list
+   try
+      cols = columns(obj)
+      colnames = columnnames(cols)
+      for col in columnnames(cols)
+         coldict[col] = getcolumn(cols, col)
+      end
+      colnamesarr = collect(colnames)
+      if length(colnamesarr) > 0
+         allsame(x) = all(y -> y == first(x), x)
+         if !allsame(map(length, values(coldict)))
+            @debug "Lengths of columns not equal"
+            return false
+         end
+      end
+      df = ElementList([], colnamesarr, coldict, attributes)
+   catch ex
+      @debug "Exception while trying to convert to table" ex
+      return false
+   end
+
+   df.attributes["IS_DF"] = true
+   write_bin(communicator, TYPE_ID_LIST)
+   write_list(communicator, df)
+   return true
 end
