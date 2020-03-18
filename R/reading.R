@@ -146,11 +146,10 @@ readObjectReference <- function() {
 
 
 toDataFrame <- function(aList) {
-   ret <- NULL
+   ret <- aList
    tryCatch({ret <- data.frame(aList, stringsAsFactors = FALSE)},
             error = function(e) {
-               warning(paste0("Unable to coerce to data frame. ",
-                              "Returning NULL"))
+               warning("Unable to coerce to data frame.")
             })
    ret
 }
