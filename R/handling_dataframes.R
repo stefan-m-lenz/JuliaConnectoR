@@ -8,7 +8,7 @@
 #'
 #' @param x a proxy object pointing to a Julia object that implements the interface
 #'   of the package Julia package \code{Tables}
-#'
+#' @param ... (not used)
 #'
 #' @examples
 #' # Demonstrate the usage with the Julia package "JuliaDB"
@@ -33,7 +33,7 @@
 #' # translate selection of Julia table into R data frame
 #' as.data.frame(seltbl)
 #'
-as.data.frame.JuliaProxy <- function(x) {
+as.data.frame.JuliaProxy <- function(x, ...) {
    juliaCall("RConnector.full_translation!", TRUE)
    tryCatch({ret <- juliaCall("RConnector.get_df", x)},
             finally = {juliaCall("RConnector.full_translation!", FALSE)})

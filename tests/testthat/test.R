@@ -1164,7 +1164,8 @@ test_that("Error message for tables", {
 
 
 test_that("Data frame can be translated", {
-
+   x <- data.frame(x = c(0, 2, 4), y = c("bla", "blup", "ha"),
+                   stringsAsFactors = FALSE)
    testEcho(x)
    y <- juliaEcho(x)
 

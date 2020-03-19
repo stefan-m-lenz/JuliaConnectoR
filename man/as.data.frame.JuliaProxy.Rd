@@ -4,11 +4,13 @@
 \alias{as.data.frame.JuliaProxy}
 \title{Coerce a Julia Table to a Data Frame}
 \usage{
-\method{as.data.frame}{JuliaProxy}(x)
+\method{as.data.frame}{JuliaProxy}(x, ...)
 }
 \arguments{
 \item{x}{a proxy object pointing to a Julia object that implements the interface
 of the package Julia package \code{Tables}}
+
+\item{...}{(not used)}
 }
 \description{
 Get the data from a Julia proxy object that implements the Julia
