@@ -55,6 +55,11 @@ that contain Julia expressions.
 
 With \code{\link{juliaGet}}, a full translation of a Julia proxy object into an R object
 is performed.
+
+\code{as.data.frame} is overloaded (\code{\link{as.data.frame.JuliaProxy}})
+for translating Julia objects that implement the
+\href{https://github.com/JuliaData/Tables.jl}{\code{Tables}} interface
+to R data frames.
 }
 
 \section{Translation}{
@@ -102,6 +107,11 @@ call is translated to a Julia callback function that will call the given R funct
 Strings with attribute \code{"JLEXPR"}
 will be evaluated as Julia expressions,
 and the value is used in their place (see \code{\link{juliaExpr}}).
+
+R data frames are translated to objects that implement the Julia
+\href{https://github.com/JuliaData/Tables.jl}{\code{Tables}} interface.
+Such objects can be used by functions of many different
+Julia packages that deal with table-like data structures.
 
 }
 
@@ -157,10 +167,6 @@ is possible via \code{\link{juliaGet}}.
 
 \section{Limitations}{
 
-
-The current version does not translate data frames into a useful
-format in Julia. This behavious
-can change in future versions of the package.
 
 Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 \code{integer} values in R will be translated to \code{double} numbers.
