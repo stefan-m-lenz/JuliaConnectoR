@@ -14,6 +14,6 @@ Description: This package provides a functionally oriented interface linking R a
 License: MIT + file LICENCE
 SystemRequirements: Julia >= 1.0
 Encoding: UTF-8
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests:
     testthat (>= 2.1.0)
