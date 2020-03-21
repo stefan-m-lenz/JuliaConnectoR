@@ -74,6 +74,7 @@
 #' strDict["howdy", "greetings"] <- c(2, 3)
 #' strDict["hi", "howdy"]
 #' \dontshow{
+#' rm(x, s, strDict)
 #' JuliaConnectoR:::stopJulia()
 #' }
 NULL
