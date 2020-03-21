@@ -43,4 +43,8 @@ seltbl <- JuliaDB.select(mytbl, juliaExpr("(:x, :y)"))[1:2]
 # translate selection of Julia table into R data frame
 as.data.frame(seltbl)
 
+\dontshow{
+rm(mytbl, seltbl)
+JuliaConnectoR:::stopJulia()
+}
 }

@@ -33,6 +33,10 @@
 #' # translate selection of Julia table into R data frame
 #' as.data.frame(seltbl)
 #'
+#' \dontshow{
+#' rm(mytbl, seltbl)
+#' JuliaConnectoR:::stopJulia()
+#' }
 as.data.frame.JuliaProxy <- function(x, ...) {
    juliaCall("RConnector.full_translation!", TRUE)
    tryCatch({ret <- juliaCall("RConnector.get_df", x)},
