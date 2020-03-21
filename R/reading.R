@@ -14,7 +14,7 @@ readLogical <- function(n) {
 
 readInt <- function() {
    ret <- integer()
-   while(length(ret) == 0) {
+   while (length(ret) == 0) {
       ret <- readBin(pkgLocal$con, "integer", 1, size = 4)
    }
    ret
@@ -22,6 +22,15 @@ readInt <- function() {
 
 readInts <- function(n) {
    readBin(pkgLocal$con, "integer", n, size = 4)
+}
+
+
+readRaw <- function(n) {
+   ret <- readBin(pkgLocal$con, "raw", n)
+   while (length(ret) < n) {
+      ret <- c(ret, readBin(pkgLocal$con, "raw", n - length(ret)))
+   }
+   ret
 }
 
 
@@ -266,7 +275,7 @@ readCall <- function() {
 
 readOutput <- function(writeTo) {
    outputLength <- readInt()
-   output <- readBin(pkgLocal$con, "raw", outputLength)
+   output <- readRaw(outputLength)
    # interpret as string
    output <- rawToChar(output)
    Encoding(output) <- "UTF-8"
