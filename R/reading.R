@@ -1,27 +1,40 @@
-readMessageType <- function() {
-   messageType <- c()
-   while (length(messageType) == 0) {
-      messageType <- readBin(pkgLocal$con, "raw", 1)
-   }
-   messageType
-}
-
-
 readLogical <- function(n) {
-   readBin(pkgLocal$con, "logical", n = n, size = 1)
-}
-
-
-readInt <- function() {
-   ret <- integer()
-   while (length(ret) == 0) {
-      ret <- readBin(pkgLocal$con, "integer", 1, size = 4)
+   ret <- readBin(pkgLocal$con, "logical", n = n, size = 1)
+   while (length(ret) < n) {
+      ret <- c(ret, readBin(pkgLocal$con, "logical",
+                            n - length(ret), size = 1))
    }
    ret
 }
 
-readInts <- function(n) {
-   readBin(pkgLocal$con, "integer", n, size = 4)
+
+readInt <- function(n = 1) {
+   ret <- readBin(pkgLocal$con, "integer", n, size = 4)
+   while (length(ret) < n) {
+      ret <- c(ret, readBin(pkgLocal$con, "integer",
+                            n - length(ret), size = 4))
+   }
+   ret
+}
+
+
+readDouble <- function(n) {
+   ret <- readBin(pkgLocal$con, "double", n)
+   while (length(ret) < n) {
+      ret <- c(ret, readBin(pkgLocal$con, "double",
+                            n - length(ret)))
+   }
+   ret
+}
+
+
+readComplex <- function(n) {
+   ret <- readBin(pkgLocal$con, "complex", n)
+   while (length(ret) < n) {
+      ret <- c(ret, readBin(pkgLocal$con, "complex",
+                            n - length(ret)))
+   }
+   ret
 }
 
 
@@ -34,9 +47,14 @@ readRaw <- function(n) {
 }
 
 
+readMessageType <- function() {
+   readRaw(1)
+}
+
+
 readString <- function() {
    nbytes <- readInt()
-   binstr <- readBin(pkgLocal$con, "raw", nbytes)
+   binstr <- readRaw(nbytes)
    retstr <- NULL
    try({retstr <- rawToChar(binstr)}, silent = TRUE)
    if (is.null(retstr)) {
@@ -119,7 +137,7 @@ readDimensions <- function() {
    if (ndimensions == 0) {
       return(c())
    } else {
-      return(readInts(ndimensions))
+      return(readInt(ndimensions))
    }
 }
 
@@ -197,10 +215,10 @@ readElement <- function() {
       }
 
       if (typeId == TYPE_ID_DOUBLE) {
-         ret <- readBin(pkgLocal$con, "double", nElements)
+         ret <- readDouble(nElements)
          theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_INTEGER) {
-         ret <- readInts(nElements)
+         ret <- readInt(nElements)
          newAttrs <- readAttributes()
          if (!is.null(newAttrs[["R_LOGICAL"]])) {
             ret <- as.logical(ret)
@@ -218,10 +236,10 @@ readElement <- function() {
          }
          theAttributes <- c(theAttributes, strAttributes)
       } else if (typeId == TYPE_ID_COMPLEX) {
-         ret <- readBin(pkgLocal$con, "complex", nElements)
+         ret <- readComplex(nElements)
          theAttributes <- c(theAttributes, readAttributes())
       } else if (typeId == TYPE_ID_RAW) {
-         ret <- readBin(pkgLocal$con, "raw", nElements)
+         ret <- readRaw(nElements)
          theAttributes <- c(theAttributes, readAttributes())
       } else {
          stopJulia()
