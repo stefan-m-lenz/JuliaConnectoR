@@ -20,13 +20,50 @@ function getcolumn(df::RDataFrame, ::Type{T}, col::Int, nm::Symbol) where {T}
 end
 
 
+function r_compatible_type(t::Type{Char})
+   Int32
+end
+
+function r_compatible_type(t::Type{T}) where T <: AbstractString
+   String
+end
+
+function r_compatible_type(t::Type{Int32})
+   Int32
+end
+
+function r_compatible_type(t::Type{Bool})
+   Bool
+end
+
+function r_compatible_type(t::Type{T}) where {T2, T <: Complex{T2}}
+   Complex{T2}
+end
+
+function r_compatible_type(t::Type{T}) where T <: Number
+   Float64
+end
+
+function r_compatible_type(t::Type{Missing})
+   Missing
+end
+
+function r_compatible_type(t::Type{Union{Missing, T}}) where T
+   Union{Missing, r_compatible_type(T)}
+end
+
+function convert_to_r_compatible_type(x::AbstractArray{T}) where T
+   convert(Array{r_compatible_type(T)}, x)
+end
+
+
 function get_df(obj)
    coldict = Dict{Symbol, Any}()
    attributes = Dict{String, Any}()
    cols = columns(obj)
    colnames = columnnames(cols)
    for col in columnnames(cols)
-      coldict[col] = getcolumn(cols, col)
+      coldict[col] = convert_to_r_compatible_type(getcolumn(cols, col))
    end
    colnamesarr = collect(colnames)
    

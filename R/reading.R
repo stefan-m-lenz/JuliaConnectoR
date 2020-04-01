@@ -184,7 +184,7 @@ toDataFrame <- function(aList) {
 
 readElement <- function() {
    theAttributes <- list()
-   typeId <- readBin(pkgLocal$con, "raw", 1)
+   typeId <- readRaw(1)
    if (typeId == TYPE_ID_LIST) {
       ret <- readList()
       if (!is.null(attr(ret, "IS_DF"))) {

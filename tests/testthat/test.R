@@ -1194,6 +1194,20 @@ test_that("Data frame can be translated", {
 })
 
 
+test_that("Julia types are converted to r compatible types in data frames", {
+   x1 <- juliaEval("[1.0f0*im + 1.0f0, 0.0f0]")
+   x2 <- juliaEval('map(i -> SubString(i, 2,3), ["asdf", "wert"])')
+   x3 <- juliaEval('[true, false]')
+   x4 <- juliaEval("['a', 'b']")
+   x <- juliaLet('Dict(:x1 => x1, :x2 => x2, :x3 => x3, :x4 => x4)',
+            x1 = x1, x2 = x2, x3 = x3, x4 = x4)
+   x <- as.data.frame(x)
+   expect_equivalent(x$x1, x1)
+   expect_equal(x$x2, c("sd", "er"))
+   expect_equal(x$x3, x3)
+   expect_equivalent(x$x4, x4)
+})
+
 
 test_that("Examples from README work", {
    skip_on_cran()
