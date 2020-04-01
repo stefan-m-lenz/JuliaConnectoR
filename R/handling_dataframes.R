@@ -12,10 +12,7 @@
 #'
 #' @examples
 #' # Demonstrate the usage with the Julia package "JuliaDB"
-#' juliaEval('import Pkg
-#'    if !("JuliaDB" in keys(Pkg.installed()))
-#'      Pkg.add("JuliaDB")
-#'    end')
+#' juliaEval('import Pkg; Pkg.add("JuliaDB")')
 #' juliaImport("JuliaDB")
 #'
 #' mydf <- data.frame(x = c(1, 2, 3),

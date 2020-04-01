@@ -53,10 +53,7 @@ Below we see example code for training a neural network for classification on th
 
 ```julia
 using Pkg
-required_pkgs = ["RDatasets", "Flux"]
-for pkg in setdiff(required_pkgs, keys(Pkg.installed()))
-    Pkg.add(pkg)
-end
+Pkg.add(["RDatasets", "Flux"])
 
 # Import packages and set a seed
 import Flux

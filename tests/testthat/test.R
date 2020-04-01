@@ -74,7 +74,9 @@ test_that("Test loading and importing a complex package", {
    skip_on_cran()
    juliaEval('begin
                  using Pkg;
-                 if !haskey(Pkg.installed(), "StatsBase")
+                 try
+                    @eval import StatsBase
+                 catch ex
                     Pkg.add("StatsBase")
                  end
              end
@@ -1103,8 +1105,10 @@ test_that("Boltzmann machine can be trained and used", {
    skip_on_cran()
 
    juliaEval('using Pkg;
-              if !haskey(Pkg.installed(), "BoltzmannMachines")
-                    Pkg.add(PackageSpec(name = "BoltzmannMachines", version = v"1.2"))
+              try
+                 @eval import BoltzmannMachines
+              catch ex
+                 Pkg.add(PackageSpec(name = "BoltzmannMachines", version = v"1.2"))
               end')
 
    # Set a random seed in Julia
@@ -1176,10 +1180,13 @@ test_that("Data frame can be translated", {
 
    testEcho(data.frame())
 
-   juliaEval('import Pkg; if !("JuliaDB" in keys(Pkg.installed()))
-               Pkg.add("JuliaDB")
-             end
-             import JuliaDB')
+   juliaEval('import Pkg;
+              try
+                 @eval import JuliaDB
+              catch ex
+                 Pkg.add("JuliaDB")
+              end
+              import JuliaDB')
    x <- data.frame(x = c(0, 2, 4), y = c("bla", "blup", "ha"),
                    stringsAsFactors = FALSE)
    y <- juliaCall("JuliaDB.table", x)
