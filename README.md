@@ -139,10 +139,7 @@ accuracy(model, testdata)
 ```R
 library(JuliaConnectoR)
 
-juliaEval('using Pkg;
-           if !("Flux" in keys(Pkg.installed()))
-              Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
-           end')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.10"))')
 
 # The Julia code can simply be reused
 rand_split_data <- juliaEval('
