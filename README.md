@@ -36,7 +36,7 @@ The following table lists the most important functions exported by the package:
 | `juliaGet` | Fully translate a Julia object to an R object |
 | `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
-For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.4.0/JuliaConnectoR.pdf).
+For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.5.0/JuliaConnectoR.pdf).
 
 ## Examples
 
