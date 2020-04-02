@@ -6,6 +6,9 @@
 \usage{
 juliaSetupOk()
 }
+\value{
+\code{TRUE} if the Julia setup is OK; otherwise \code{FALSE}
+}
 \description{
 Checks that Julia can be started and that the Julia version is at least 1.0.
 }

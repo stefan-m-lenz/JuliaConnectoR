@@ -72,6 +72,8 @@ runJuliaServer <- function(port = 11980) {
 #' Check Julia setup
 #'
 #' Checks that Julia can be started and that the Julia version is at least 1.0.
+#'
+#' @return \code{TRUE} if the Julia setup is OK; otherwise \code{FALSE}
 juliaSetupOk <- function() {
 
    juliaCmd <- getJuliaExecutablePath()
