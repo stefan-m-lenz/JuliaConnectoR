@@ -24,9 +24,14 @@ If the code needs to use R variables, consider using \code{juliaLet}
 instead.
 }
 \examples{
-juliaEval("1 + 2")
-juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
-juliaEval('using Random; Random.seed!(5);')
+if (juliaSetupOk()) {
+
+   juliaEval("1 + 2")
+   juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
+   juliaEval('using Random; Random.seed!(5);')
+
+}
+
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }

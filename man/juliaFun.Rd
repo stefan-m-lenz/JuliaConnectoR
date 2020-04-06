@@ -18,20 +18,23 @@ when it is called. Like any R function, the returned function can
 also be passed as a function argument to Julia functions.
 }
 \examples{
-# Wrap a Julia function and use it
-juliaSqrt <- juliaFun("sqrt")
-juliaSqrt(2)
-# In the following call, the sqrt function is called without
-# a callback to R because the linked function object is used.
-juliaCall("map", juliaSqrt, c(1,4,9))
+if (juliaSetupOk()) {
 
-# may also be used with arguments
-plus1 <- juliaFun("+", 1)
-plus1(2)
-# Results in an R callback (calling Julia again)
-# because there is no linked function object in Julia.
-juliaCall("map", plus1, c(1,2,3))
+   # Wrap a Julia function and use it
+   juliaSqrt <- juliaFun("sqrt")
+   juliaSqrt(2)
+   # In the following call, the sqrt function is called without
+   # a callback to R because the linked function object is used.
+   juliaCall("map", juliaSqrt, c(1,4,9))
 
+   # may also be used with arguments
+   plus1 <- juliaFun("+", 1)
+   plus1(2)
+   # Results in an R callback (calling Julia again)
+   # because there is no linked function object in Julia.
+   juliaCall("map", plus1, c(1,2,3))
+
+}
 
 \dontshow{
 JuliaConnectoR:::stopJulia()

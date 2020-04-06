@@ -73,46 +73,51 @@ The dimensions of proxy objects for Julia \code{AbstractArray}s and \code{Tuple}
 can be queried via \code{length} and \code{dim}.
 }
 \examples{
-# (Mutable) struct
-juliaEval("mutable struct MyStruct
-             x::Int
-          end")
+if (juliaSetupOk()) {
 
-MyStruct <- juliaFun("MyStruct")
-s <- MyStruct(1L)
-s$x
-s$x <- 2
-s[["x"]]
+   # (Mutable) struct
+   juliaEval("mutable struct MyStruct
+                x::Int
+             end")
 
-# Array
-x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))
-x
-length(x)
-x[[1]]
-x[[1]]$x
-x[[1]] <- MyStruct(2L)
-x[2:3]
-x[2:3] <- MyStruct(2L)
-x
+   MyStruct <- juliaFun("MyStruct")
+   s <- MyStruct(1L)
+   s$x
+   s$x <- 2
+   s[["x"]]
 
-# Tuple
-x <- juliaEval("(1, 2, 3)")
-x[[1]]
-x[1:2]
-length(x)
+   # Array
+   x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))
+   x
+   length(x)
+   x[[1]]
+   x[[1]]$x
+   x[[1]] <- MyStruct(2L)
+   x[2:3]
+   x[2:3] <- MyStruct(2L)
+   x
 
-# NamedTuple
-x <- juliaEval("(a=1, b=2)")
-x$a
+   # Tuple
+   x <- juliaEval("(1, 2, 3)")
+   x[[1]]
+   x[1:2]
+   length(x)
 
-# Dictionary
-strDict <- juliaEval('Dict("hi" => 1, "hello" => 2)')
-strDict
-strDict$hi
-strDict$hi <- 0
-strDict[["hi"]] <- 2
-strDict["howdy", "greetings"] <- c(2, 3)
-strDict["hi", "howdy"]
+   # NamedTuple
+   x <- juliaEval("(a=1, b=2)")
+   x$a
+
+   # Dictionary
+   strDict <- juliaEval('Dict("hi" => 1, "hello" => 2)')
+   strDict
+   strDict$hi
+   strDict$hi <- 0
+   strDict[["hi"]] <- 2
+   strDict["howdy", "greetings"] <- c(2, 3)
+   strDict["hi", "howdy"]
+
+}
+
 \dontshow{
 rm(x, s, strDict)
 JuliaConnectoR:::stopJulia()

@@ -177,9 +177,14 @@ releaseFinalizedRefs <- function() {
 #' is a semicolon.
 #'
 #' @examples
-#' juliaEval("1 + 2")
-#' juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
-#' juliaEval('using Random; Random.seed!(5);')
+#' if (juliaSetupOk()) {
+#'
+#'    juliaEval("1 + 2")
+#'    juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
+#'    juliaEval('using Random; Random.seed!(5);')
+#'
+#' }
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
@@ -200,20 +205,23 @@ juliaEval <- function(expr) {
 #'    The resulting function will be called using these arguments.
 #'
 #' @examples
-#' # Wrap a Julia function and use it
-#' juliaSqrt <- juliaFun("sqrt")
-#' juliaSqrt(2)
-#' # In the following call, the sqrt function is called without
-#' # a callback to R because the linked function object is used.
-#' juliaCall("map", juliaSqrt, c(1,4,9))
+#' if (juliaSetupOk()) {
 #'
-#' # may also be used with arguments
-#' plus1 <- juliaFun("+", 1)
-#' plus1(2)
-#' # Results in an R callback (calling Julia again)
-#' # because there is no linked function object in Julia.
-#' juliaCall("map", plus1, c(1,2,3))
+#'    # Wrap a Julia function and use it
+#'    juliaSqrt <- juliaFun("sqrt")
+#'    juliaSqrt(2)
+#'    # In the following call, the sqrt function is called without
+#'    # a callback to R because the linked function object is used.
+#'    juliaCall("map", juliaSqrt, c(1,4,9))
 #'
+#'    # may also be used with arguments
+#'    plus1 <- juliaFun("+", 1)
+#'    plus1(2)
+#'    # Results in an R callback (calling Julia again)
+#'    # because there is no linked function object in Julia.
+#'    juliaCall("map", plus1, c(1,2,3))
+#'
+#' }
 #'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
@@ -250,10 +258,15 @@ juliaFun <- function(name, ...) {
 #' @param expr a character vector which should contain one string
 #'
 #' @examples
-#' # Create complicated objects like version strings in Julia, and compare them
-#' v1 <- juliaExpr('v"1.0.1"')
-#' v2 <- juliaExpr('v"1.2.0"')
-#' juliaCall("<", v1, v2)
+#' if (juliaSetupOk()) {
+#'
+#'    # Create complicated objects like version strings in Julia, and compare them
+#'    v1 <- juliaExpr('v"1.0.1"')
+#'    v2 <- juliaExpr('v"1.2.0"')
+#'    juliaCall("<", v1, v2)
+#'
+#' }
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
@@ -323,12 +336,17 @@ juliaGet.JuliaProxy <- function(x) {
 #' @param x an R object (can also be a translated Julia object)
 #'
 #' @examples
-#' # Transfer a large vector to Julia and use it in multiple calls
-#' x <- juliaPut(rnorm(100))
-#' # x is just a reference to a Julia vector now
-#' juliaEval("using Statistics")
-#' juliaCall("mean", x)
-#' juliaCall("var", x)
+#' if (juliaSetupOk()) {
+#'
+#'    # Transfer a large vector to Julia and use it in multiple calls
+#'    x <- juliaPut(rnorm(100))
+#'    # x is just a reference to a Julia vector now
+#'    juliaEval("using Statistics")
+#'    juliaCall("mean", x)
+#'    juliaCall("var", x)
+#'
+#' }
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
@@ -377,14 +395,18 @@ juliaPut <- function(x) {
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 #'
 #' @examples
-#' # Intended use: Create a complex Julia object
-#' # using Julia syntax and data from the R workspace
-#' juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
+#' if (juliaSetupOk()) {
 #'
-#' # Assign a global variable
-#' # (although not recommended for a functional style)
-#' juliaLet("global x = xval", xval = rnorm(10))
-#' juliaEval("x")
+#'    # Intended use: Create a complex Julia object
+#'    # using Julia syntax and data from the R workspace
+#'    juliaLet('[1 => x, 17 => y]', x = rnorm(1), y = rnorm(2))
+#'
+#'    # Assign a global variable
+#'    # (although not recommended for a functional style)
+#'    juliaLet("global x = xval", xval = rnorm(10))
+#'    juliaEval("x")
+#'
+#' }
 #'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()

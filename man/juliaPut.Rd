@@ -18,12 +18,17 @@ To see which objects are translated by default, please see the
 \link{JuliaConnectoR-package} documentation.
 }
 \examples{
-# Transfer a large vector to Julia and use it in multiple calls
-x <- juliaPut(rnorm(100))
-# x is just a reference to a Julia vector now
-juliaEval("using Statistics")
-juliaCall("mean", x)
-juliaCall("var", x)
+if (juliaSetupOk()) {
+
+   # Transfer a large vector to Julia and use it in multiple calls
+   x <- juliaPut(rnorm(100))
+   # x is just a reference to a Julia vector now
+   juliaEval("using Statistics")
+   juliaCall("mean", x)
+   juliaCall("var", x)
+
+}
+
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }

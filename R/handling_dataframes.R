@@ -11,24 +11,28 @@
 #' @param ... (not used)
 #'
 #' @examples
-#' # Demonstrate the usage with the Julia package "JuliaDB"
-#' juliaEval('import Pkg; Pkg.add("JuliaDB")')
-#' juliaImport("JuliaDB")
+#' if (juliaSetupOk()) {
 #'
-#' mydf <- data.frame(x = c(1, 2, 3),
-#'                    y = c("a", "b", "c"),
-#'                    z = c(TRUE, FALSE, NA),
-#'                    stringsAsFactors = FALSE)
+#'    # Demonstrate the usage with the Julia package "JuliaDB"
+#'    juliaEval('import Pkg; Pkg.add("JuliaDB")')
+#'    juliaImport("JuliaDB")
 #'
-#' # create a table in Julia, e. g. via JuliaDB
-#' mytbl <- JuliaDB.table(mydf)
+#'    mydf <- data.frame(x = c(1, 2, 3),
+#'                       y = c("a", "b", "c"),
+#'                       z = c(TRUE, FALSE, NA),
+#'                       stringsAsFactors = FALSE)
 #'
-#' # this table can, e g. be queried and
-#' # the result can be translated to an R data frame
-#' seltbl <- JuliaDB.select(mytbl, juliaExpr("(:x, :y)"))[1:2]
+#'    # create a table in Julia, e. g. via JuliaDB
+#'    mytbl <- JuliaDB.table(mydf)
 #'
-#' # translate selection of Julia table into R data frame
-#' as.data.frame(seltbl)
+#'    # this table can, e g. be queried and
+#'    # the result can be translated to an R data frame
+#'    seltbl <- JuliaDB.select(mytbl, juliaExpr("(:x, :y)"))[1:2]
+#'
+#'    # translate selection of Julia table into R data frame
+#'    as.data.frame(seltbl)
+#'
+#' }
 #'
 #' \dontshow{
 #' rm(mytbl, seltbl)

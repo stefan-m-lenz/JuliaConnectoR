@@ -32,40 +32,48 @@ package are available in R under their name
 prefixed with the module name plus "\code{.}", like in Julia.
 }
 \examples{
-# Importing a package and using one of its exported functions
-juliaImport("UUIDs")
-juliaCall("string", UUIDs.uuid4())
+if (juliaSetupOk()) {
 
-# Functions that are not exported can be imported
-# by specifying the argument "importInternal":
-juliaImport("Pkg", importInternal = TRUE)
-Pkg.status()
+   # Importing a package and using one of its exported functions
+   juliaImport("UUIDs")
+   juliaCall("string", UUIDs.uuid4())
 
-# Importing a module without a package
-testModule <- system.file("examples", "TestModule1.jl",
-                          package = "JuliaConnectoR")
-# take a look at the file
-writeLines(readLines(testModule))
-# load in Julia
-juliaCall("include", testModule)
-# import in R
-juliaImport(".TestModule1")
-TestModule1.test1()
+   # Functions that are not exported can be imported
+   # by specifying the argument "importInternal":
+   juliaImport("Pkg", importInternal = TRUE)
+   Pkg.status()
+
+   # Importing a module without a package
+   testModule <- system.file("examples", "TestModule1.jl",
+                             package = "JuliaConnectoR")
+   # take a look at the file
+   writeLines(readLines(testModule))
+   # load in Julia
+   juliaCall("include", testModule)
+   # import in R
+   juliaImport(".TestModule1")
+   TestModule1.test1()
+
+}
 
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }
 
-# Importing a submodule
-testModule <- system.file("examples", "TestModule1.jl",
-                          package = "JuliaConnectoR")
-juliaCall("include", testModule)
-juliaImport(".TestModule1.SubModule1")
-# call exported function of submodule via module path
-SubModule1.test2()
-juliaImport(".TestModule1.SubModule1", alias = "Sub1")
-# call exported function of submodule via alias
-Sub1.test2()
+if (juliaSetupOk()) {
+
+   # Importing a submodule
+   testModule <- system.file("examples", "TestModule1.jl",
+                             package = "JuliaConnectoR")
+   juliaCall("include", testModule)
+   juliaImport(".TestModule1.SubModule1")
+   # call exported function of submodule via module path
+   SubModule1.test2()
+   juliaImport(".TestModule1.SubModule1", alias = "Sub1")
+   # call exported function of submodule via alias
+   Sub1.test2()
+
+}
 
 \dontshow{
 JuliaConnectoR:::stopJulia()

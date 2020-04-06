@@ -17,10 +17,15 @@ as an argument without needing the round-trip to R via \code{\link{juliaEval}}
 or \code{\link{juliaLet}}.
 }
 \examples{
-# Create complicated objects like version strings in Julia, and compare them
-v1 <- juliaExpr('v"1.0.1"')
-v2 <- juliaExpr('v"1.2.0"')
-juliaCall("<", v1, v2)
+if (juliaSetupOk()) {
+
+   # Create complicated objects like version strings in Julia, and compare them
+   v1 <- juliaExpr('v"1.0.1"')
+   v2 <- juliaExpr('v"1.2.0"')
+   juliaCall("<", v1, v2)
+
+}
+
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }
