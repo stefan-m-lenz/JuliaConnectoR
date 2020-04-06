@@ -76,7 +76,14 @@ runJuliaServer <- function(port = 11980) {
 #' @return \code{TRUE} if the Julia setup is OK; otherwise \code{FALSE}
 juliaSetupOk <- function() {
 
-   juliaCmd <- getJuliaExecutablePath()
+   juliaCmd <- NULL
+   try({
+      juliaCmd <- getJuliaExecutablePath()
+   })
+   if (is.null(juliaCmd)) {
+      message("Julia not found")
+      return(FALSE)
+   }
 
    juliaVersion <- NULL
    try({
