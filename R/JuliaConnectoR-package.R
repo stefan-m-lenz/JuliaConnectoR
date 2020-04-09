@@ -87,8 +87,8 @@
 #'
 #' Missing values (\code{NA}) in R are translated to \code{missing} values in Julia.
 #' R vectors and arrays with missing values are converted to Julia arrays
-#' of type \code{Array{Missing, T}}, where \code{T} stands for the translated type in the
-#' table above.
+#' of type \code{Array{Union{Missing, T}}}, where \code{T} stands for the translated 
+#' type in the table above.
 #'
 #' R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
 #' the most specific supertype of the list elements after translation to Julia.
