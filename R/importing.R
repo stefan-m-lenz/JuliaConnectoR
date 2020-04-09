@@ -240,7 +240,7 @@ juliaUsing <- function(modulePath, alias = NULL,
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
-#' 
+#'
 #' if (juliaSetupOk()) {
 #'
 #'    # Importing a submodule
@@ -255,7 +255,7 @@ juliaUsing <- function(modulePath, alias = NULL,
 #'    Sub1.test2()
 #'
 #' }
-#' 
+#'
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
