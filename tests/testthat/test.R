@@ -81,22 +81,19 @@ test_that("Test loading and importing a complex package", {
                  end
              end
              ') # tests also trailing whitespace
-   juliaImport("StatsBase")
-   expect_equivalent(juliaGet(StatsBase.mean_and_var(c(1,2,3))), list(2,1))
-   StatsBase.renyientropy(rnorm(100), 1)
+   StatsBase <- juliaImport("StatsBase")
+   expect_equivalent(juliaGet(StatsBase$mean_and_var(c(1,2,3))), list(2,1))
+   StatsBase$renyientropy(rnorm(100), 1)
 })
 
 
 test_that("Error when trying to import a non-existent package or module", {
    expect_error(juliaImport("NonExistingPkg"))
-   expect_error(juliaUsing("NonExistingPkg"))
    expect_error(capture.output({juliaImport(".NonExistingModule")}, type = "message"))
-   expect_error(juliaUsing(".NonExistingModule"))
 })
 
 test_that("Error when passing multiple strings to import or using", {
    expect_error(juliaImport(c("Pkg", "UUID")), regexp = "exactly one")
-   expect_error(juliaUsing(c("Pkg", "UUID")), regexp = "exactly one")
 })
 
 
@@ -293,12 +290,12 @@ test_that("Complex are handled first class", {
    testEcho(juliaEval("[1+im; 2+im]"))
    testEcho(c(1+1i,2 + 2i))
 
-   juliaImport("LinearAlgebra", alias = "jla")
+   jla <- juliaImport("LinearAlgebra")
    testEcho(matrix(c(1, 0, 0, -1), ncol = 2))
-   expect(all(jla.eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
+   expect(all(jla$eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
                    matrix(c(0, 1, 1, 0), ncol = 2)) %in% c(1i, -1i)),
           "")
-   expect(all(jla.eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0), "")
+   expect(all(jla$eigmax(matrix(c(0, 1i, -1i, 0), ncol = 2)) == 1.0), "")
 
    complexTypeParameters = c("Int8", "Int16", "Int32", "Int64",
                              "Float16", "Float32", "Float64")
@@ -647,8 +644,8 @@ test_that("Echo: Set", {
 # Test types with bitstypes
 test_that("Object with bitstype", {
    uuidregex <- '^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}$'
-   juliaImport("UUIDs")
-   expect_match(juliaCall("string", UUIDs.uuid4()), uuidregex)
+   UUIDs <- juliaImport("UUIDs")
+   expect_match(juliaCall("string", UUIDs$uuid4()), uuidregex)
 })
 
 
@@ -734,12 +731,9 @@ test_that("Private inner constructor is forged", {
 
 test_that("Empty module does not cause problems", {
    juliaEval("module EmptyTestModule end")
-   expect_invisible(juliaImport(".EmptyTestModule"))
-   expect_invisible(juliaUsing(".EmptyTestModule"))
+   expect_length(ls(juliaImport(".EmptyTestModule")), 2) # (eval and include)
    juliaEval("module EmptyTestModule2 end")
-   expect_invisible(juliaImport(".EmptyTestModule2", importInternal = TRUE))
-   juliaEval("module EmptyTestModule3 end")
-   expect_invisible(juliaUsing(".EmptyTestModule3", importInternal = TRUE))
+   expect_length(ls(juliaImport(".EmptyTestModule2", all = FALSE)), 0)
 })
 
 
@@ -908,8 +902,8 @@ test_that("Constructors stand for their types", {
                 export TestType
                 struct TestType end
              end')
-   juliaImport(".TestTypeModule")
-   expect_equal(as.character(juliaCall("typeof", TestTypeModule.TestType)),
+   TestTypeModule <- juliaImport(".TestTypeModule")
+   expect_equal(as.character(juliaCall("typeof", TestTypeModule$TestType)),
                 "DataType")
 })
 
@@ -921,9 +915,9 @@ test_that("Parametric types are imported", {
                   i::T
                end
              end")
-   juliaImport(".ParametricTypeTestModule")
-   expect_equal(ParametricTypeTestModule.MyParametricType(2)$i, 2)
-   expect_equal(ParametricTypeTestModule.MyParametricType("bla")$i, "bla")
+   ParametricTypeTestModule <- juliaImport(".ParametricTypeTestModule")
+   expect_equal(ParametricTypeTestModule$MyParametricType(2)$i, 2)
+   expect_equal(ParametricTypeTestModule$MyParametricType("bla")$i, "bla")
 })
 
 
@@ -1114,28 +1108,28 @@ test_that("Boltzmann machine can be trained and used", {
    # Set a random seed in Julia
    juliaEval("using Random; Random.seed!(5);")
 
-   juliaUsing("BoltzmannMachines", importInternal = TRUE)
+   BM <- juliaImport("BoltzmannMachines")
 
    # a test data set from the BoltzmannMachines-package, just to have some data
-   x <- barsandstripes(50L, 4L)
+   x <- BM$barsandstripes(50L, 4L)
    x
 
    # Train DBMs with
-   dbm <- fitdbm(x, epochs = 2L, nhiddens = c(4L,3L))
+   dbm <- BM$fitdbm(x, epochs = 2L, nhiddens = c(4L,3L))
    dbm
-   dbm2 <- fitdbm(x, epochs = 1L,
-                  pretraining = list(TrainLayer(nhidden = 4L),
-                                     TrainLayer(nhidden = 3L)))
+   dbm2 <- BM$fitdbm(x, epochs = 1L,
+                     pretraining = list(BM$TrainLayer(nhidden = 4L),
+                                        BM$TrainLayer(nhidden = 3L)))
    dbm2 <- juliaGet(dbm2)
 
    # Use a trained model to generate samples
-   gensamples <- samples(dbm, 10L)
+   gensamples <- BM$samples(dbm, 10L)
    expect_equal(nrow(gensamples), 10)
 
    # Evaluate the model: Likelihood estimation ...
-   loglikelihood(dbm2, x)
+   BM$loglikelihood(dbm2, x)
    #  ... or exact calculation (possible for such a small model)
-   exactloglikelihood(dbm2, x)
+   BM$exactloglikelihood(dbm2, x)
 })
 
 

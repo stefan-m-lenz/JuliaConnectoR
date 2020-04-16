@@ -33,16 +33,16 @@ library(JuliaConnectoR)
 stopifnot(packageVersion("JuliaConnectoR") >= "0.4")
 
 # load Flux features available in R
-juliaImport("Flux", importInternal = TRUE)
+Flux <- juliaImport("Flux")
 
 juliaEval("using Statistics") # for Julia code only
 
 juliaEval("import Random; Random.seed!(1);")
-model <- Flux.Chain(
-      Flux.Dense(4L, 4L, Flux.relu),
-      Flux.Dense(4L, 4L, Flux.relu),
-      Flux.Dense(4L, 3L),
-      Flux.softmax)
+model <- Flux$Chain(
+      Flux$Dense(4L, 4L, Flux$relu),
+      Flux$Dense(4L, 4L, Flux$relu),
+      Flux$Dense(4L, 3L),
+      Flux$softmax)
 
 loss <- juliaEval('loss(model, x, y) = Flux.crossentropy(model(x), y)
                   loss(model, data::NamedTuple) = loss(model, data.x, data.y)')

@@ -4,7 +4,7 @@
 \alias{juliaImport}
 \title{Load and import a Julia package via \code{import} statement}
 \usage{
-juliaImport(modulePath, alias = NULL, importInternal = FALSE)
+juliaImport(modulePath, all = TRUE)
 }
 \arguments{
 \item{modulePath}{name of the package/module that is to be used,
@@ -16,13 +16,9 @@ but has been loaded in the \code{Main} module, e. g. by
 Additionally, via a path such as \code{SomePkg.SubModule},
 a submodule of a package can be imported.}
 
-\item{alias}{alternative prefix for the package
-(useful e.g. to avoid naming collisions or for brevity)
-If an alias is not explicitly specified, the name of the
-package/module is used.}
-
-\item{importInternal}{\code{logical} value, default \code{FALSE}.
-Specifies whether unexported functions shall be imported.}
+\item{all}{\code{logical} value, default \code{TRUE}.
+Specifies whether all functions and types shall be imported
+or only those exported explicitly.}
 }
 \description{
 The specified package/module is loaded via \code{import} in Julia
@@ -35,13 +31,9 @@ prefixed with the module name plus "\code{.}", like in Julia.
 if (juliaSetupOk()) {
 
    # Importing a package and using one of its exported functions
-   juliaImport("UUIDs")
-   juliaCall("string", UUIDs.uuid4())
+   UUIDs <- juliaImport("UUIDs")
+   juliaCall("string", UUIDs$uuid4())
 
-   # Functions that are not exported can be imported
-   # by specifying the argument "importInternal":
-   juliaImport("Pkg", importInternal = TRUE)
-   Pkg.status()
 
    # Importing a module without a package
    testModule <- system.file("examples", "TestModule1.jl",
@@ -50,15 +42,17 @@ if (juliaSetupOk()) {
    writeLines(readLines(testModule))
    # load in Julia
    juliaCall("include", testModule)
-   # import in R
-   juliaImport(".TestModule1")
-   TestModule1.test1()
-
+   # import in R via relative module path
+   TestModule1 <- juliaImport(".TestModule1")
+   TestModule1$test1()
+   \dontshow{
+      JuliaConnectoR:::stopJulia()
+   }
+   # importing a local module is also possible in one line
+   TestModule1 <- juliaImport(juliaCall("include", testModule))
+   TestModule1$test1()
 }
 
-\dontshow{
-JuliaConnectoR:::stopJulia()
-}
 
 if (juliaSetupOk()) {
 
@@ -66,12 +60,10 @@ if (juliaSetupOk()) {
    testModule <- system.file("examples", "TestModule1.jl",
                              package = "JuliaConnectoR")
    juliaCall("include", testModule)
-   juliaImport(".TestModule1.SubModule1")
-   # call exported function of submodule via module path
-   SubModule1.test2()
-   juliaImport(".TestModule1.SubModule1", alias = "Sub1")
-   # call exported function of submodule via alias
-   Sub1.test2()
+   # load sub-module via module path
+   SubModule1 <- juliaImport(".TestModule1.SubModule1")
+   # call function of submodule
+   SubModule1$test2()
 
 }
 

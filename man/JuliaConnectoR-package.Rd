@@ -37,9 +37,8 @@ the Julia installation.
 
 \section{Function overview}{
 
-The functions \code{\link{juliaImport}} and \code{\link{juliaUsing}}
-can be used to make functions and types of entire packages directly
-available in R.
+The function \code{\link{juliaImport}} makes
+functions and data types from Julia packages or modules available as R functions.
 
 If only a single Julia function needs to be importedR, \code{\link{juliaFun}}
 can do this. The simplest way to call a Julia function without any importing

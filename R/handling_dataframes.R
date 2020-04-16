@@ -15,7 +15,7 @@
 #'
 #'    # Demonstrate the usage with the Julia package "JuliaDB"
 #'    juliaEval('import Pkg; Pkg.add("JuliaDB")')
-#'    juliaImport("JuliaDB")
+#'    JuliaDB <- juliaImport("JuliaDB")
 #'
 #'    mydf <- data.frame(x = c(1, 2, 3),
 #'                       y = c("a", "b", "c"),
@@ -23,11 +23,11 @@
 #'                       stringsAsFactors = FALSE)
 #'
 #'    # create a table in Julia, e. g. via JuliaDB
-#'    mytbl <- JuliaDB.table(mydf)
+#'    mytbl <- JuliaDB$table(mydf)
 #'
 #'    # this table can, e g. be queried and
 #'    # the result can be translated to an R data frame
-#'    seltbl <- JuliaDB.select(mytbl, juliaExpr("(:x, :y)"))[1:2]
+#'    seltbl <- JuliaDB$select(mytbl, juliaExpr("(:x, :y)"))[1:2]
 #'
 #'    # translate selection of Julia table into R data frame
 #'    as.data.frame(seltbl)
