@@ -293,10 +293,16 @@ readCall <- function() {
 
 readOutput <- function(writeTo) {
    outputLength <- readInt()
-   output <- readRaw(outputLength)
+   rawOutput <- readRaw(outputLength)
    # interpret as string
-   output <- rawToChar(output)
+   output <- rawToChar(rawOutput)
+   if (as.raw(0x1B) %in% rawOutput) {
+      # remove ANSI escape sequences,
+      # because they make trouble, especially with RStudio
+      output <- gsub('\x1B(?:[@-Z\\\\-_]|\\[[0-?]*[ -/]*[@-~])', "", output)
+   }
+
    Encoding(output) <- "UTF-8"
-   # TODO: check if valid UTF-8? binary output possible?
+
    cat(output, file = writeTo)
 }
