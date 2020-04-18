@@ -37,16 +37,15 @@ getFunctionList <- function(funnames, juliaPrefix,
 
 #' Load and import a Julia package via \code{import} statement
 #'
-#' The specified package/module is loaded via \code{import} in Julia
-#' and its functions are attached to the R search path.
-#' This way, all functions (including constructors) exported by the
-#' package are available in R under their name
-#' prefixed with the module name plus "\code{.}", like in Julia.
+#' The specified package/module is loaded via \code{import} in Julia.
+#' Its functions and type constructors are wrapped into R functions.
+#' The return value is an environment containing all these R functions.
 #'
-#' @param modulePath name of the package/module that is to be used,
-#' or a relative module path.
-#' Specifying a Julia module path like \code{.MyModule}
-#' allows importing a module which does not correspond to a package,
+#' @param modulePath a module path or a module object.
+#' A module path may simply be the name of a package but it may also
+#' be a relative module path.
+#' Specifying a relative Julia module path like \code{.MyModule}
+#' allows importing a module that does not correspond to a package,
 #' but has been loaded in the \code{Main} module, e. g. by
 #' \code{juliaCall("include", "path/to/MyModule.jl")}.
 #' Additionally, via a path such as \code{SomePkg.SubModule},
@@ -54,6 +53,8 @@ getFunctionList <- function(funnames, juliaPrefix,
 #' @param all \code{logical} value, default \code{TRUE}.
 #' Specifies whether all functions and types shall be imported
 #' or only those exported explicitly.
+#' @return an environment containing all functions and type constructors
+#' from the specified module as R functions
 #'
 #' @export
 #'
@@ -78,7 +79,8 @@ getFunctionList <- function(funnames, juliaPrefix,
 #'    \dontshow{
 #'       JuliaConnectoR:::stopJulia()
 #'    }
-#'    # importing a local module is also possible in one line
+#'    # Importing a local module is also possible in one line,
+#'    # by directly using the module object returned by "include".
 #'    TestModule1 <- juliaImport(juliaCall("include", testModule))
 #'    TestModule1$test1()
 #' }

@@ -7,10 +7,11 @@
 juliaImport(modulePath, all = TRUE)
 }
 \arguments{
-\item{modulePath}{name of the package/module that is to be used,
-or a relative module path.
-Specifying a Julia module path like \code{.MyModule}
-allows importing a module which does not correspond to a package,
+\item{modulePath}{a module path or a module object.
+A module path may simply be the name of a package but it may also
+be a relative module path.
+Specifying a relative Julia module path like \code{.MyModule}
+allows importing a module that does not correspond to a package,
 but has been loaded in the \code{Main} module, e. g. by
 \code{juliaCall("include", "path/to/MyModule.jl")}.
 Additionally, via a path such as \code{SomePkg.SubModule},
@@ -20,12 +21,14 @@ a submodule of a package can be imported.}
 Specifies whether all functions and types shall be imported
 or only those exported explicitly.}
 }
+\value{
+an environment containing all functions and type constructors
+from the specified module as R functions
+}
 \description{
-The specified package/module is loaded via \code{import} in Julia
-and its functions are attached to the R search path.
-This way, all functions (including constructors) exported by the
-package are available in R under their name
-prefixed with the module name plus "\code{.}", like in Julia.
+The specified package/module is loaded via \code{import} in Julia.
+Its functions and type constructors are wrapped into R functions.
+The return value is an environment containing all these R functions.
 }
 \examples{
 if (juliaSetupOk()) {
@@ -48,7 +51,8 @@ if (juliaSetupOk()) {
    \dontshow{
       JuliaConnectoR:::stopJulia()
    }
-   # importing a local module is also possible in one line
+   # Importing a local module is also possible in one line,
+   # by directly using the module object returned by "include".
    TestModule1 <- juliaImport(juliaCall("include", testModule))
    TestModule1$test1()
 }

@@ -246,6 +246,8 @@ However, the example demonstrates the principle of how callback functions can be
 
 The following example code shows how the `JuliaConnectoR` can be used with the Julia package [`BoltzmannMachines`](https://github.com/stefan-m-lenz/BoltzmannMachines.jl) in R.
 
+
+<!-- Boltzmann-Example -->
 ```R
 library(JuliaConnectoR)
 
@@ -294,6 +296,7 @@ rbm <- BM$fitrbm(x, epochs = 100L,
                  })
 plot(1:100, monitor$loglik, "l")
 
+juliaEval("Random.seed!(5);")
 
 # A complex dbm example with layerwise monitoring
 monitor <- new.env(parent = emptyenv())

@@ -37,5 +37,11 @@ makeIrisExample <- function() {
                      "inst/examples/iris-example.R")
 }
 
+makeBoltzmannExample <- function() {
+   extractCodeBlocks("README.md", "<!-- Boltzmann-Example -->",
+                     "inst/examples/boltzmann-example.R")
+}
+
 makeIrisExample()
+makeBoltzmannExample()
 

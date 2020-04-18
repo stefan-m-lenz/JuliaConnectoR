@@ -1222,5 +1222,15 @@ test_that("Examples from README work", {
         envir = scriptEnv)
    # just test something
    expect_s3_class(scriptEnv$model, "JuliaProxy")
+
+
+   boltzmannExampleR <- system.file("examples", "boltzmann-example.R",
+                                     package = "JuliaConnectoR", mustWork = TRUE)
+   bmExample <- readLines(boltzmannExampleR)
+   bmExample <- sub("plot\\(.*", "", bmExample)
+   bmScriptEnv <- new.env(emptyenv())
+   eval(parse(text = paste(bmExample, collapse = "\n")),
+        envir = bmScriptEnv)
+   expect_s3_class(bmScriptEnv$dbm, "JuliaProxy")
 })
 
