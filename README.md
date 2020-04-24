@@ -16,7 +16,11 @@ reference via proxy objects in R or fully translated to R data structures.
 
 ## Installation
 
-The package can be installed in R (version &ge; 3.2) via `devtools`:
+The package can be installed in R (version &ge; 3.2) via CRAN:
+
+    install.packages("JuliaConnectoR")
+
+Or the development version can be installed with:
 
     devtools::install_github("stefan-m-lenz/JuliaConnectoR")
 
@@ -36,7 +40,7 @@ The following table lists the most important functions exported by the package:
 | `juliaGet` | Fully translate a Julia object to an R object |
 | `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
-For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.5.0/JuliaConnectoR.pdf).
+For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.6.0/JuliaConnectoR.pdf).
 
 ## Examples
 
