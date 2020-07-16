@@ -215,3 +215,24 @@ function write_output_message(communicator::CommunicatoR, msg::Vector{UInt8},
    write_bin(communicator, msg)
    end_output_message(communicator)
 end
+
+
+const DEFAULT_DISPLAY_LINES = 24
+const DEFAULT_DISPLAY_COLUMNS = 80
+
+function showobj(x, width::Int)
+   io = IOBuffer()
+   displaysize = (DEFAULT_DISPLAY_LINES, width)
+   context = IOContext(io, :limit => true, :displaysize => displaysize)
+   show(context, "text/plain", x)
+   String(take!(io))
+end
+
+function showobj(x, width)
+   try
+      intwidth = convert(Int, width)
+   catch ex
+      intwidth = DEFAULT_DISPLAY_COLUMNS
+   end
+   showobj(x, width)
+end

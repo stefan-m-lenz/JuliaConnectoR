@@ -1152,6 +1152,16 @@ test_that("juliaPut", {
    expect_s3_class(juliaPut(x), "JuliaArrayProxy")
 })
 
+
+test_that("Display of default printing is limited to width", {
+   x <- juliaEval("rand(100, 100)")
+   y <- juliaPut(x)
+   printOutput <- capture.output({print(y)})
+   expect_lte(nchar(printOutput[length(printOutput)]),
+              options("width")$width)
+})
+
+
 test_that("Error message for tables", {
    capture.output({JuliaConnectoR:::showUpdateTablesMsg()})
 

@@ -173,7 +173,8 @@ dim.JuliaArrayProxy <- function(x) {
 
 
 print.JuliaProxy <- function(x, ...) {
+   currentWidth <- options("width")$width
    cat(paste0("<Julia object of type ", juliaCall("typeof", x), ">\n",
-              juliaCall("repr", x)))
+              juliaCall("RConnector.showobj", x, currentWidth)))
 }
 
