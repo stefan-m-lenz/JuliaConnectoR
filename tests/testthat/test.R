@@ -1158,7 +1158,7 @@ test_that("Display of default printing is limited to width", {
    y <- juliaPut(x)
    printOutput <- capture.output({print(y)})
    expect_lte(nchar(printOutput[length(printOutput)]),
-              options("width")$width)
+              getOption("width"))
 })
 
 
