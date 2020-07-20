@@ -1217,12 +1217,17 @@ test_that("Examples from README work", {
    skip_on_cran()
    skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
+
+   if (grepl("^1.0.\\d+$", juliaEval("string(VERSION)"))) {
+      skip_on_travis()
+      # Flux is not tested with Julia 1.0 on Travis (compile error of Flux-dependency CuArrays)
+   }
+
    irisExampleJl <- system.file("examples", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleJuliaCode <- readLines(irisExampleJl)
    irisExampleJuliaCode <- sub("epochs <-.*", "epochs <- 5", irisExampleJuliaCode)
    juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
-
    irisExampleR <- system.file("examples", "iris-example.R",
                                package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleRCode <- readLines(irisExampleR)
@@ -1232,8 +1237,9 @@ test_that("Examples from README work", {
         envir = scriptEnv)
    # just test something
    expect_s3_class(scriptEnv$model, "JuliaProxy")
+})
 
-
+test_that("Boltzmann example from README works", {
    boltzmannExampleR <- system.file("examples", "boltzmann-example.R",
                                      package = "JuliaConnectoR", mustWork = TRUE)
    bmExample <- readLines(boltzmannExampleR)
