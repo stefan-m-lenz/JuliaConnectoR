@@ -310,8 +310,30 @@ function findfield(name::AbstractString)
 end
 
 
+# return a function that is the broadcasted version of f,
+# corresponding to adding a dot in the call, as
+# f.(args...) is actually equivalent to broadcast(f, args...)
+# (see Julia documentation of dot syntax for vectorizing functions)
+function	broadcasted(f::Function)
+   ((args...) -> broadcast(f, args...))
+end
+
+function broadcasted(call::Call)
+   Call(broadcasted(call.fun), call.args, call.parsingfails)
+end
+
+
 function read_call(communicator)
    name = read_string(communicator)
+   if endswith(name, ".")
+      funname = name[1:(end-1)]
+      return broadcasted(read_call(communicator, funname))
+   else
+      return read_call(communicator, name)
+   end
+end
+
+function read_call(communicator, name::AbstractString)
    fails = Vector{Fail}()
    fun = () -> nothing
    try

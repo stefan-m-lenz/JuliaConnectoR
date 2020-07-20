@@ -1213,6 +1213,12 @@ test_that("Julia types are converted to r compatible types in data frames", {
 })
 
 
+test_that("Broadcasting via dot syntax works", {
+   expect_equal(juliaCall("sin.", c(0, 1/3*pi, pi/2)),
+                c(0, sqrt(3)/2, 1))
+})
+
+
 test_that("Examples from README work", {
    skip_on_cran()
    skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
