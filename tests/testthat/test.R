@@ -1228,6 +1228,7 @@ test_that("Examples from README work", {
    Pkg$activate(system.file("examples", "iris-example",
                             package = "JuliaConnectoR", mustWork = TRUE))
    Pkg$instantiate()
+   Pkg$build()
 
    irisExampleJl <- system.file("examples", "iris-example", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
