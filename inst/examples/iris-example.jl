@@ -1,5 +1,6 @@
 using Pkg
-Pkg.add(["RDatasets", "Flux"])
+Pkg.add("RDatasets")
+Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
 
 # Import packages and set a seed
 import Flux
