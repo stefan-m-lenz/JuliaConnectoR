@@ -57,7 +57,7 @@ Below we see example code for training a neural network for classification on th
 
 ```julia
 using Pkg
-Pkg.add("RDatasets")
+Pkg.add(PackageSpec(name = "RDatasets", version = "0.6"))
 Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
 
 # Import packages and set a seed
