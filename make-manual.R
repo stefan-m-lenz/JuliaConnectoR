@@ -30,11 +30,11 @@ extractCodeBlocks <- function(sourceFile, afterLines, targetFile) {
 makeIrisExample <- function() {
    extractCodeBlocks("README.md", c("<!-- Julia-iris-data -->",
                                     "<!-- Julia-iris-training -->"),
-                     "inst/examples/iris-example.jl")
+                     "inst/examples/iris-example/iris-example.jl")
 
    extractCodeBlocks("README.md", c("<!-- R-iris-data -->",
                                     "<!-- R-iris-training -->"),
-                     "inst/examples/iris-example.R")
+                     "inst/examples/iris-example/iris-example.R")
 }
 
 makeBoltzmannExample <- function() {
