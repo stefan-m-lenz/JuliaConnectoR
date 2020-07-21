@@ -1,4 +1,26 @@
+name = "IrisExample"
+uuid = "71823b02-b7fa-4998-beec-7da6c32334d6"
+version = "0.1.0"
+
 [deps]
+CUDAapi = "3895d2a7-ec45-59b8-82bb-cfc6a382f9b3"
+CUDAdrv = "c5f51814-7f29-56b8-a69c-e4d8f6be1fde"
+CUDAnative = "be33ccc6-a3ff-5ff2-a52e-74243cff1e17"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+GPUArrays = "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
+NNlib = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
 RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
 Tables = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[compat]
+CUDAapi = "= 2.0.0"
+CUDAdrv = "= 4.0.4"
+CUDAnative = "= 2.5.5"
+Flux = "= 0.10.0"
+GPUArrays = "= 2.0.0"
+NNlib = "= 0.6.0"
+RDatasets = "0.6.9"
+Tables = "1.0"
+Zygote = "= 0.4.1"
+julia = "1"
