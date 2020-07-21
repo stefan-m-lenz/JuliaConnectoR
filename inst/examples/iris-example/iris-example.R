@@ -1,6 +1,6 @@
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.10"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.10.3"))')
 
 # The Julia code can simply be reused
 rand_split_data <- juliaEval('
