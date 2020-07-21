@@ -1219,7 +1219,7 @@ test_that("Broadcasting via dot syntax works", {
 })
 
 
-test_that("Examples from README work", {
+test_that("Julia Flux example from README works", {
    skip_on_cran()
    skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
@@ -1234,7 +1234,20 @@ test_that("Examples from README work", {
                                 package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleJuliaCode <- readLines(irisExampleJl)
    irisExampleJuliaCode <- sub("epochs <-.*", "epochs <- 5", irisExampleJuliaCode)
-   juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
+   expect_juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
+
+   Pkg$activate() # use default environment again
+})
+
+
+test_that("JuliaConnectoR (R) Flux example from README works", {
+   skip_on_cran()
+   skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
+   Pkg <- juliaImport("Pkg")
+   Pkg$activate(system.file("examples", "iris-example",
+                            package = "JuliaConnectoR", mustWork = TRUE))
+   Pkg$instantiate()
+   Pkg$build()
    irisExampleR <- system.file("examples",  "iris-example", "iris-example.R",
                                package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleRCode <- readLines(irisExampleR)
@@ -1247,6 +1260,7 @@ test_that("Examples from README work", {
 
    Pkg$activate() # use default environment again
 })
+
 
 test_that("Boltzmann example from README works", {
    boltzmannExampleR <- system.file("examples", "boltzmann-example.R",
