@@ -33,6 +33,6 @@ r_packages:
   - covr
 
 after_success:
-  - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.0"* ]]; then
+  - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.4"* ]]; then
       Rscript -e 'covr::coveralls()';
     fi
