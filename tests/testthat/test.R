@@ -1220,10 +1220,10 @@ test_that("Broadcasting via dot syntax works", {
 
 
 test_that("Examples from README work", {
-   #skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
+   skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
 
-   if (grepl("^1\\.0", juliaEval('string("VERSION")'))) {
+   if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
       projectFolder <- "project_1_0"
    } else {
       projectFolder <- "project_1_4"
