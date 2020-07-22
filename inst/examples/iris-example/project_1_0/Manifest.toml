@@ -5,10 +5,10 @@ uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "0.5.0"
 
 [[AbstractTrees]]
-deps = ["Markdown"]
-git-tree-sha1 = "33e450545eaf7699da1a6e755f9ea65f14077a45"
+deps = ["Markdown", "Test"]
+git-tree-sha1 = "6621d9645702c1c4e6970cc6a3eae440c768000b"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
-version = "0.3.3"
+version = "0.2.1"
 
 [[Adapt]]
 deps = ["LinearAlgebra"]
@@ -202,9 +202,9 @@ version = "0.6.1"
 
 [[Flux]]
 deps = ["AbstractTrees", "Adapt", "CodecZlib", "Colors", "CuArrays", "DelimitedFiles", "Juno", "MacroTools", "NNlib", "Pkg", "Printf", "Random", "Reexport", "SHA", "Statistics", "StatsBase", "Test", "ZipFile", "Zygote"]
-git-tree-sha1 = "8134adbb0f10b0d22b22f8b4299d0d20509edc5f"
+git-tree-sha1 = "ac27a5357135652f804702e7e7749f9af3a19f24"
 uuid = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-version = "0.10.1"
+version = "0.10.0"
 
 [[ForwardDiff]]
 deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "NaNMath", "Random", "SpecialFunctions", "StaticArrays"]
