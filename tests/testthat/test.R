@@ -1224,7 +1224,7 @@ test_that("Examples from README work", {
    cat("\nExecuting README examples...\n")
 
    if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
-      skip_on_travis()
+      projectFolder <- "project_1_0"
    } else {
       projectFolder <- "project_1_4"
    }
