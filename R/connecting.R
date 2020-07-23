@@ -172,7 +172,6 @@ ensureJuliaConnection <- function() {
             module Temp
                import Tables
             end;')}, error = function(e) {showUpdateTablesMsg()})
-         tryCatch
          stopJulia()
          startJulia()
       }
