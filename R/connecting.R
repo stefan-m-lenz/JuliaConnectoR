@@ -20,7 +20,7 @@ juliaConnection <- function() {
    port <- runJuliaServer()
 
    return(list(port = port,
-               con = socketConnection(host = "localhost",
+               con = socketConnection(host = "127.0.0.1",
                                       port = port,
                                       blocking = TRUE,
                                       server = FALSE,

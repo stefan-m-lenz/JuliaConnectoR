@@ -5,6 +5,10 @@ cache:
     - $HOME/julia
     - $HOME/.julia
 
+os:
+  - linux
+  - osx
+
 env:
  - JULIA_BINDIR=$HOME/julia/julia-1.0.5/bin
  - JULIA_BINDIR=$HOME/julia/julia-1.4.0/bin
