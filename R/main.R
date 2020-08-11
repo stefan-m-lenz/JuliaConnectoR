@@ -91,13 +91,22 @@ finalize <- function(env) {
    stopJulia()
 }
 
-#' Call a Julia function
+#' Call a Julia function by name
 #'
-#' Call a Julia function and get the translated result.
+#' Call a Julia function via specifying the name as string and get the translated result.
+#' It is also possible to use a dot at the end of the function name
+#' for applying the function in a vectorized manner via "broadcasting" in Julia.
 #'
-#' @param name name of the Julia function
+#' @param name name of the Julia function. May be prefixed with a package or module
+#' path.
 #' @param ... parameters handed to the function. Will be translated
 #' to Julia data structures
+#'
+#' @examples
+#' juliaCall("/", 4, 2)
+#' juliaCall("Base.div", 4, 2)
+#' juliaCall("sin.", c(1,2,3))
+#' juliaCall("Base.cos.", c(1,2,3))
 #'
 #' @return The value returned from Julia, translated to an R data structure.
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
