@@ -25,12 +25,14 @@ for applying the function in a vectorized manner via "broadcasting" in Julia.
 \examples{
 if (juliaSetupOk()) {
 
-    juliaCall("/", 4, 2)
-    juliaCall("Base.div", 4, 2)
-    juliaCall("sin.", c(1,2,3))
-    juliaCall("Base.cos.", c(1,2,3))
+   juliaCall("/", 4, 2)
+   juliaCall("Base.div", 4, 2)
+   juliaCall("sin.", c(1,2,3))
+   juliaCall("Base.cos.", c(1,2,3))
+
 }
 \dontshow{
 JuliaConnectoR:::stopJulia()
 }
+
 }
