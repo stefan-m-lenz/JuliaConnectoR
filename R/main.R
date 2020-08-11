@@ -110,6 +110,9 @@ finalize <- function(env) {
 #'
 #' @return The value returned from Julia, translated to an R data structure.
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
