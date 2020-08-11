@@ -16,9 +16,6 @@ to Julia data structures}
 \value{
 The value returned from Julia, translated to an R data structure.
 If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
-\dontshow{
-JuliaConnectoR:::stopJulia()
-}
 }
 \description{
 Call a Julia function via specifying the name as string and get the translated result.
@@ -26,9 +23,14 @@ It is also possible to use a dot at the end of the function name
 for applying the function in a vectorized manner via "broadcasting" in Julia.
 }
 \examples{
-juliaCall("/", 4, 2)
-juliaCall("Base.div", 4, 2)
-juliaCall("sin.", c(1,2,3))
-juliaCall("Base.cos.", c(1,2,3))
+if (juliaSetupOk()) {
 
+    juliaCall("/", 4, 2)
+    juliaCall("Base.div", 4, 2)
+    juliaCall("sin.", c(1,2,3))
+    juliaCall("Base.cos.", c(1,2,3))
+}
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

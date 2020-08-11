@@ -103,16 +103,21 @@ finalize <- function(env) {
 #' to Julia data structures
 #'
 #' @examples
-#' juliaCall("/", 4, 2)
-#' juliaCall("Base.div", 4, 2)
-#' juliaCall("sin.", c(1,2,3))
-#' juliaCall("Base.cos.", c(1,2,3))
+#' if (juliaSetupOk()) {
 #'
-#' @return The value returned from Julia, translated to an R data structure.
-#' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
+#'    juliaCall("/", 4, 2)
+#'    juliaCall("Base.div", 4, 2)
+#'    juliaCall("sin.", c(1,2,3))
+#'    juliaCall("Base.cos.", c(1,2,3))
+#'
+#' }
 #' \dontshow{
 #' JuliaConnectoR:::stopJulia()
 #' }
+#'
+#' @return The value returned from Julia, translated to an R data structure.
+#' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
+
 juliaCall <- function(name, ...) {
    ensureJuliaConnection()
 
