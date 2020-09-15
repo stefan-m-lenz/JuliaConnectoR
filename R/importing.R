@@ -20,17 +20,6 @@ getFunctionList <- function(funnames, juliaPrefix,
 
    names(funlist) <- funnames
 
-   # create a function without "bang" for each "bang-function"
-   # if there is not already one without bang
-   for (funname in names(funlist)) {
-      if (endsWithChar(funname, "!")) {
-         funnameNoBang <- substr(funname, 1, nchar(funname)-1)
-         if (is.null(funlist[[funnameNoBang]])) {
-            funlist[[funnameNoBang]] <- funlist[[funname]]
-         }
-      }
-   }
-
    funlist
 }
 

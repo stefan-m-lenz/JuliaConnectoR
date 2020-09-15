@@ -189,7 +189,7 @@ function capture_outputstreams(communicator::CommunicatoR)
    # For debugging, comment the following line out, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".
-   global_logger(SimpleLogger(wr))
+   #global_logger(SimpleLogger(wr))
 
    redirect_outputstream(communicator, rd, STDERR_INDICATOR)
 end
