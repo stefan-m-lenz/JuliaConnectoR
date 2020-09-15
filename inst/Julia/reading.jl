@@ -337,7 +337,7 @@ function read_call(communicator, name::AbstractString)
    fails = Vector{Fail}()
    fun = () -> nothing
    try
-      fun = findfield(name)
+      fun::Union{Function, Type} = findfield(name)
    catch ex
       push!(fails, Fail("Unable to identify function", ex))
    end
