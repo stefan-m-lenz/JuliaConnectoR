@@ -142,7 +142,7 @@ end
 
 
 function read_element(communicator)
-   typeid = read_bin(communicator, UInt8)
+   typeid = read_byte(communicator)
 
    if typeid == TYPE_ID_LIST
       return read_list(communicator)

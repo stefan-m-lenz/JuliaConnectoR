@@ -21,9 +21,19 @@ function write_bin(c::CommunicatoR, x)
 end
 
 
-function read_bin(c::CommunicatoR, x)
-   read(c.io, x)
+function read_bin(c::CommunicatoR, n::Int)
+   ret = read(c.io, n)
+   while length(ret) < n
+      ret = [ret; read(c.io, length(ret) - n)]
+   end
+   ret
 end
+
+
+function read_byte(c::CommunicatoR)
+   read(c.io, UInt8)
+end
+
 
 """
     serve(port_hint; keeprunnning = false, portfile = "")
