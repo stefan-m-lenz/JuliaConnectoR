@@ -141,14 +141,19 @@ readDimensions <- function() {
    }
 }
 
+
 readNofAttributes <- function() {
-   readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
+   ret <- readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
+   while (length(ret) < 1) {
+      ret <- readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
+   }
+   ret
 }
 
 
 readObjectReference <- function() {
-   objectClassId <- readBin(pkgLocal$con, "raw", 1)
-   ref <- readBin(pkgLocal$con, "raw", 8) # 64 bit reference
+   objectClassId <- readRaw(1)
+   ref <- readRaw(8) # 64 bit reference
    obj <- juliaHeapReference(ref)
    if (objectClassId == OBJECT_CLASS_ID_STRUCT) {
       class(obj) <- c("JuliaStructProxy", "JuliaProxy")
