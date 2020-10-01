@@ -890,6 +890,17 @@ test_that("juliaCall checks given name before running", {
 })
 
 
+test_that("juliaCall can handle keyword arguments with key \"name\"", {
+   Pkg <- juliaImport("Pkg")
+   # indirect via created function object
+   expect_equal(Pkg$PackageSpec(name = "RData", version = "v0.10")$name,
+                "RData")
+   # direct call of juliaCall
+   pkgspec <- juliaCall("Pkg.PackageSpec", name = "RData", version = "0.10")
+   expect_equal(pkgspec$name, "RData")
+})
+
+
 test_that("Documentation example of juliaFun", {
    juliaSqrt <- juliaFun("sqrt")
    expect_equal(juliaSqrt(2), sqrt(2))

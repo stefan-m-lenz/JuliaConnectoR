@@ -91,16 +91,16 @@ finalize <- function(env) {
    stopJulia()
 }
 
+
 #' Call a Julia function by name
 #'
 #' Call a Julia function via specifying the name as string and get the translated result.
 #' It is also possible to use a dot at the end of the function name
 #' for applying the function in a vectorized manner via "broadcasting" in Julia.
 #'
-#' @param name name of the Julia function. May be prefixed with a package or module
-#' path.
-#' @param ... parameters handed to the function. Will be translated
-#' to Julia data structures
+#' @param ... the name of the Julia function as first argument, followed by the
+#' parameters handed to the function.
+#' All arguments to the Julia function are translated to Julia data structures.
 #'
 #' @examples
 #' if (juliaSetupOk()) {
@@ -117,16 +117,19 @@ finalize <- function(env) {
 #'
 #' @return The value returned from Julia, translated to an R data structure.
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
-
-juliaCall <- function(name, ...) {
+juliaCall <- function(...) {
    ensureJuliaConnection()
 
-   if (is.null(name) || !is.character(name) || length(name) != 1) {
+   args <- list(...)
+   funName <- unlist(args[1])
+   if (is.null(funName) || !is.character(funName) || length(funName) != 1) {
       stop("Name of Julia function must be specified as one-element character vector")
    }
 
-   jlargs <- list(...)
+   jlargs <- args[-1]
+
    # problem: tryCatch has different environment and can't access pkgLocal
+   # therefore, use con object in this environment
    con <- pkgLocal$con
 
    ret <- NULL
@@ -134,7 +137,7 @@ juliaCall <- function(name, ...) {
    tryCatch(
       {
          # the function call
-         ret <- doCallJulia(name, jlargs)
+         ret <- doCallJulia(funName, jlargs)
 
          releaseFinalizedRefs()
 

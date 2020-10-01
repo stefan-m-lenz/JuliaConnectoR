@@ -4,14 +4,12 @@
 \alias{juliaCall}
 \title{Call a Julia function by name}
 \usage{
-juliaCall(name, ...)
+juliaCall(...)
 }
 \arguments{
-\item{name}{name of the Julia function. May be prefixed with a package or module
-path.}
-
-\item{...}{parameters handed to the function. Will be translated
-to Julia data structures}
+\item{...}{the name of the Julia function as first argument, followed by the
+parameters handed to the function.
+All arguments to the Julia function are translated to Julia data structures.}
 }
 \value{
 The value returned from Julia, translated to an R data structure.
