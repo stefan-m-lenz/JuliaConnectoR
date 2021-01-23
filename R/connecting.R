@@ -48,7 +48,9 @@ runJuliaServer <- function(port = 11980) {
 
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
-   system2(juliaexe, c(mainJuliaFile, port, portfilename), wait = FALSE,
+   system2(command = juliaexe,
+           args = c(shQuote(mainJuliaFile), port, shQuote(portfilename)),
+           wait = FALSE,
            stdout = stdoutfile, stderr = stderrfile)
 
    # get information about the real port from the temporary file
@@ -166,7 +168,7 @@ ensureJuliaConnection <- function() {
       if (juliaEval("isdefined(Tables, :JuliaConnectoR_DummyTables)")) {
          message("Package \"Tables.jl\" (version >= 1.0) is required. Installing ...")
          # Add Tables package and trigger precompilation:
-         # For Importing/precompilation use the Temp module 
+         # For Importing/precompilation use the Temp module
          # because Tables is already defined in the Main module.
          tryCatch({juliaEval('import Pkg; Pkg.add("Tables");
             module Temp
