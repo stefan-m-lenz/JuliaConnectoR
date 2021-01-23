@@ -25,14 +25,12 @@ before_install:
     fi
 
 r:
-  - 3.2.5
+  - 3.3.3
   - release
   - devel
 
-before_script:
-  - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.5"* ]]; then
-      Rscript -e 'install.packages("covr")'
-    fi
+r_packages:
+  - covr
 
 after_success:
   - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.5"* ]]; then
