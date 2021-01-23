@@ -7,7 +7,7 @@ cache:
 
 env:
  - JULIA_BINDIR=$HOME/julia/julia-1.0.5/bin
- - JULIA_BINDIR=$HOME/julia/julia-1.5.0/bin
+ - JULIA_BINDIR=$HOME/julia/julia-1.5.3/bin
 
 before_install:
   - mkdir -p $HOME/julia
@@ -17,10 +17,10 @@ before_install:
       tar -xzf julia-1.0.5-linux-x86_64.tar.gz;
       cd -;
     fi
-  - if [[ $JULIA_BINDIR == *"julia-1.5"* ]] && ! [ -d $HOME/julia/julia-1.5.0 ]; then
+  - if [[ $JULIA_BINDIR == *"julia-1.5"* ]] && ! [ -d $HOME/julia/julia-1.5.3 ]; then
        cd $HOME/julia;
-       wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.0-linux-x86_64.tar.gz;
-       tar -xzf julia-1.5.0-linux-x86_64.tar.gz;
+       wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.3-linux-x86_64.tar.gz;
+       tar -xzf julia-1.5.3-linux-x86_64.tar.gz;
        cd -;
     fi
 
@@ -29,8 +29,10 @@ r:
   - release
   - devel
 
-r_packages:
-  - covr
+before_script:
+  - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.5"* ]]; then
+      Rscript -e 'install.packages("covr")'
+    fi
 
 after_success:
   - if [[ $TRAVIS_R_VERSION_STRING == 'release' ]] && [[ $JULIA_BINDIR == *"1.5"* ]]; then
