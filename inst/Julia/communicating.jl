@@ -196,10 +196,15 @@ function capture_outputstreams(communicator::CommunicatoR)
    rd, wr = redirect_stderr()
 
    # Also redirect the logger.
-   # For debugging, comment the following line out, use @debug lines and
+   global_logger(SimpleLogger(wr))
+   # For debugging, comment out the line above, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".
-   global_logger(SimpleLogger(wr))
+   # Start Julia and execute:
+   # `import Tables; include("inst/Julia/RConnector.jl"); RConnector.serve(11980)`
+   # Set the environment variable JULIACONNECTOR_SERVER=localhost:11980
+   # for the R session. Then start R and load the JuliaConnectoR.
+   # If you execute commands, debugging info is displayed on the command line.
 
    redirect_outputstream(communicator, rd, STDERR_INDICATOR)
 end
