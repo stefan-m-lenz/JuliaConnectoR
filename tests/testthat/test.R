@@ -228,6 +228,32 @@ test_that("Echo: Double vector with missing values", {
 })
 
 
+test_that("NaN and NA are handled differently", {
+   # NaN in R is translated to a NaN Float64 value in Julia
+   # NA in R is translated to a missing value in Julia
+
+   x <- juliaEval("[1; missing; NaN]")
+   expect_equal(x[1], 1)
+   expect_true(is.na(x[2]) && !is.nan(x[2]))
+   expect_true(is.nan(x[3]))
+
+   y <- juliaEcho(x)
+   expect_equal(y[1], 1)
+   expect_true(is.na(y[2]) && !is.nan(y[2]))
+   expect_true(is.nan(y[3]))
+
+   expect_equal(juliaCall("typeof", c(1, NA)),
+                juliaEval("Array{Union{Float64,Missing},1}"))
+   expect_equal(juliaCall("typeof", c(1, NaN)),
+                juliaEval("Array{Float64,1}"))
+
+   expect_equal(juliaCall("typeof", c(1+1i, NA)),
+                juliaEval("Array{Union{Complex{Float64},Missing},1}"))
+   expect_equal(juliaCall("typeof", c(1+1i, NaN)),
+                juliaEval("Array{Complex{Float64},1}"))
+})
+
+
 test_that("Missing values transferred as NA", {
    expect_true(is.na(juliaEval("missing")))
    expect_true(all(is.na(juliaEval("[missing; missing]"))))
@@ -1241,7 +1267,7 @@ test_that("Broadcasting via dot syntax works", {
 
 
 test_that("Examples from README work", {
-   skip_if(Sys.info()["login"] %in% c("lenz", "selectstern"))
+   skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
 
    if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
