@@ -755,6 +755,25 @@ test_that("Private inner constructor is forged", {
 })
 
 
+test_that("Imported modules are printed", {
+   # a stdlib module
+   Pkg <- juliaImport("Pkg")
+   expect_equal(capture.output(print(Pkg)), 'Julia module "Pkg"')
+
+   # a user defined module
+   module <- juliaEval('module ImportTestModule1
+               f(x)=1
+             end')
+   itm1 <- juliaImport(module)
+   expect_equal(capture.output(print(itm1)),
+                'Julia module "Main.ImportTestModule1"')
+
+   itm1_2 <- juliaImport(".ImportTestModule1")
+   expect_equal(capture.output(print(itm1_2)),
+                'Julia module "Main.ImportTestModule1"')
+})
+
+
 test_that("Empty module does not cause problems", {
    juliaEval("module EmptyTestModule end")
    expect_length(ls(juliaImport(".EmptyTestModule")), 2) # (eval and include)

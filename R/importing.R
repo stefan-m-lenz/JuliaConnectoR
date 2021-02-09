@@ -109,7 +109,11 @@ juliaImport <- function(modulePath, all = TRUE) {
                  "as a single-element character vector"))
    } else { # normal module path
       juliaEval(paste("import", modulePath))
-      absoluteModulePath <- gsub("^\\.*", "", modulePath)
+      if (substr(modulePath, 1, 1) == ".") {
+         absoluteModulePath <- paste0("Main.", gsub("^\\.*", "", modulePath))
+      } else {
+         absoluteModulePath <- modulePath
+      }
       juliaPrefix <- paste0(absoluteModulePath, ".")
    }
 
@@ -131,5 +135,14 @@ juliaImport <- function(modulePath, all = TRUE) {
                                constructors = TRUE))
    }
 
+   class(funenv) <- "JuliaModuleImport"
+   attr(funenv, "JLMODULEPATH") <- absoluteModulePath
    funenv
+}
+
+
+print.JuliaModuleImport <- function(x, ...) {
+   cat('Julia module \"')
+   cat(attr(x, "JLMODULEPATH"))
+   cat('\"\n')
 }
