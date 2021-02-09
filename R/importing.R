@@ -144,5 +144,7 @@ juliaImport <- function(modulePath, all = TRUE) {
 print.JuliaModuleImport <- function(x, ...) {
    cat('Julia module \"')
    cat(attr(x, "JLMODULEPATH"))
-   cat('\"\n')
+   cat("\": ")
+   cat(length(x))
+   cat(" functions available\n")
 }
