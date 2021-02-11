@@ -1,3 +1,14 @@
+nativeNames <- if (enc2native("⊠") == "⊠"){
+   function(nameset) { # native encoding supports unicode
+      return(nameset)
+   }
+} else { # no unicode support
+   function(nameset) {
+   #TODO
+   }
+}
+
+
 getFunctionList <- function(funnames, juliaPrefix,
                                constructors = FALSE) {
 

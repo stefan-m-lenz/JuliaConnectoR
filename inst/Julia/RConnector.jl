@@ -2,6 +2,7 @@ module RConnector
 
 using Sockets
 using Logging
+import REPL
 import Main.Tables: istable, columnaccess,
                     columns, AbstractColumns,
                     getcolumn, columnnames
