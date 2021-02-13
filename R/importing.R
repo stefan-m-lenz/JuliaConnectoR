@@ -1,4 +1,9 @@
-nativeNames <- if (enc2native("⊠") == "⊠"){
+nativeEncodingIsUtf8 <- function() {
+   l10n_info()$`UTF-8`
+}
+
+
+nativeNames <- if (nativeEncodingIsUtf8()) {
    function(nameset) { # native encoding supports unicode
       return(nameset)
    }
@@ -6,6 +11,33 @@ nativeNames <- if (enc2native("⊠") == "⊠"){
    function(nameset) {
    #TODO
    }
+}
+
+
+# Returns all names in a module that cannot be expressed in the native encoding
+# and an alternative name, if there is one, in a matrix with columns
+# "original" and "alternative".
+# "moduleInfo" is a list returned from "RConnector.moduleinfo"
+strangeNames <- function(moduleInfo) {
+   theNames <- c(moduleInfo$exportedFunctions, moduleInfo$internalFunctions,
+                 moduleInfo$internalTypes, moduleInfo$exportedTypes)
+   # Check whether names transformed by enc2native are different than the
+   # original names. If yes, add them to the returned set of "strange" names.
+   ret <- matrix(data = "", nrow = length(theNames), ncol = 2)
+   colnames(ret) <- c("original", "alternative")
+   i <- 0
+   for (name in theNames) {
+      if (enc2native(name) != name) {
+         i <- i + 1
+         ret[i, 1] <- name
+         escapeIndex <- which(moduleInfo$escapedNames$original == name)
+         if (length(escapeIndex) == 1) {
+            # (may be zero if there is no latex replacement for this character)
+            ret[i, 2] <- moduleInfo$escapedNames$escaped[[escapeIndex]]
+         }
+      }
+   }
+   ret[seq_len(i), ]
 }
 
 
@@ -132,6 +164,7 @@ juliaImport <- function(modulePath, all = TRUE) {
                            all = all)
 
    funenv <- new.env(emptyenv())
+   # TODO pkgContent anheften und in print.JuliaModuleImport benutzen
    list2env(envir = funenv,
             getFunctionList(pkgContent$exportedFunctions, juliaPrefix))
    list2env(envir = funenv,

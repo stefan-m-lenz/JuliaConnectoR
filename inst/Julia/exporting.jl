@@ -11,8 +11,13 @@ function escapelatexsymbols(str::String)
          if isascii(str[i])
             ret[retindex] = string(str[i])
          else
-            ret[retindex] = "<" * REPL.symbol_latex(string(str[i]))[2:end] * ">"
-            if isempty(ret[retindex])
+            latexname = REPL.symbol_latex(string(str[i]))
+            if latexname != ""
+               ret[retindex] = "<" * latexname[2:end] * ">"
+               if isempty(ret[retindex])
+                  ret[retindex] = string(str[i])
+               end
+            else
                ret[retindex] = string(str[i])
             end
          end

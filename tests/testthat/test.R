@@ -316,7 +316,7 @@ test_that("Complex are handled first class", {
    testEcho(juliaEval("[1+im; 2+im]"))
    testEcho(c(1+1i,2 + 2i))
 
-   jla <- juliaImport("LinearAlgebra")
+   jla <- juliaImport("LinearAlgebra", all = FALSE)
    testEcho(matrix(c(1, 0, 0, -1), ncol = 2))
    expect(all(jla$eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
                    matrix(c(0, 1, 1, 0), ncol = 2)) %in% c(1i, -1i)),
@@ -772,6 +772,33 @@ test_that("Imported modules are printed", {
 
    itm1_2 <- juliaImport(".ImportTestModule1")
    expect_match(capture.output(print(itm1_2)), regexp = expectedOutput)
+})
+
+
+test_that("Julia names not expressible in R native encoding are identified", {
+   if (grepl("testthat", getwd())) {
+      testModulePath <- normalizePath("StrangeNamesTest.jl")
+   } else {
+      testModulePath <- normalizePath("tests/testthat/StrangeNamesTest.jl")
+   }
+   # Note: If the module is evaluated via juliaEval,
+   # the native encoding is applied to the string,
+   # which means e.g. that a sigma is translated to an "s".
+   # Sadly this cannot be circumvented because
+   # the transformation happens in the call to list(...) in juliaCall.
+
+   juliaCall("include", testModulePath)
+   moduleInfo <- juliaCall("RConnector.moduleinfo", "Main.StrangeNamesTest",
+                           all = TRUE)
+   theStrangeNames <- JuliaConnectoR:::strangeNames(moduleInfo)
+   if (l10n_info()$`UTF-8`) { #UTF-8 locale
+      expect_equal(nrow(theStrangeNames), 0)
+   } else { # non-UTF8 locale
+      # 4 variable names with UTF-8 symbols
+      expect_equal(nrow(theStrangeNames), 4)
+      # 1 variable name with no symbol equivalent
+      expect_equal(length(which(theStrangeNames[, "alternative"] == "")), 1)
+   }
 })
 
 
