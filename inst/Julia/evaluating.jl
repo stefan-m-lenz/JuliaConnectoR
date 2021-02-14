@@ -48,13 +48,13 @@ function evaluate_checked!(call::Call)
    try
       parsingcheck(call)
    catch ex
-      return Fail("Error in Julia: Parsing failed.", ex)
+      return Fail("Parsing in Julia failed.", ex)
    end
 
    try
       return evaluate!(call)
    catch ex
-      return Fail("Error in Julia: Evaluation failed.", ex)
+      return Fail("Evaluation in Julia failed.", ex)
    end
 end
 

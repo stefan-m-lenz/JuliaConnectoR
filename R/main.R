@@ -160,7 +160,7 @@ doCallJulia <- function(name, jlargs) {
       return(readElement())
    } else if (messageType == FAIL_INDICATOR) {
       errorMsg <- readString()
-      stop(errorMsg, domain = NA)
+      stop(errorMsg, call. = FALSE, domain = NA)
    } else {
       print(paste(c("Message type not supported (yet): ", messageType)))
       stopJulia()
@@ -465,7 +465,7 @@ handleCallbacksAndOutput <- function() {
          readOutput(writeTo = stderr())
       } else if (messageType == FAIL_INDICATOR) {
          errorMsg <- readString()
-         stop(errorMsg, domain = NA)
+         stop(errorMsg, call. = FALSE, domain = NA)
       } else {
          return(messageType)
       }
