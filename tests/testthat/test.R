@@ -316,7 +316,7 @@ test_that("Complex are handled first class", {
    testEcho(juliaEval("[1+im; 2+im]"))
    testEcho(c(1+1i,2 + 2i))
 
-   jla <- juliaImport("LinearAlgebra", all = FALSE)
+   suppressWarnings({jla <- juliaImport("LinearAlgebra")})
    testEcho(matrix(c(1, 0, 0, -1), ncol = 2))
    expect(all(jla$eigvals(matrix(c(1, 0, 0, -1), ncol = 2),
                    matrix(c(0, 1, 1, 0), ncol = 2)) %in% c(1i, -1i)),
@@ -799,6 +799,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
       # 1 variable name with no symbol equivalent
       expect_equal(length(which(theStrangeNames[, "alternative"] == "")), 1)
    }
+   expect_warning({
+   JuliaConnectoR:::warnAboutStrangeNames(theStrangeNames)})
 })
 
 

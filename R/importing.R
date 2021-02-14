@@ -3,17 +3,6 @@ nativeEncodingIsUtf8 <- function() {
 }
 
 
-nativeNames <- if (nativeEncodingIsUtf8()) {
-   function(nameset) { # native encoding supports unicode
-      return(nameset)
-   }
-} else { # no unicode support
-   function(nameset) {
-   #TODO
-   }
-}
-
-
 # Returns all names in a module that cannot be expressed in the native encoding
 # and an alternative name, if there is one, in a matrix with columns
 # "original" and "alternative".
@@ -41,8 +30,43 @@ strangeNames <- function(moduleInfo) {
 }
 
 
-getFunctionList <- function(funnames, juliaPrefix,
-                               constructors = FALSE) {
+warnAboutStrangeNames <- function(theStrangeNames) {
+   nofNotImported <- length(theStrangeNames)/2
+   warnStr <- ifelse(nofNotImported == 1,
+                     "name is not imported because it cannot be expressed in native encoding.",
+                     "names are not imported because they cannot be expressed in native encoding.")
+   warning(paste(nofNotImported, warnStr), call. = FALSE)
+}
+
+
+# TODO dokumentieren, testen mit Module mit 1 und mehreren strange names
+removeStrangeNames <- function(moduleInfo) {
+   theStrangeNames <- strangeNames(moduleInfo)
+   if (NROW(theStrangeNames) != 0) {
+      if (length(theStrangeNames) == 2) {
+         noStrangeNames <- function(v) {
+            v[!(v == theStrangeNames["original"])]
+         }
+      } else {
+         noStrangeNames <- function(v) {
+            v[!(v %in% theStrangeNames[, "original"])]
+         }
+      }
+      moduleInfo$exportedFunctions <- noStrangeNames(moduleInfo$exportedFunctions)
+      moduleInfo$exportedTypes <- noStrangeNames(moduleInfo$exportedTypes)
+      if (!is.null(moduleInfo$internalFunctions)) {
+         moduleInfo$internalFunctions <- noStrangeNames(moduleInfo$internalFunctions)
+      }
+      if (!is.null(moduleInfo$internalTypes)) {
+         moduleInfo$internalTypes <- noStrangeNames(moduleInfo$internalTypes)
+      }
+      warnAboutStrangeNames(theStrangeNames)
+   }
+   moduleInfo
+}
+
+
+getFunctionList <- function(funnames, juliaPrefix, constructors = FALSE) {
 
    if (length(funnames) == 0) {
       return(list())
@@ -64,6 +88,15 @@ getFunctionList <- function(funnames, juliaPrefix,
    names(funlist) <- funnames
 
    funlist
+}
+
+
+# TODO or remove
+# adds all functions that have an alias to the
+aliasStrangeNames <- function(envir, pkgContent, theStrangeNames) {
+
+   list2env(envir = envir, )
+   pkgContent
 }
 
 
@@ -164,6 +197,11 @@ juliaImport <- function(modulePath, all = TRUE) {
                            all = all)
 
    funenv <- new.env(emptyenv())
+
+   if (!nativeEncodingIsUtf8()) {
+      pkgContent <- removeStrangeNames(pkgContent)
+   }
+
    # TODO pkgContent anheften und in print.JuliaModuleImport benutzen
    list2env(envir = funenv,
             getFunctionList(pkgContent$exportedFunctions, juliaPrefix))
