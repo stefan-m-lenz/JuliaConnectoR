@@ -35,6 +35,7 @@ warnAboutStrangeNames <- function(theStrangeNames) {
    warnStr <- ifelse(nofNotImported == 1,
                      "name is not imported because it cannot be expressed in native encoding.",
                      "names are not imported because they cannot be expressed in native encoding.")
+   # TODO for x names there are alternatives. for more information, print the imported module object
    warning(paste(nofNotImported, warnStr), call. = FALSE)
 }
 
@@ -66,37 +67,88 @@ removeStrangeNames <- function(moduleInfo) {
 }
 
 
-getFunctionList <- function(funnames, juliaPrefix, constructors = FALSE) {
+getFunctionList <- function(juliaNames, juliaPrefix, constructors = FALSE,
+                            rNames = juliaNames) {
 
-   if (length(funnames) == 0) {
+   if (length(juliaNames) == 0) {
       return(list())
    }
 
    if (constructors) {
-      funlist <- lapply(funnames, function(funname) {
+      # A constructor can also be used as an object that is translated to the
+      # corresponding type in Julia. That's why they are handled differently
+      # than normal functions.
+      funlist <- lapply(juliaNames, function(funname) {
          funpath <- paste0(juliaPrefix, funname)
          constructor <- juliaFun(funpath)
          attributes(constructor)$JLTYPE <- funpath
          constructor
       })
    } else {
-      funlist <- lapply(funnames, function(funname) {
+      funlist <- lapply(juliaNames, function(funname) {
          juliaFun(paste0(juliaPrefix, funname))
       })
    }
 
-   names(funlist) <- funnames
+   names(funlist) <- rNames
 
    funlist
 }
 
 
-# TODO or remove
-# adds all functions that have an alias to the
-aliasStrangeNames <- function(envir, pkgContent, theStrangeNames) {
+# Create an environment that contains all functions from a Julia module
+# and some additional information about the module, which can be printed later.
+createJuliaModuleImport <- function(moduleInfo) {
+   funenv <- new.env(emptyenv())
 
-   list2env(envir = envir, )
-   pkgContent
+   juliaPrefix <- paste0(moduleInfo$absoluteModulePath, ".")
+
+   list2env(envir = funenv,
+            getFunctionList(moduleInfo$exportedFunctions, juliaPrefix))
+   list2env(envir = funenv,
+            getFunctionList(moduleInfo$exportedTypes, juliaPrefix,
+                            constructors = TRUE))
+
+   if (!is.null(moduleInfo$internalFunctions)) {
+      list2env(envir = funenv,
+               getFunctionList(moduleInfo$internalFunctions, juliaPrefix))
+   }
+   if (!is.null(moduleInfo$internalTypes)) {
+      list2env(envir = funenv,
+               getFunctionList(moduleInfo$internalTypes, juliaPrefix,
+                               constructors = TRUE))
+   }
+   if (!is.null(moduleInfo))
+
+   class(funenv) <- "JuliaModuleImport"
+   attr(funenv, "moduleInfo") <- moduleInfo
+   funenv
+}
+
+
+# Get the absolute module path from a Julia module object or a relative module
+# path or return the input object if it is already an absolute path.
+getAbsoluteModulePath <- function(moduleArg) {
+   if (is.list(moduleArg) && !is.null(attr(moduleArg, "JLTYPE"))
+       && attr(moduleArg, "JLTYPE") == "Module") {
+      # this is a module that is assumed to be loaded in the Main module
+      absoluteModulePath <- moduleArg$name
+      if (substr(absoluteModulePath, 1, 5) != "Main.") {
+         absoluteModulePath <- paste0("Main.", moduleArg)
+      }
+   } else if (!is.character(moduleArg) || length(moduleArg) != 1) {
+      stop(paste("Expected exactly one Julia module or",
+                 "exactly one package name or module path",
+                 "as a single-element character vector"))
+   } else { # normal module path
+      juliaEval(paste("import", moduleArg))
+      if (substr(moduleArg, 1, 1) == ".") {
+         absoluteModulePath <- paste0("Main.", gsub("^\\.*", "", moduleArg))
+      } else {
+         absoluteModulePath <- moduleArg
+      }
+   }
+   absoluteModulePath
 }
 
 
@@ -171,61 +223,22 @@ aliasStrangeNames <- function(envir, pkgContent, theStrangeNames) {
 juliaImport <- function(modulePath, all = TRUE) {
    ensureJuliaConnection()
 
-   if (is.list(modulePath) && !is.null(attr(modulePath, "JLTYPE"))
-       && attr(modulePath, "JLTYPE") == "Module") {
-      # this is a module that is assumed to be loaded in the Main module
-      absoluteModulePath <- modulePath$name
-      if (substr(absoluteModulePath, 1, 5) != "Main.") {
-         absoluteModulePath <- paste0("Main.", modulePath)
-      }
-      juliaPrefix <- paste0(modulePath$name, ".")
-   } else if (!is.character(modulePath) || length(modulePath) != 1) {
-      stop(paste("Expected exactly one Julia module or",
-                 "exactly one package name or module path",
-                 "as a single-element character vector"))
-   } else { # normal module path
-      juliaEval(paste("import", modulePath))
-      if (substr(modulePath, 1, 1) == ".") {
-         absoluteModulePath <- paste0("Main.", gsub("^\\.*", "", modulePath))
-      } else {
-         absoluteModulePath <- modulePath
-      }
-      juliaPrefix <- paste0(absoluteModulePath, ".")
-   }
-
-   pkgContent <- juliaCall("RConnector.moduleinfo", absoluteModulePath,
+   absoluteModulePath <- getAbsoluteModulePath(modulePath)
+   moduleInfo <- juliaCall("RConnector.moduleinfo", absoluteModulePath,
                            all = all)
-
-   funenv <- new.env(emptyenv())
+   moduleInfo$absoluteModulePath <- getAbsoluteModulePath(modulePath)
 
    if (!nativeEncodingIsUtf8()) {
-      pkgContent <- removeStrangeNames(pkgContent)
+      moduleInfo <- removeStrangeNames(moduleInfo)
    }
 
-   # TODO pkgContent anheften und in print.JuliaModuleImport benutzen
-   list2env(envir = funenv,
-            getFunctionList(pkgContent$exportedFunctions, juliaPrefix))
-   list2env(envir = funenv,
-            getFunctionList(pkgContent$exportedTypes, juliaPrefix,
-                            constructors = TRUE))
-
-   if (all) {
-      list2env(envir = funenv,
-               getFunctionList(pkgContent$internalFunctions, juliaPrefix))
-      list2env(envir = funenv,
-               getFunctionList(pkgContent$internalTypes, juliaPrefix,
-                               constructors = TRUE))
-   }
-
-   class(funenv) <- "JuliaModuleImport"
-   attr(funenv, "JLMODULEPATH") <- absoluteModulePath
-   funenv
+   createJuliaModuleImport(moduleInfo)
 }
 
 
 print.JuliaModuleImport <- function(x, ...) {
    cat('Julia module \"')
-   cat(attr(x, "JLMODULEPATH"))
+   cat(attr(x, "moduleInfo")$absoluteModulePath)
    cat("\": ")
    cat(length(x))
    cat(" functions available\n")
