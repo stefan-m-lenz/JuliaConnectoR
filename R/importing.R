@@ -10,6 +10,14 @@ nativeEncodingIsUtf8 <- function() {
 strangeNames <- function(moduleInfo) {
    theNames <- c(moduleInfo$exportedFunctions, moduleInfo$internalFunctions,
                  moduleInfo$internalTypes, moduleInfo$exportedTypes)
+
+   # We don't care here whether its a name for a type or a function.
+   escapedNames <- list()
+   escapedNames$original <- c(moduleInfo$escapedFunction$original,
+                              moduleInfo$escapedTypes$original)
+   escapedNames$escaped <- c(moduleInfo$escapedFunction$escaped,
+                             moduleInfo$escapedTypes$escaped)
+
    # Check whether names transformed by enc2native are different than the
    # original names. If yes, add them to the returned set of "strange" names.
    ret <- matrix(data = "", nrow = length(theNames), ncol = 2)
@@ -19,10 +27,10 @@ strangeNames <- function(moduleInfo) {
       if (enc2native(name) != name) {
          i <- i + 1
          ret[i, 1] <- name
-         escapeIndex <- which(moduleInfo$escapedNames$original == name)
+         escapeIndex <- which(escapedNames$original == name)
          if (length(escapeIndex) == 1) {
             # (may be zero if there is no latex replacement for this character)
-            ret[i, 2] <- moduleInfo$escapedNames$escaped[[escapeIndex]]
+            ret[i, 2] <- escapedNames$escaped[[escapeIndex]]
          }
       }
    }
@@ -103,22 +111,21 @@ createJuliaModuleImport <- function(moduleInfo) {
 
    juliaPrefix <- paste0(moduleInfo$absoluteModulePath, ".")
 
-   list2env(envir = funenv,
-            getFunctionList(moduleInfo$exportedFunctions, juliaPrefix))
-   list2env(envir = funenv,
-            getFunctionList(moduleInfo$exportedTypes, juliaPrefix,
-                            constructors = TRUE))
+   add2funenv <- function(funnames, constructors = FALSE, rNames = funnames) {
+      list2env(envir = funenv,
+               getFunctionList(funnames, juliaPrefix, constructors, rNames))
+   }
 
-   if (!is.null(moduleInfo$internalFunctions)) {
-      list2env(envir = funenv,
-               getFunctionList(moduleInfo$internalFunctions, juliaPrefix))
-   }
-   if (!is.null(moduleInfo$internalTypes)) {
-      list2env(envir = funenv,
-               getFunctionList(moduleInfo$internalTypes, juliaPrefix,
-                               constructors = TRUE))
-   }
-   if (!is.null(moduleInfo))
+   normalFuns <- c(moduleInfo$exportedFunctions, moduleInfo$internalFunctions)
+   constructors <- c(moduleInfo$exportedTypes, moduleInfo$internalTypes)
+
+   add2funenv(normalFuns)
+   add2funenv(constructors, constructors = TRUE)
+   add2funenv(moduleInfo$escapedFunctions$original,
+              rNames = moduleInfo$escapedFunctions$escaped)
+   add2funenv(moduleInfo$escapedTypes$original,
+              constructors = TRUE,
+              rNames = moduleInfo$escapedTypes$escaped)
 
    class(funenv) <- "JuliaModuleImport"
    attr(funenv, "moduleInfo") <- moduleInfo
@@ -128,7 +135,7 @@ createJuliaModuleImport <- function(moduleInfo) {
 
 # Get the absolute module path from a Julia module object or a relative module
 # path or return the input object if it is already an absolute path.
-getAbsoluteModulePath <- function(moduleArg) {
+getAbsoluteModulePath <- function(moduleArg) { # TODO rename importModule
    if (is.list(moduleArg) && !is.null(attr(moduleArg, "JLTYPE"))
        && attr(moduleArg, "JLTYPE") == "Module") {
       # this is a module that is assumed to be loaded in the Main module

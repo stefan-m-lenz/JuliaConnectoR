@@ -1,4 +1,4 @@
-""" Escapes latex symbols in string"""
+""" Escape latex symbols in given string """
 function escapelatexsymbols(str::String)
    if isascii(str)
       return str
@@ -73,21 +73,22 @@ function moduleinfo(modulename::AbstractString; all::Bool = false)
       internalsyms = filter(sym -> !(sym in exportedSymSet), allsyms)
       internalfunctions = map(string, filter(isafunction, internalsyms))
       internaltypes = map(string, filter(isatype, internalsyms))
-      _escapednames = escapednames(vcat(
-            exportedfunctions, exportedtypes,
-            internalfunctions, internaltypes))
+      escapedfunctions = escapednames(vcat(exportedfunctions, internalfunctions))
+      escapedtypes = escapednames(vcat(exportedtypes, internaltypes))
       return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
                   :exportedTypes => exportedtypes,
                   :internalFunctions => internalfunctions,
                   :internalTypes => internaltypes,
-                  :escapedNames => _escapednames))
+                  :escapedFunctions => escapedfunctions,
+                  :escapedTypes => escapedtypes))
    else
-      _escapednames = escapednames(vcat(
-            exportedfunctions, exportedtypes))
+      escapedfunctions = escapednames(exportedfunctions)
+      escapedtypes = escapednames(exportedtypes)
       return ElementList(Vector{Any}(), Dict{Symbol, Any}(
                   :exportedFunctions => exportedfunctions,
                   :exportedTypes => exportedtypes,
-                  :escapednames => _escapednames))
+                  :escapedFunctions => escapedfunctions,
+                  :escapedTypes => escapedtypes))
    end
 end
