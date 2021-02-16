@@ -1002,7 +1002,7 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    } else {
       juliaPid <- killJuliaUnix(port)
    }
-   JuliaConnectoR:::stopJulia()
+   suppressWarnings({JuliaConnectoR:::stopJulia()})
    if (oldJuliaConnectorServer == "") {
       Sys.unsetenv("JULIACONNECTOR_SERVER")
    } else {
