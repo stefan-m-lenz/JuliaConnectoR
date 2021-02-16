@@ -7,7 +7,7 @@ nativeEncodingIsUtf8 <- function() {
 # and an alternative name, if there is one, in a matrix with columns
 # "original" and "alternative".
 # "moduleInfo" is a list returned from "RConnector.moduleinfo"
-strangeNames <- function(moduleInfo) {
+strangeNames <- function(moduleInfo, transformation = enc2native) {
    theNames <- c(moduleInfo$exportedFunctions, moduleInfo$internalFunctions,
                  moduleInfo$internalTypes, moduleInfo$exportedTypes)
 
@@ -24,7 +24,7 @@ strangeNames <- function(moduleInfo) {
    colnames(ret) <- c("original", "alternative")
    i <- 0
    for (name in theNames) {
-      if (enc2native(name) != name) {
+      if (transformation(name) != name) {
          i <- i + 1
          ret[i, 1] <- name
          escapeIndex <- which(escapedNames$original == name)
@@ -48,8 +48,10 @@ warnAboutStrangeNames <- function(theStrangeNames) {
 }
 
 
-# TODO dokumentieren, testen mit Module mit 1 und mehreren strange names
-removeStrangeNames <- function(moduleInfo) {
+# Remove all names that cannot be expressed from the moduleInfo object and
+# return the new moduleInfo object.
+# The transformation can be changed to enable unit testing on Linux.
+removeStrangeNames <- function(moduleInfo, transformation = enc2native) {
    theStrangeNames <- strangeNames(moduleInfo)
    if (NROW(theStrangeNames) != 0) {
       if (length(theStrangeNames) == 2) {
@@ -135,7 +137,8 @@ createJuliaModuleImport <- function(moduleInfo) {
 
 # Get the absolute module path from a Julia module object or a relative module
 # path or return the input object if it is already an absolute path.
-getAbsoluteModulePath <- function(moduleArg) { # TODO rename importModule
+# Import the module in Julia if an absolute or relative path is given.
+getAbsoluteModulePath <- function(moduleArg) {
    if (is.list(moduleArg) && !is.null(attr(moduleArg, "JLTYPE"))
        && attr(moduleArg, "JLTYPE") == "Module") {
       # this is a module that is assumed to be loaded in the Main module
