@@ -52,7 +52,7 @@ warnAboutStrangeNames <- function(theStrangeNames) {
 # return the new moduleInfo object.
 # The transformation can be changed to enable unit testing on Linux.
 removeStrangeNames <- function(moduleInfo, transformation = enc2native) {
-   theStrangeNames <- strangeNames(moduleInfo)
+   theStrangeNames <- strangeNames(moduleInfo, transformation)
    if (NROW(theStrangeNames) != 0) {
       if (length(theStrangeNames) == 2) {
          noStrangeNames <- function(v) {

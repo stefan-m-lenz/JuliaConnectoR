@@ -84,8 +84,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
                          nEscaped + nDefaultInternalFuns)
          expect_equal(length(names(mExp)),
                       nTypesExternal + nFunsExternal +
-                         nStrangeFunsExternal + nStrangeTypesExternal +
-                         nNoEscapedAlternativeExternal)
+                         nStrangeFunsExternal + nStrangeTypesExternal -
+                         noEscapedAlternativeExternal)
       } else {
          expect_equal(length(names(mAll)),
                       nTypesExternal + nTypesInternal +
