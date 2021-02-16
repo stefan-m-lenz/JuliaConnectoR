@@ -19,20 +19,27 @@ test_that("Julia names not expressible in R native encoding are identified", {
       transformation <- enc2native
    }
 
-   # TODO remove line
-   transformation <- function(x) { iconv(x, to = "latin1", sub = "byte") }
+   juliaVersionGeq1_6 <- juliaEval('VERSION >= v"1.6-"')
 
+   # strange: symbols that have a normal latex representation
+   # very strange: no normal latex representation (emojis)
    testStrangeNames <- function(i,
                                 nFunsExternal,
                                 nStrangeFunsExternal,
                                 nTypesExternal,
                                 nStrangeTypesExternal,
-                                noEscapedAlternativeInternal,
-                                noEscapedAlternativeExternal,
+                                nVeryStrangeInternal,
+                                nVeryStrangeExternal,
                                 nFunsInternal,
                                 nStrangeFunsInternal,
                                 nTypesInternal,
                                 nStrangeTypesInternal) {
+
+      if (juliaVersionGeq1_6) {
+         # on Julia 1.6, now all symbols have a "latex" representation
+         nVeryStrangeInternal <- 0
+         nVeryStrangeExternal <- 0
+      }
 
       moduleInfo <- juliaCall("RConnector.moduleinfo",
                               paste0("Main.StrangeNamesTest", i),
@@ -46,10 +53,10 @@ test_that("Julia names not expressible in R native encoding are identified", {
       theStrangeNames <- JuliaConnectoR:::strangeNames(moduleInfo, transformation)
       nDefaultInternalFuns <- 2 # eval and include
 
-      noEscapedAlternative <- noEscapedAlternativeExternal +
-         noEscapedAlternativeInternal
+      nVeryStrange <- nVeryStrangeExternal +
+         nVeryStrangeInternal
       nEscaped <- nStrangeTypesExternal + nStrangeTypesInternal +
-         nStrangeFunsExternal + nStrangeFunsInternal - noEscapedAlternative
+         nStrangeFunsExternal + nStrangeFunsInternal - nVeryStrange
 
       expect_equal(length(moduleInfo$escapedFunctions$escaped) +
                       length(moduleInfo$escapedTypes$escaped), nEscaped)
@@ -85,16 +92,16 @@ test_that("Julia names not expressible in R native encoding are identified", {
          expect_equal(length(names(mExp)),
                       nTypesExternal + nFunsExternal +
                          nStrangeFunsExternal + nStrangeTypesExternal -
-                         noEscapedAlternativeExternal)
+                         nVeryStrangeExternal)
       } else {
          expect_equal(length(names(mAll)),
                       nTypesExternal + nTypesInternal +
                          nFunsInternal + nFunsExternal +
                          nDefaultInternalFuns -
-                         noEscapedAlternative)
+                         nVeryStrange)
          expect_equal(length(names(mExp)),
                       nTypesExternal + nFunsExternal -
-                         noEscapedAlternativeExternal)
+                         nVeryStrangeExternal)
       }
    }
 
@@ -103,8 +110,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nStrangeFunsExternal = 1,
                     nTypesExternal = 1,
                     nStrangeTypesExternal = 1,
-                    noEscapedAlternativeInternal = 1,
-                    noEscapedAlternativeExternal = 0,
+                    nVeryStrangeInternal = 1,
+                    nVeryStrangeExternal = 0,
                     nFunsInternal = 2,
                     nStrangeFunsInternal = 2,
                     nTypesInternal = 0,
@@ -116,8 +123,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nStrangeFunsExternal = 1,
                     nTypesExternal = 0,
                     nStrangeTypesExternal = 0,
-                    noEscapedAlternativeInternal = 0,
-                    noEscapedAlternativeExternal = 0,
+                    nVeryStrangeInternal = 0,
+                    nVeryStrangeExternal = 0,
                     nFunsInternal = 0,
                     nStrangeFunsInternal = 0,
                     nTypesInternal = 0,
@@ -128,8 +135,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nStrangeFunsExternal = 0,
                     nTypesExternal = 0,
                     nStrangeTypesExternal = 0,
-                    noEscapedAlternativeInternal = 0,
-                    noEscapedAlternativeExternal = 0,
+                    nVeryStrangeInternal = 0,
+                    nVeryStrangeExternal = 0,
                     nFunsInternal = 1,
                     nStrangeFunsInternal = 1,
                     nTypesInternal = 0,
@@ -140,8 +147,8 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nStrangeFunsExternal = 2,
                     nTypesExternal = 0,
                     nStrangeTypesExternal = 0,
-                    noEscapedAlternativeInternal = 0,
-                    noEscapedAlternativeExternal = 2,
+                    nVeryStrangeInternal = 0,
+                    nVeryStrangeExternal = 2,
                     nFunsInternal = 2,
                     nStrangeFunsInternal = 1,
                     nTypesInternal = 0,

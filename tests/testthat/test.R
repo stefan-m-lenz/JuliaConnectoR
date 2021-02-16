@@ -309,7 +309,7 @@ test_that("Echo: Ref", {
 })
 
 
-test_that("Complex are handled first class", {
+test_that("Complex values are handled first class", {
    testEcho(1i)
    testEcho(juliaEval("1+im"))
    testEcho(juliaEval("[1+im]"))
@@ -334,7 +334,8 @@ test_that("Complex are handled first class", {
       if (complexPar == "Float64") {
          expect_null(attr(c, "JLTYPE"))
       } else {
-         expect_equal(attr(c, "JLTYPE"), juliaComplexType)
+         expect_true(juliaCall("==", juliaEval(attr(c, "JLTYPE")),
+                               juliaEval(juliaComplexType)))
       }
    }
 })
