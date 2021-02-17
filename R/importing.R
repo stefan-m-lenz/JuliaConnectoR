@@ -245,10 +245,11 @@ juliaImport <- function(modulePath, all = TRUE) {
 
 print.JuliaModuleImport <- function(x, ...) {
    cat('Julia module \"')
-   cat(attr(x, "moduleInfo")$absoluteModulePath)
+   moduleInfo <- attr(x, "moduleInfo")
+   cat(moduleInfo$absoluteModulePath)
    cat("\": ")
    nFunsTotal <- length(x)
-   nEscaped <- length(moduleInfo$escapedFunctions$escaped) -
+   nEscaped <- length(moduleInfo$escapedFunctions$escaped) +
       length(moduleInfo$escapedTypes$escaped)
    if (nativeEncodingIsUtf8()) {
       nFunsTotal <- nFunsTotal - nEscaped
@@ -256,15 +257,16 @@ print.JuliaModuleImport <- function(x, ...) {
    }
    cat(nFunsTotal)
    cat(" functions available (including type constructors).\n")
+
    if (nEscaped > 0) {
       if (nativeEncodingIsUtf8()) {
          cat("Additionally, there are ")
          cat(nEscaped)
-         cat(" alternative names, which are compatible with plaforms without UTF-8 native encoding:")
+         cat(" alternative names that are compatible with plaforms without UTF-8 native encoding:\n\n")
          print(data.frame(Original = c(moduleInfo$escapedFunctions$original,
                                        moduleInfo$escapedTypes$original),
                           Alternative = c(moduleInfo$escapedFunctions$escaped,
-                                          moduleInfo$escapedTypes$escaped)))
+                                          moduleInfo$escapedTypes$escaped)), row.names = FALSE)
       } else {
          cat(nEscaped)
          cat(" names could not be expressed in the native encoding. Possible alternatives:")
