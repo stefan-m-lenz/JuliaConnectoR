@@ -997,13 +997,7 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    # test some command, if it works
    expect_equal(juliaCall("prod", c(1,2)), 2)
    # test killing
-   os <- Sys.info()['sysname']
-   if (os == "Windows") {
-      juliaPid <- killJuliaWindows(port)
-   } else {
-      juliaPid <- killJuliaUnix(port)
-   }
-   suppressWarnings({JuliaConnectoR:::stopJulia()})
+   JuliaConnectoR:::killJulia()
    if (oldJuliaConnectorServer == "") {
       Sys.unsetenv("JULIACONNECTOR_SERVER")
    } else {

@@ -210,7 +210,10 @@ killJuliaWindows <- function(juliaPort) {
 # should work on Linux, MacOS and FreeBSD
 killJuliaUnix <- function(juliaPort) {
    lsofArgs <- paste0("-t -iTCP:", juliaPort, " -sTCP:LISTEN")
-   juliaPid <- system2(command = "lsof", args = lsofArgs, stdout = TRUE)
+   suppressWarnings({
+      # there may be a warning if Julia has already been stopped
+      juliaPid <- system2(command = "lsof", args = lsofArgs, stdout = TRUE
+   )})
    if (length(juliaPid) == 1) {
       system2(command = "kill", c("-9", juliaPid))
    }
