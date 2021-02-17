@@ -40,7 +40,7 @@ strangeNames <- function(moduleInfo, transformation = enc2native) {
 
 warnAboutStrangeNames <- function(theStrangeNames) {
    warning("Some names could not be expressed in the native encoding.\n",
-           "(Details see output pf printing the returned object.)",
+           "(Details see output of printing the returned object.)",
            call. = FALSE)
 }
 
@@ -269,8 +269,20 @@ print.JuliaModuleImport <- function(x, ...) {
                                           moduleInfo$escapedTypes$escaped)), row.names = FALSE)
       } else {
          cat(nEscaped)
-         cat(" names could not be expressed in the native encoding. Possible alternatives:")
+         cat(" names could not be expressed in the native encoding. Possible alternatives:\n\n")
+         printEscapedAlternatives(moduleInfo)
       }
    }
    cat("\n")
+}
+
+
+printEscapedAlternatives <- function(moduleInfo) {
+   m <- matrix(c(moduleInfo$escapedFunctions$original,
+                 moduleInfo$escapedTypes$original,
+                 moduleInfo$escapedFunctions$escaped,
+                 moduleInfo$escapedTypes$escaped),
+               ncol = 2)
+   colnames(m) <- c("Original", "Alternative")
+   print(m, quote = FALSE)
 }
