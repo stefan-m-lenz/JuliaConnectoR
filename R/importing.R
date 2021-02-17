@@ -51,11 +51,17 @@ warnAboutStrangeNames <- function(theStrangeNames) {
 removeStrangeNames <- function(moduleInfo, transformation = enc2native) {
    theStrangeNames <- strangeNames(moduleInfo, transformation)
    if (NROW(theStrangeNames) != 0) {
-      if (length(theStrangeNames) == 2) {
+      veryStrangeNames <- character()
+      if (length(theStrangeNames) == 2) { # a vector
+         if (theStrangeNames["alternative"] == "") {
+            veryStrangeNames <- theStrangeNames["original"]
+         }
          noStrangeNames <- function(v) {
             v[!(v == theStrangeNames["original"])]
          }
-      } else {
+      } else { # a matrix
+         veryStrangeNames <-
+            theStrangeNames[theStrangeNames[, "alternative"] == "", "original"]
          noStrangeNames <- function(v) {
             v[!(v %in% theStrangeNames[, "original"])]
          }
@@ -69,6 +75,9 @@ removeStrangeNames <- function(moduleInfo, transformation = enc2native) {
          moduleInfo$internalTypes <- noStrangeNames(moduleInfo$internalTypes)
       }
       warnAboutStrangeNames(theStrangeNames)
+      if (length(veryStrangeNames) != 0) {
+         moduleInfo$veryStrangeNames <- veryStrangeNames
+      }
    }
    moduleInfo
 }
@@ -268,15 +277,17 @@ print.JuliaModuleImport <- function(x, ...) {
                           Alternative = c(moduleInfo$escapedFunctions$escaped,
                                           moduleInfo$escapedTypes$escaped)), row.names = FALSE)
       } else {
-         cat(nEscaped)
+         cat(nEscaped + length(moduleInfo$veryStrangeNames))
          cat(" names could not be expressed in the native encoding. Possible alternatives:\n\n")
          printEscapedAlternatives(moduleInfo)
       }
+      cat("\n")
    }
-   cat("\n")
 }
 
 
+# Print a matrix of names with one column for the original names
+# and one column with the (Latex) alternative
 printEscapedAlternatives <- function(moduleInfo) {
    m <- matrix(c(moduleInfo$escapedFunctions$original,
                  moduleInfo$escapedTypes$original,

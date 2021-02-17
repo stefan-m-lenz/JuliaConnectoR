@@ -56,8 +56,9 @@ test_that("Julia names not expressible in R native encoding are identified", {
 
       nVeryStrange <- nVeryStrangeExternal +
          nVeryStrangeInternal
-      nEscaped <- nStrangeTypesExternal + nStrangeTypesInternal +
-         nStrangeFunsExternal + nStrangeFunsInternal - nVeryStrange
+      nStrange <- nStrangeTypesExternal + nStrangeTypesInternal +
+         nStrangeFunsExternal + nStrangeFunsInternal
+      nEscaped <- nStrange - nVeryStrange
 
       expect_equal(length(moduleInfo$escapedFunctions$escaped) +
                       length(moduleInfo$escapedTypes$escaped), nEscaped)
@@ -94,6 +95,13 @@ test_that("Julia names not expressible in R native encoding are identified", {
                       nTypesExternal + nFunsExternal +
                          nStrangeFunsExternal + nStrangeTypesExternal -
                          nVeryStrangeExternal)
+
+         expect_equal(
+            length(capture.output({
+               JuliaConnectoR:::printEscapedAlternatives(attr(mAll, "moduleInfo"))
+               })),
+            nEscaped + 1)
+
       } else {
          expect_equal(length(names(mAll)),
                       nTypesExternal + nTypesInternal +
@@ -103,6 +111,12 @@ test_that("Julia names not expressible in R native encoding are identified", {
          expect_equal(length(names(mExp)),
                       nTypesExternal + nFunsExternal -
                          nVeryStrangeExternal)
+
+         expect_equal(
+            length(capture.output({
+               JuliaConnectoR:::printEscapedAlternatives(attr(mAll, "moduleInfo"))
+            })),
+            nEscaped + 1)
       }
    }
 
