@@ -39,12 +39,9 @@ strangeNames <- function(moduleInfo, transformation = enc2native) {
 
 
 warnAboutStrangeNames <- function(theStrangeNames) {
-   nofNotImported <- length(theStrangeNames)/2
-   warnStr <- ifelse(nofNotImported == 1,
-                     "name is not imported because it cannot be expressed in native encoding.",
-                     "names are not imported because they cannot be expressed in native encoding.")
-   # TODO for x names there are alternatives. for more information, print the imported module object
-   warning(paste(nofNotImported, warnStr), call. = FALSE)
+   warning("Some names could not be expressed in the native encoding.\n",
+           "(Details see output pf printing the returned object.)",
+           call. = FALSE)
 }
 
 
@@ -250,6 +247,28 @@ print.JuliaModuleImport <- function(x, ...) {
    cat('Julia module \"')
    cat(attr(x, "moduleInfo")$absoluteModulePath)
    cat("\": ")
-   cat(length(x))
-   cat(" functions available\n")
+   nFunsTotal <- length(x)
+   nEscaped <- length(moduleInfo$escapedFunctions$escaped) -
+      length(moduleInfo$escapedTypes$escaped)
+   if (nativeEncodingIsUtf8()) {
+      nFunsTotal <- nFunsTotal - nEscaped
+      # (otherwise the escaped version are counted twice)
+   }
+   cat(nFunsTotal)
+   cat(" functions available (including type constructors).\n")
+   if (nEscaped > 0) {
+      if (nativeEncodingIsUtf8()) {
+         cat("Additionally, there are ")
+         cat(nEscaped)
+         cat(" alternative names, which are compatible with plaforms without UTF-8 native encoding:")
+         print(data.frame(Original = c(moduleInfo$escapedFunctions$original,
+                                       moduleInfo$escapedTypes$original),
+                          Alternative = c(moduleInfo$escapedFunctions$escaped,
+                                          moduleInfo$escapedTypes$escaped)))
+      } else {
+         cat(nEscaped)
+         cat(" names could not be expressed in the native encoding. Possible alternatives:")
+      }
+   }
+   cat("\n")
 }

@@ -11,6 +11,7 @@ test_that("Julia names not expressible in R native encoding are identified", {
    # the transformation happens in the call to list(...) in juliaCall.
 
    juliaCall("include", testModulePath)
+
    if (l10n_info()$`UTF-8`) { #UTF-8 locale
       # This is not exactly the same as enc2native on a Windows machine with
       # "latin1" native encoding, but suffices to test the functions on Linux.
@@ -154,3 +155,4 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nTypesInternal = 0,
                     nStrangeTypesInternal = 0)
 })
+
