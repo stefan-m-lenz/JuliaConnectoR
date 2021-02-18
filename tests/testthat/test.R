@@ -1163,6 +1163,14 @@ test_that("AbstractArrays are transferred by reference and can be translated to 
 })
 
 
+test_that("Operators can be imported and used", {
+   suppressWarnings({jla <- juliaImport("LinearAlgebra", all = FALSE)})
+   expect_equal(jla$`<cdot>`(1,2), 2)
+   suppressWarnings({base <- juliaImport("Base", all = FALSE)})
+   expect_true(base$`<subseteq>`(c(1,2), c(1,2,3)))
+})
+
+
 test_that("Boltzmann machine can be trained and used", {
    #skip_on_cran()
 

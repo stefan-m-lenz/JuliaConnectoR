@@ -90,19 +90,24 @@ getFunctionList <- function(juliaNames, juliaPrefix, constructors = FALSE,
       return(list())
    }
 
+   getFunPath <- function(funname) {
+      # add ":" so that it works also for operators
+      paste0(juliaPrefix, ":", funname)
+   }
+
    if (constructors) {
       # A constructor can also be used as an object that is translated to the
       # corresponding type in Julia. That's why they are handled differently
       # than normal functions.
       funlist <- lapply(juliaNames, function(funname) {
-         funpath <- paste0(juliaPrefix, funname)
+         funpath <- getFunPath(funname)
          constructor <- juliaFun(funpath)
          attributes(constructor)$JLTYPE <- funpath
          constructor
       })
    } else {
       funlist <- lapply(juliaNames, function(funname) {
-         juliaFun(paste0(juliaPrefix, funname))
+         juliaFun(getFunPath(funname))
       })
    }
 
