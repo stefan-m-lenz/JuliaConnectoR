@@ -38,7 +38,7 @@ end
 function parsingcheck(el)
    fails = collectfails(el)
    if !isempty(fails)
-      error(string(fails))
+      error(fails[1].message)
    end
    nothing
 end
