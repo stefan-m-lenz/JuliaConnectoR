@@ -86,11 +86,13 @@ test_that("Julia names not expressible in R native encoding are identified", {
          mAll <- juliaImport(paste0("Main.StrangeNamesTest", i), all = TRUE)})
       suppressWarnings({
          mExp <- juliaImport(paste0("Main.StrangeNamesTest", i), all = FALSE)})
+
+      nFunsTotal <- nTypesExternal + nTypesInternal +
+         nFunsInternal + nFunsExternal + nDefaultInternalFuns
+
       if (JuliaConnectoR:::nativeEncodingIsUtf8()) {
-         expect_equal(length(names(mAll)),
-                      nTypesExternal + nTypesInternal +
-                         nFunsInternal + nFunsExternal +
-                         nEscaped + nDefaultInternalFuns)
+
+         expect_equal(length(names(mAll)), nFunsTotal + nEscaped)
          expect_equal(length(names(mExp)),
                       nTypesExternal + nFunsExternal +
                          nStrangeFunsExternal + nStrangeTypesExternal -
@@ -101,6 +103,9 @@ test_that("Julia names not expressible in R native encoding are identified", {
                JuliaConnectoR:::printEscapedAlternatives(attr(mAll, "moduleInfo"))
                })),
             nEscaped + 1)
+
+         expect_match(capture.output({print(mAll)})[1],
+                      paste(".*", nFunsTotal + nEscaped, "function.*"))
 
       } else {
          expect_equal(length(names(mAll)),
@@ -117,6 +122,9 @@ test_that("Julia names not expressible in R native encoding are identified", {
                JuliaConnectoR:::printEscapedAlternatives(attr(mAll, "moduleInfo"))
             })),
             nEscaped + 1)
+
+         expect_match(capture.output({print(mAll)})[1],
+                      paste(".*", nFunsTotal - nVeryStrange, "function.*"))
       }
    }
 
