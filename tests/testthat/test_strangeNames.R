@@ -105,7 +105,7 @@ test_that("Julia names not expressible in R native encoding are identified", {
             nEscaped + 1)
 
          expect_match(capture.output({print(mAll)})[1],
-                      paste(".*", nFunsTotal + nEscaped, "function.*"))
+                      paste(".*", nFunsTotal, "function.*"))
 
       } else {
          expect_equal(length(names(mAll)),
