@@ -176,5 +176,17 @@ test_that("Julia names not expressible in R native encoding are identified", {
                     nStrangeFunsInternal = 1,
                     nTypesInternal = 0,
                     nStrangeTypesInternal = 0)
+
+   testStrangeNames(5,
+                    nFunsExternal = 2,
+                    nStrangeFunsExternal = 1,
+                    nTypesExternal = 0,
+                    nStrangeTypesExternal = 0,
+                    nVeryStrangeInternal = 0,
+                    nVeryStrangeExternal = 1,
+                    nFunsInternal = 0,
+                    nStrangeFunsInternal = 0,
+                    nTypesInternal = 0,
+                    nStrangeTypesInternal = 0)
 })
 

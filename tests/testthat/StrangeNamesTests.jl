@@ -27,3 +27,10 @@ module StrangeNamesTest4
    🚗(x) = "car" * x
    🚗🚗(x) = "carcar" * x
 end
+
+
+module StrangeNamesTest5
+   export harmless1, 🚗
+   🚗(x) = "car" * x
+   harmless1(x) = 17
+end
