@@ -346,12 +346,12 @@ juliaGet.JuliaProxy <- function(x) {
 
 #' Create a Julia proxy object from an R object
 #'
-#' This function creates a proxy object for a Julia object that would
-#' otherwise be translated to an R object.
-#' This is useful to prevent many translations of large objects
-#' if it is necessary performance reasons.
-#' To see which objects are translated by default, please see the
-#' \link{JuliaConnectoR-package} documentation.
+#' This function can be used to copy R vectors and matrices to Julia and keep
+#' them there.
+#' The returned proxy object can be used in place of the original vector or
+#' matrix.
+#' This is useful to prevent that large R vectors / matrices
+#' are repeatedly translated when using an object in multiple calls to Julia.
 #'
 #' @param x an R object (can also be a translated Julia object)
 #'
