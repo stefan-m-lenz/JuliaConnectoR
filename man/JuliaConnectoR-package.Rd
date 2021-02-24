@@ -171,12 +171,32 @@ is possible via \code{\link{juliaGet}}.
 
 \section{Limitations}{
 
-
+\subsection{Possible inexactness when dealing with large 64 bit integers}{
 Numbers of type \code{Int64} that are too big to be expressed as 32-bit
 \code{integer} values in R will be translated to \code{double} numbers.
 This may lead to a inaccurate results for very large numbers,
 when they are translated back to Julia, since, e. g.,
 \code{(2^53 + 1) - 2^53 == 0} holds for double-precision
 floating point numbers.
+}
+
+\subsection{Non-ASCII characters in variable names}{
+Julia uses UTF-8 as default string encoding everywhere.
+In particular, Julia permits characters that are not
+expressible in encodings such as "Latin-1" in variable and function names.
+In R, the encoding of names in lists of environments depends on the platform.
+On locales without UTF-8 as native encoding, (i.e., mostly Windows),
+unexpected translations may happen when using UTF-8 characters in strings.
+
+When using \code{\link{juliaImport}} for importing packages/modules,
+alternative names for variables using non-ASCII characters are added,
+which are compatible across different encodings.
+(For more information, see \code{\link{juliaImport}}.)
+
+In other places, such as when evaluating code via \code{\link{juliaEval}} and
+\code{\link{juliaLet}}, the problem cannot be addressed.
+It should therefore be avoided to use non-ASCII characters
+if code should be portable across different platforms.
+}
 }
 

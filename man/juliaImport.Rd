@@ -30,6 +30,17 @@ The specified package/module is loaded via \code{import} in Julia.
 Its functions and type constructors are wrapped into R functions.
 The return value is an environment containing all these R functions.
 }
+\note{
+If a package or module contains functions or types with names that contain
+non-ASCII characters, (additional) alternatives names are provided
+if there are LaTeX-like names for the characters available in Julia.
+In the alternative names of the variables, the LaTeX-like names of the
+characters surrounded by \code{<...>} replace the original characters.
+(See example below.)
+For writing platform independent code, it is recommended to use those
+alternative names.
+(See also \link{JuliaConnectoR-package} under "Limitations".)
+}
 \examples{
 if (juliaSetupOk()) {
 
@@ -55,10 +66,7 @@ if (juliaSetupOk()) {
    # by directly using the module object returned by "include".
    TestModule1 <- juliaImport(juliaCall("include", testModule))
    TestModule1$test1()
-}
 
-
-if (juliaSetupOk()) {
 
    # Importing a submodule
    testModule <- system.file("examples", "TestModule1.jl",
@@ -69,6 +77,18 @@ if (juliaSetupOk()) {
    # call function of submodule
    SubModule1$test2()
 
+
+   # Functions using non-ASCII characters
+   greekModule <- system.file("examples", "GreekModule.jl",
+                             package = "JuliaConnectoR")
+   suppressWarnings({ # importing gives a warning on non-UTF-8 locales
+      GreekModule <- juliaImport(juliaCall("include", greekModule))
+   })
+   # take a look at the file
+   cat(readLines(greekModule, encoding = "UTF-8"), sep = "\n")
+   # use alternative names
+   GreekModule$`<sigma>`(1)
+   GreekModule$`log<sigma>`(1)
 }
 
 \dontshow{
