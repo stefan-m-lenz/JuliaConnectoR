@@ -11,4 +11,6 @@ juliaSetupOk()
 }
 \description{
 Checks that Julia can be started and that the Julia version is at least 1.0.
+For more information about the setup and discovery of Julia,
+see \link{JuliaConnectoR-package}, section "Setup".
 }

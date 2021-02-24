@@ -33,6 +33,11 @@ The package requires that
 and that the Julia executable is in the system search \env{PATH} or that the
 \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 the Julia installation.
+If the \env{JULIA_BINDIR} variable is set, it takes precedence over
+looking in the executable path.
+By setting the \env{JULIA_BINDIR} variable before starting Julia,
+it is therefore possible to use different installations of Julia on the
+same machine without having to change the executable path.
 }
 
 \section{Function overview}{
@@ -40,7 +45,7 @@ the Julia installation.
 The function \code{\link{juliaImport}} makes
 functions and data types from Julia packages or modules available as R functions.
 
-If only a single Julia function needs to be importedR, \code{\link{juliaFun}}
+If only a single Julia function needs to be imported in R, \code{\link{juliaFun}}
 can do this. The simplest way to call a Julia function without any importing
 is to use \code{\link{juliaCall}} with the function name given
 as character string.
@@ -94,7 +99,7 @@ will be of type \code{Array{Float64,2}}.
 
 Missing values (\code{NA}) in R are translated to \code{missing} values in Julia.
 R vectors and arrays with missing values are converted to Julia arrays
-of type \code{Array{Union{Missing, T}}}, where \code{T} stands for the translated 
+of type \code{Array{Union{Missing, T}}}, where \code{T} stands for the translated
 type in the table above.
 
 R lists are translated as \code{Vector{T}} in Julia, with \code{T} being
