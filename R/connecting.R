@@ -60,6 +60,8 @@ runJuliaServer <- function(port = 11980) {
       Sys.sleep(sleepTime)
       timeSlept <- timeSlept + sleepTime
       if (timeSlept >= 50) {
+         try({cat(paste(readLines(stderrfile), collapse = "\n"),
+                  file = stderr())})
          stop("Timeout while waiting for response from Julia server")
       }
    }
