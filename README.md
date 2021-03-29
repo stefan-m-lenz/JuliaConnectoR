@@ -1,5 +1,6 @@
 # JuliaConnectoR <img src="JuliaConnectoR-Logo.svg" align="right" width="120" />
 
+[![CRAN version](https://www.r-pkg.org/badges/version/JuliaConnectoR)](https://www.r-pkg.org/badges/version/JuliaConnectoR)
 [![Build Status](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR.svg?branch=master)](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/stefan-m-lenz/JuliaConnectoR/badge.svg?branch=master)](https://coveralls.io/github/stefan-m-lenz/JuliaConnectoR?branch=master)
 
@@ -40,7 +41,7 @@ The following table lists the most important functions exported by the package:
 | `juliaGet` | Fully translate a Julia object to an R object |
 | `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
-For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.6.2/JuliaConnectoR.pdf).
+For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v0.6.3/JuliaConnectoR.pdf).
 
 ## Examples
 
