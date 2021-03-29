@@ -1,6 +1,6 @@
 # JuliaConnectoR <img src="JuliaConnectoR-Logo.svg" align="right" width="120" />
 
-[![CRAN version](https://www.r-pkg.org/badges/version/JuliaConnectoR)](https://www.r-pkg.org/badges/version/JuliaConnectoR)
+[![CRAN version](https://www.r-pkg.org/badges/version/JuliaConnectoR)](https://CRAN.R-project.org/package=JuliaConnectoR)
 [![Build Status](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR.svg?branch=master)](https://travis-ci.org/stefan-m-lenz/JuliaConnectoR?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/stefan-m-lenz/JuliaConnectoR/badge.svg?branch=master)](https://coveralls.io/github/stefan-m-lenz/JuliaConnectoR?branch=master)
 
