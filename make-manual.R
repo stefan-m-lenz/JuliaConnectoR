@@ -2,14 +2,18 @@ library(devtools)
 # for (rdfile in list.files("man")) {
 #    file.remove(file.path("man", rdfile))
 # }
-devtools::document()
-if (file.exists("JuliaConnectoR.pdf"))  {
-   file.remove("JuliaConnectoR.pdf")
-}
-try({system2("R", args = "CMD Rd2pdf ../JuliaConnectoR")})
-subdirs <- list.dirs(recursive = FALSE)
-unlink(subdirs[grep(pattern = "\\.Rd2pdf.*", subdirs)], recursive = TRUE)
 
+makeManual <- function(x) {
+   devtools::document()
+   if (file.exists(paste0(x, ".pdf")))  {
+      file.remove(paste0(x, ".pdf"))
+   }
+   try({system2("R", args = paste0("CMD Rd2pdf ../", x))})
+   subdirs <- list.dirs(recursive = FALSE)
+   unlink(subdirs[grep(pattern = "\\.Rd2pdf.*", subdirs)], recursive = TRUE)
+}
+
+makeManual("JuliaConnectoR")
 
 
 extractCodeBlocks <- function(sourceFile, afterLines, targetFile) {
