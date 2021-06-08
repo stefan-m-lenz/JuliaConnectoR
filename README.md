@@ -15,6 +15,11 @@ The results of function calls are likewise translated back to R.
 Complex Julia structures can either be used by
 reference via proxy objects in R or fully translated to R data structures.
 
+More details about the package together with a comparison with competing solutions can be found in the article:
+
+> Lenz S, Hackenberg M, Binder H, 2021. *The JuliaConnectoR: a functionally oriented interface for integrating Julia in R*. http://arxiv.org/abs/2005.06334
+
+
 ## Installation
 
 The package can be installed in R (version &ge; 3.2) via CRAN:
