@@ -205,7 +205,7 @@ killJuliaWindows <- function(juliaPort) {
    juliaPid <- substring(juliaLine,
                          regexpr("[0-9]+$", juliaLine))
    juliaPid <- as.integer(juliaPid)
-   if (length(juliaPid) == 1) {
+   if (length(juliaPid) == 1 && juliaPid != 0) {
       system2(command = "taskkill", args = paste("/F /PID", juliaPid),
               stdout = FALSE)
    }
