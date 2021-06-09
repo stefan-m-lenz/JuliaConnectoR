@@ -6,7 +6,6 @@ cache:
     - $HOME/.julia
 
 env:
- - JULIA_BINDIR=$HOME/julia/julia-1.0.5/bin
  - NOT_THE_JULIA_BINDIR=$HOME/julia/julia-1.6.1/bin
 
 before_install:
@@ -23,7 +22,7 @@ before_install:
        tar -xzf julia-1.6.1-linux-x86_64.tar.gz;
        cd -;
        export PATH=$PATH:$HOME/julia/julia-1.6.1/bin;
-       alias julia="LD_LIBRARY_PATH='' $HOME/julia/julia-1.6.1/bin/julia";
+       export LD_LIBRARY_PATH=$HOME/julia/julia-1.6.1/lib/julia:$LD_LIBRARY_PATH;
     fi
 
 r:
