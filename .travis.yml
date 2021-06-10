@@ -24,9 +24,9 @@ before_install:
        export PATH=$PATH:$HOME/julia/julia-1.6.1/bin; 
     fi
 
-before_script:
+after_script:
   - export LD_LIBRARY_PATH=$HOME/julia/julia-1.6.1/lib/julia:$LD_LIBRARY_PATH
-  
+
 r:
   - 3.3.3
   - release
