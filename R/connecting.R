@@ -28,6 +28,19 @@ juliaConnection <- function() {
 }
 
 
+getJuliaEnv <- function() {
+   jlenv <- character()
+   if (Sys.getenv("JULIACONNECTOR_JULIAENV") != "") {
+      if (Sys.info()['sysname'] == "windows") {
+         warning("Setting \"JULIACONNECTOR_JULIAENV\" not supported on Windows")
+      } else {
+         jlenv = Sys.getenv("JULIACONNECTOR_JULIAENV")
+      }
+   }
+   return(jlenv)
+}
+
+
 # Starts a Julia process in the background that listens on a port.
 # A port hint is given by the argument "port".
 # The return value is the port where Julia is actually listening.
@@ -46,12 +59,15 @@ runJuliaServer <- function(port = 11980) {
    stdoutfile <- tempfile('stdout'); stderrfile <- tempfile('stderr')
    on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
 
+
+
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
    system2(command = juliaexe,
            args = c(shQuote(mainJuliaFile), port, shQuote(portfilename)),
            wait = FALSE,
-           stdout = stdoutfile, stderr = stderrfile)
+           stdout = stdoutfile, stderr = stderrfile,
+           env = getJuliaEnv())
 
    # get information about the real port from the temporary file
    sleepTime <- 0.2
@@ -93,7 +109,8 @@ juliaSetupOk <- function() {
 
    juliaVersion <- NULL
    try({
-      juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE)
+      juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE,
+                              env = getJuliaEnv())
    })
    if (is.null(juliaVersion)) {
       message("Julia could not be started")
