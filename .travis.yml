@@ -22,7 +22,7 @@ before_install:
        tar -xzf julia-1.6.1-linux-x86_64.tar.gz;
        cd -;
        export PATH=$PATH:$HOME/julia/julia-1.6.1/bin;
-       export LD_LIBRARY_PATH=$HOME/julia/julia-1.6.1/lib/julia:$LD_LIBRARY_PATH
+       export LD_LIBRARY_PATH=$HOME/julia/julia-1.6.1/lib/julia:$LD_LIBRARY_PATH;
     fi
 
 r:
