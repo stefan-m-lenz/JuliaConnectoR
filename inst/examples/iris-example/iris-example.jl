@@ -1,6 +1,6 @@
 using Pkg
-Pkg.add(PackageSpec(name = "RDatasets", version = "0.6.9"))
-Pkg.add(PackageSpec(name = "Flux", version = "0.10"))
+Pkg.add(PackageSpec(name = "RDatasets", version = "0.7.5"))
+Pkg.add(PackageSpec(name = "Flux", version = "0.12"))
 
 # Import packages and set a seed
 import Flux
@@ -24,8 +24,9 @@ function rand_split_data(x, labels)
 end
 
 using RDatasets
+import Tables
 iris = dataset("datasets", "iris")
-x = convert(Matrix{Float64}, (iris[:, 1:4]))'
+x = Tables.matrix(iris[:, 1:4])'
 data = rand_split_data(x, iris[:, :Species])
 trainingdata = data.training
 testdata = data.test

@@ -1350,7 +1350,7 @@ test_that("Iris/Flux example from README works", {
    if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
       skip_on_travis()
    } else {
-      projectFolder <- "project_1_4"
+      projectFolder <- "project_1_6"
    }
 
    Pkg <- juliaImport("Pkg")
@@ -1362,12 +1362,12 @@ test_that("Iris/Flux example from README works", {
    irisExampleJl <- system.file("examples", "iris-example", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleJuliaCode <- readLines(irisExampleJl)
-   irisExampleJuliaCode <- sub("epochs <-.*", "epochs <- 5", irisExampleJuliaCode)
+   irisExampleJuliaCode <- sub("^epochs =.*", "epochs = 2", irisExampleJuliaCode)
    juliaEval(paste(irisExampleJuliaCode, collapse = "\n"))
    irisExampleR <- system.file("examples",  "iris-example", "iris-example.R",
                                package = "JuliaConnectoR", mustWork = TRUE)
    irisExampleRCode <- readLines(irisExampleR)
-   irisExampleRCode <- sub("epochs <-.*", "epochs <- 5", irisExampleRCode)
+   irisExampleRCode <- sub("epochs <-.*", "epochs <- 2", irisExampleRCode)
    scriptEnv <- new.env(emptyenv())
    eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
         envir = scriptEnv)

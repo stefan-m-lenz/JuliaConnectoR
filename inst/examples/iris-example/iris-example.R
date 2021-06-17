@@ -1,6 +1,6 @@
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.10"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.12"))')
 
 # The Julia code can simply be reused
 rand_split_data <- juliaEval('
@@ -30,7 +30,6 @@ trainingdata <- data$training
 testdata <- data$test
 
 library(JuliaConnectoR)
-stopifnot(packageVersion("JuliaConnectoR") >= "0.4")
 
 # load Flux features available in R
 Flux <- juliaImport("Flux")

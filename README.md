@@ -88,8 +88,9 @@ function rand_split_data(x, labels)
 end
 
 using RDatasets
+import Tables
 iris = dataset("datasets", "iris")
-x = convert(Matrix{Float64}, (iris[:, 1:4]))'
+x = Tables.matrix(iris[:, 1:4])'
 data = rand_split_data(x, iris[:, :Species])
 trainingdata = data.training
 testdata = data.test
@@ -187,7 +188,6 @@ testdata <- data$test
 
 ```R
 library(JuliaConnectoR)
-stopifnot(packageVersion("JuliaConnectoR") >= "0.4")
 
 # load Flux features available in R
 Flux <- juliaImport("Flux")
