@@ -1307,16 +1307,16 @@ test_that("Environemnt variables for Julia can be set", {
    prevJuliaEnv <- Sys.getenv("JULIACONNECTOR_JULIAENV")
 
    JuliaConnectoR:::stopJulia()
-   
+
    setTestEnv <- function(testEnv) {
       if (prevJuliaEnv == "") {
          Sys.setenv(JULIACONNECTOR_JULIAENV = testEnv)
       } else {
-         Sys.setenv(JULIACONNECTOR_JULIAENV = 
-            paste(prevJuliaEnv, testEnv, sep = ";"))
+         Sys.setenv(JULIACONNECTOR_JULIAENV =
+                       paste(prevJuliaEnv, testEnv, sep = ";"))
       }
    }
-   
+
    setTestEnv("TESTVARIABLE1=1")
    if (os == "Windows") {
       expect_warning(juliaEval("1+1"))
@@ -1369,8 +1369,8 @@ test_that("Iris/Flux example from README works", {
    irisExampleRCode <- readLines(irisExampleR)
    irisExampleRCode <- sub("epochs <-.*", "epochs <- 2", irisExampleRCode)
    scriptEnv <- new.env(emptyenv())
-   eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
-        envir = scriptEnv)
+   suppressMessages(eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
+                         envir = scriptEnv))
    # just test something
    expect_s3_class(scriptEnv$model, "JuliaProxy")
 
