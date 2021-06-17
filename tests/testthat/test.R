@@ -1300,7 +1300,30 @@ test_that("Broadcasting via dot syntax works", {
 })
 
 
-test_that("Examples from README work", {
+test_that("Environemnt variables for Julia can be set", {
+   os <- Sys.info()['sysname']
+
+   JuliaConnectoR:::stopJulia()
+   Sys.setenv(JULIACONNECTOR_JULIAENV = "TESTVARIABLE1=1")
+   if (os == "Windows") {
+      expect_warning(juliaEval("1+1"))
+   } else {
+      expect_equal(juliaEval('ENV["TESTVARIABLE1"]'), 1)
+   }
+   JuliaConnectoR:::stopJulia()
+
+   Sys.setenv(JULIACONNECTOR_JULIAENV = "c(TESTVARIABLE1=1, TESTVARIABLE2='abc')")
+   if (os == "Windows") {
+      expect_warning(juliaEval("1+1"))
+   } else {
+      expect_equal(juliaEval('ENV["TESTVARIABLE1"]'), 1)
+      expect_equal(juliaEval('ENV["TESTVARIABLE2"]'), "abc")
+   }
+   Sys.unsetenv("JULIACONNECTOR_JULIAENV")
+})
+
+
+test_that("Iris/Flux example from README works", {
    skip_on_cran()
    skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern"))
    cat("\nExecuting README examples...\n")

@@ -31,10 +31,11 @@ juliaConnection <- function() {
 getJuliaEnv <- function() {
    jlenv <- character()
    if (Sys.getenv("JULIACONNECTOR_JULIAENV") != "") {
-      if (Sys.info()['sysname'] == "windows") {
+      if (Sys.info()['sysname'] == "Windows") {
          warning("Setting \"JULIACONNECTOR_JULIAENV\" not supported on Windows")
       } else {
-         jlenv = Sys.getenv("JULIACONNECTOR_JULIAENV")
+         jlenv <- eval(expr = parse(Sys.getenv("JULIACONNECTOR_JULIAENV")),
+                       envir = emptyenv())
       }
    }
    return(jlenv)
