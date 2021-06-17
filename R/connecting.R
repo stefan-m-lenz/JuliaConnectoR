@@ -34,8 +34,12 @@ getJuliaEnv <- function() {
       if (Sys.info()['sysname'] == "Windows") {
          warning("Setting \"JULIACONNECTOR_JULIAENV\" not supported on Windows")
       } else {
-         jlenv <- eval(expr = parse(Sys.getenv("JULIACONNECTOR_JULIAENV")),
-                       envir = emptyenv())
+         envdef <- Sys.getenv("JULIACONNECTOR_JULIAENV")
+         evalenv <- new.env(emptyenv())
+         eval(expr = parse(text = envdef), envir = evalenv)
+         # system2 expects a character vector of name=value strings
+         jlenv <- unlist(lapply(names(evalenv), 
+                         function(x) { paste0(x, "=", evalenv[[x]]) }))
       }
    }
    return(jlenv)
