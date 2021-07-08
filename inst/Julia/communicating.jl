@@ -3,16 +3,56 @@ struct CircularReference
 end
 
 
+mutable struct SharedObject
+   obj::Any
+   refcount::UInt64
+end
+
+function SharedObject(obj)
+   SharedObject(obj, UInt32(1))
+end
+
+
 # Encapsulate the io stream and a lock to prevent concurrent writing
 # by multiple Tasks because this would mess up the messages
-struct CommunicatoR{T}
-   lock::ReentrantLock   # for synchronizing the communication
-   io::T                 # the iostream for communicating with R
-   objrefs::Set{UInt64}  # used to detect circular references
+# Making the struct mutable makes it easier to share the object with R,
+# as it always has a fixed address
+mutable struct CommunicatoR{T}
+   # for synchronizing the communication
+   lock::ReentrantLock
+
+   # the iostream for communicating with R
+   io::T
+
+   # used to detect circular references
+   objrefs::Set{UInt64}
+
+   # for sharing references between Julia and R
+   sharedheap::Dict{UInt64, SharedObject}
+
+   # whether the next translation is forced to be a full translation
+   # in contrast to a mere passing of a reference
+   full_translation::Bool
+
+   # Contains identifiers of finalized callback functions.
+   # These can be communicated to R to be removed there as well.
+   finalized_callbacks::Vector{String}
+
+   # contains callback functions and their corresponding identifiers
+   # for the communication with R
+   registered_callbacks::Dict{Function, String}
 end
 
 function CommunicatoR(io)
-   CommunicatoR(ReentrantLock(), io, Set{UInt64}())
+   CommunicatoR(
+      ReentrantLock(),
+      io,
+      Set{UInt64}(),
+      Dict{UInt64, SharedObject}(),
+      false,
+      Vector{String}(),
+      Dict{Function, String}()
+   )
 end
 
 
@@ -44,10 +84,15 @@ The actual port may be different. If the argument `portfile` is specified,
 the real port is written to the file with the given name
 as decimal number in form of a string.
 
-If the argument `keeprunning` is set to `true`, the server will keep running
-after a disconnect from the client. This is useful for debugging.
+If the argument `multiclient` is `false`,
+the server accepts only one client and stops after the client disconnects.
+If the argument `multiclient` is set to `true`,
+the server will accept multiple clients and keeps running
+after a client disconnects.
+Note that multiple clients share the same global workspace.
 """
-function serve(port_hint::Int; keeprunning::Bool = false,
+function serve(port_hint::Int;
+      multiclient::Bool = false,
       portfile::String = "")
 
    realport, server = listenany(port_hint)
@@ -63,7 +108,7 @@ function serve(port_hint::Int; keeprunning::Bool = false,
    # Prevents crash when run as script and interrupted
    ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
 
-   if keeprunning
+   if multiclient
       while true
          sock = accept(server)
          @async serve_repl(sock)
@@ -100,7 +145,7 @@ function serve_repl(sock)
                "Original error: $ex")
       end
 
-      result = evaluate_checked!(call)
+      result = evaluate_checked!(call, communicator)
       write_message(communicator, result)
    end
 end
@@ -108,7 +153,7 @@ end
 
 function callbackfun(callbackid::String, communicator::CommunicatoR)
 
-   callbackfinalizer = CallbackFinalizer(callbackid)
+   callbackfinalizer = CallbackFinalizer(callbackid, communicator)
 
    ret = (args...; kwargs...) -> begin
       stayalivewithme(callbackfinalizer)
@@ -123,10 +168,10 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
          if firstbyte == RESULT_INDICATOR
             answer = read_element(communicator)
             parsingcheck(answer)
-            return evaluate!(answer)
+            return evaluate!(answer, communicator)
          elseif firstbyte == CALL_INDICATOR
             call = read_call(communicator)
-            result = evaluate_checked!(call)
+            result = evaluate_checked!(call, communicator)
             write_message(communicator, result)
          elseif firstbyte == FAIL_INDICATOR
             r_errormsg = read_string(communicator)
@@ -137,13 +182,16 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
       end
    end
 
-   registered_callbacks[ret] = callbackid
+   communicator.registered_callbacks[ret] = callbackid
    ret
 end
 
 
-function callanonymous(functionref::Vector{UInt8}, args...; kwargs...)
-   objref::ImmutableObjectReference = sharedheap[parseheapref(functionref)].obj
+function callanonymous(communicator::CommunicatoR, functionref::Vector{UInt8},
+      args...; kwargs...)
+
+   objref::ImmutableObjectReference =
+         communicator.sharedheap[parseheapref(functionref)].obj
    f::Function = objref.obj
    ret = f(args...; kwargs...)
    ret

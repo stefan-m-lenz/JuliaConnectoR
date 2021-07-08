@@ -276,7 +276,7 @@ function write_array_element(communicator, arr::AbstractArray)
 end
 
 function write_element(communicator, arr::Array)
-   if full_translation.x
+   if communicator.full_translation
       write_array_element(communicator, arr)
    else
       write_object_reference(communicator, arr, OBJECT_CLASS_ID_ARRAY)
@@ -284,7 +284,7 @@ function write_element(communicator, arr::Array)
 end
 
 function write_element(communicator, arr::AbstractArray)
-   if full_translation.x
+   if communicator.full_translation
       # translate as struct because you can never be sure of the implementation
       write_struct_element(communicator, arr)
    else
@@ -295,7 +295,7 @@ end
 
 function write_element(communicator, dict::AbstractDict)
 
-   if full_translation.x
+   if communicator.full_translation
       # Assure that keys and values are always in a list,
       # to allow a straightforward reconstruction later on.
       # Strings and numbers would otherwise be converted to vectors in R.
@@ -315,7 +315,7 @@ function write_element(communicator, dict::AbstractDict)
 end
 
 function write_element(communicator, set::AbstractSet)
-   if full_translation.x
+   if communicator.full_translation
       ellist = ElementList(Vector{Any}(collect(set)),
             Vector{Symbol}(), Dict{Symbol, Any}(),
             Dict{String, Any}("JLTYPE" => string(typeof(set))))
@@ -327,7 +327,7 @@ end
 
 function write_element(communicator, f::Function)
 
-   callbackid = get(registered_callbacks, f, "")
+   callbackid = get(communicator.registered_callbacks, f, "")
    if callbackid == "" # it's not a callback function
       f_as_string = string(f)
       if endswith(f_as_string, "()") || startswith(f_as_string, '#')
@@ -362,7 +362,7 @@ function write_element(communicator, f::Function)
 end
 
 function write_element(communicator, t::Tuple)
-   if full_translation.x
+   if communicator.full_translation
       write_bin(communicator, TYPE_ID_LIST)
       attributes = Dict{String, Any}("JLTYPE" => string(typeof(t)))
       ellist = ElementList(
@@ -399,7 +399,7 @@ function write_element(communicator, obj::Module)
 end
 
 function write_element(communicator, obj::NamedTuple)
-   if full_translation.x
+   if communicator.full_translation
       write_struct_element(communicator, obj)
    else
       write_object_reference(communicator, obj, OBJECT_CLASS_ID_STRUCT)
@@ -430,12 +430,12 @@ end
 
 function write_mutable_struct_element(communicator, obj::T) where T
 
-   ref = share_mutable_object!(obj)
+   ref = share_mutable_object!(communicator, obj)
    refexists = ref in communicator.objrefs
    push!(communicator.objrefs, ref)
 
    if refexists # recursion detected
-      decrefcount(ref) # not shared, actually
+      decrefcount!(communicator, ref) # not shared, actually
       write_struct_element(communicator, CircularReference(ref),
             Dict{String, Any}())
       return
@@ -450,7 +450,7 @@ end
 function write_element(communicator, obj::T) where T
 
    if isstructtype(T)
-      if full_translation.x
+      if communicator.full_translation
          if !isimmutable(obj)
             write_mutable_struct_element(communicator, obj)
          else
@@ -569,12 +569,21 @@ function write_element(communicator, p::EnforcedProxy)
 end
 
 function write_element(communicator, df::RDataFrame)
-   if full_translation.x
+   if communicator.full_translation
       write_bin(communicator, TYPE_ID_LIST)
       write_list(communicator, getfield(df, :ellist))
    else
       write_object_reference(communicator, df, OBJECT_CLASS_ID_STRUCT)
    end
+end
+
+# This function and the struct serve only to communicate the CommunicatoR
+# object of this client to R.
+struct GetCommunicatoR
+end
+function write_element(communicator, _::GetCommunicatoR)
+   ref = object_reference(communicator)
+   write_object_reference(communicator, communicator, OBJECT_CLASS_ID_STRUCT)
 end
 
 
@@ -605,7 +614,7 @@ end
 
 
 function write_object_reference(communicator, obj, object_class_id::UInt8)
-   ref = shareobject!(obj)
+   ref = shareobject!(communicator, obj)
    write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
    write_bin(communicator, object_class_id)
    write_bin(communicator, ref)

@@ -43,7 +43,7 @@ function parsingcheck(el)
    nothing
 end
 
-function evaluate_checked!(call::Call)
+function evaluate_checked!(call::Call, communicator::CommunicatoR)
    # check parsing first
    try
       parsingcheck(call)
@@ -52,16 +52,16 @@ function evaluate_checked!(call::Call)
    end
 
    try
-      return evaluate!(call)
+      return evaluate!(call, communicator)
    catch ex
       return Fail("Evaluation in Julia failed.", ex)
    end
 end
 
 
-function evaluate!(call::Call)
+function evaluate!(call::Call, communicator::CommunicatoR)
    # evaluate arguments
-   evaluate!(call.args)
+   evaluate!(call.args, communicator)
 
    # the actual function call
    Base.invokelatest(call.fun,
@@ -69,13 +69,15 @@ function evaluate!(call::Call)
 end
 
 
-function evaluate!(list::ElementList)
+function evaluate!(list::ElementList, communicator::CommunicatoR)
    # recursively evaluate sub-elements first
    for i in eachindex(list.positionalelements)
-      list.positionalelements[i] = evaluate!(list.positionalelements[i])
+      list.positionalelements[i] =
+            evaluate!(list.positionalelements[i], communicator)
    end
    for name in list.names
-      list.namedelements[name] = evaluate!(list.namedelements[name])
+      list.namedelements[name] =
+            evaluate!(list.namedelements[name], communicator)
    end
 
    jltype = get(list.attributes, "JLTYPE", "")
@@ -94,7 +96,7 @@ function evaluate!(list::ElementList)
          elseif constructor <: CircularReference
             error("Circular references cannot be reconstructed")
          else
-            return reconstruct_struct(constructor, list)
+            return reconstruct_struct(constructor, list, communicator)
          end
       else
          if constructor <: Tuple
@@ -115,12 +117,12 @@ function evaluate!(list::ElementList)
 end
 
 
-function evaluate!(objref::ObjectReference)
+function evaluate!(objref::ObjectReference, communicator::CommunicatoR)
    getobj(obj::ImmutableObjectReference) = obj.obj
    getobj(obj) = obj
 
    try
-      obj = sharedheap[objref.ref].obj
+      obj = communicator.sharedheap[objref.ref].obj
       return getobj(obj)
    catch ex
       error("Object reference " * string(objref.ref, base = 16) *
@@ -129,7 +131,7 @@ function evaluate!(objref::ObjectReference)
 end
 
 
-function evaluate!(item)
+function evaluate!(item, communicator::CommunicatoR)
    item
 end
 
@@ -207,7 +209,7 @@ function reconstruct_multidimensional_array(constructor, arr::Vector,
 end
 
 
-function reconstruct_struct(constructor, list::ElementList)
+function reconstruct_struct(constructor, list::ElementList, communicator::CommunicatoR)
    # normal composite type:
    # forge call to inner constructor (which may be private)
    constructorargs = [list.namedelements[name] for name in list.names]
@@ -217,7 +219,7 @@ function reconstruct_struct(constructor, list::ElementList)
    # This is referenced by the "JLREF" attribute.
    jlref::UInt64 = get(list.attributes, "JLREF", UInt64(0))
    if jlref != 0
-      sharedfinalizer(obj, jlref)
+      sharedfinalizer(communicator, obj, jlref)
    end
 
    return obj

@@ -407,7 +407,8 @@ test_that("Mutable struct usable by reference", {
    refEcho <- NULL
    invisible(gc())
    juliaEval("1")
-   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
+   expect_false(juliaLet("haskey(communicator.sharedheap, ref)", ref = ref,
+                         communicator = JuliaConnectoR:::pkgLocal$communicator))
 
    # Test behaviuor with juliaGet:
    # The reference must be attached
@@ -428,7 +429,8 @@ test_that("Immutable struct usable by reference and translated", {
    expect_equal(refEcho$x, 1)
    ref <- get("ref", jlRef)
    expect_equal(juliaGet(jlRef)$x, 1)
-   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = ref))
+   expect_false(juliaLet("haskey(communicator.sharedheap, ref)", ref = ref,
+                         communicator = JuliaConnectoR:::pkgLocal$communicator))
    gc()
    juliaEval("1")
 })
@@ -987,7 +989,7 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
-   port <- JuliaConnectoR:::runJuliaServer(12980)
+   port <- JuliaConnectoR:::runJuliaServer(12980, multiclient = TRUE)
 
    # test with wrong variable
    Sys.setenv("JULIACONNECTOR_SERVER" = "wrong form")

@@ -17,7 +17,7 @@ juliaConnection <- function() {
                                          open="r+b", timeout = 10)))
    }
 
-   port <- runJuliaServer()
+   port <- runJuliaServer(multiclient = FALSE)
 
    return(list(port = port,
                con = socketConnection(host = "localhost",
@@ -38,11 +38,18 @@ getJuliaEnv <- function() {
          evalenv <- new.env(emptyenv())
          eval(expr = parse(text = envdef), envir = evalenv)
          # system2 expects a character vector of name=value strings
-         jlenv <- unlist(lapply(names(evalenv), 
+         jlenv <- unlist(lapply(names(evalenv),
                          function(x) { paste0(x, "=", evalenv[[x]]) }))
       }
    }
    return(jlenv)
+}
+
+
+startJuliaServer <- function(port = 11980, multiclient = TRUE) {
+   port <- runJuliaServer(port, multiclient = multiclient)
+   Sys.setenv("JULIACONNECTOR_SERVER" = paste0("localhost:", port))
+   return(port)
 }
 
 
@@ -51,7 +58,7 @@ getJuliaEnv <- function() {
 # The return value is the port where Julia is actually listening.
 # This port might be different than the port hint, if the given "port"
 # is e. g. already in use.
-runJuliaServer <- function(port = 11980) {
+runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    message("Starting Julia ...")
 
    # If there is no Julia server specified, start a new one:
@@ -65,11 +72,17 @@ runJuliaServer <- function(port = 11980) {
    on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
 
 
+   if (multiclient == TRUE) {
+      multiclient <- "t"
+   } else {
+      multiclient <- "f"
+   }
 
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
    system2(command = juliaexe,
-           args = c(shQuote(mainJuliaFile), port, shQuote(portfilename)),
+           args = c(shQuote(mainJuliaFile), port, shQuote(portfilename),
+                    multiclient),
            wait = FALSE,
            stdout = stdoutfile, stderr = stderrfile,
            env = getJuliaEnv())
@@ -139,6 +152,7 @@ startJulia <- function() {
    jlc <- juliaConnection()
    pkgLocal$con <- jlc$con
    pkgLocal$port <- jlc$port
+   pkgLocal$communicator <- juliaEval("RConnector.GetCommunicatoR()")
 }
 
 

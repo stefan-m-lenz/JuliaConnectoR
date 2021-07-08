@@ -39,9 +39,10 @@
 #' JuliaConnectoR:::stopJulia()
 #' }
 as.data.frame.JuliaProxy <- function(x, ...) {
-   juliaCall("RConnector.full_translation!", TRUE)
+   juliaCall("RConnector.full_translation!", pkgLocal$communicator, TRUE)
    tryCatch({ret <- juliaCall("RConnector.get_df", x)},
-            finally = {juliaCall("RConnector.full_translation!", FALSE)})
+            finally = { juliaCall("RConnector.full_translation!",
+                                  pkgLocal$communicator, FALSE)})
    ret <- data.frame(ret, stringsAsFactors = FALSE)
    ret
 }

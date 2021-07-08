@@ -47,8 +47,8 @@ const R_NA_REAL = ntoh(reinterpret(Float64,
       UInt8[0x7f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x07, 0xa2])[1])
 const R_NA_COMPLEX = Complex{Float64}(R_NA_REAL, R_NA_REAL)
 
-include("sharing.jl")
 include("communicating.jl")
+include("sharing.jl")
 include("handling_undefined.jl")
 include("reading.jl")
 include("handling_dataframes.jl")
