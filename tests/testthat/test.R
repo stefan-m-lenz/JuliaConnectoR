@@ -1084,7 +1084,8 @@ test_that("Test BigInt: a Julia object with external pointers", {
    expect_equal(juliaCall("Float64", f), 2147483647)
 
    i1Ref <- attr(i1, "JLREF")$ref
-   expect_true(juliaLet("RConnector.sharedheap[ref].refcount > 0", ref = i1Ref))
+   expect_true(juliaLet("communicator.sharedheap[ref].refcount > 0",
+                        ref = i1Ref, communicator = pkgLocal$communicator))
    i1 <- NULL
    invisible(gc())
    juliaEval("1") # after one command, the references from R should be cleaned up
@@ -1095,7 +1096,8 @@ test_that("Test BigInt: a Julia object with external pointers", {
    juliaCall("GC.gc")
    juliaCall("GC.gc")
    juliaCall("GC.gc")
-   expect_false(juliaLet("haskey(RConnector.sharedheap, ref)", ref = i1Ref))
+   expect_false(juliaLet("haskey(communicator.sharedheap, ref)", ref = i1Ref,
+                         communicator = pkgLocal$communicator))
 })
 
 

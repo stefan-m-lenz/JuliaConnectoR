@@ -335,7 +335,7 @@ function write_element(communicator, f::Function)
          # An anonymous function will have a string representation like
          # "getfield(Main, Symbol(\"##5#6\"))()" in Julia 1.0.
          # In Julia 1.3 it is something like "#3".
-         ref = share_immutable_object!(f)
+         ref = share_immutable_object!(communicator, f)
          write_bin(communicator, TYPE_ID_OBJECT_REFERENCE)
          write_bin(communicator, OBJECT_CLASS_ID_ANONYMOUS_FUNCTION)
          write_bin(communicator, ref)

@@ -192,6 +192,7 @@ stopJulia <- function() {
       }, error = function(e) {})
       pkgLocal$con <- NULL
       pkgLocal$port <- NULL
+      pkgLocal$communicator <- NULL
 
       # clean up references
       invisible(gc(verbose = FALSE))
