@@ -299,3 +299,10 @@ function showobj(x, width)
    end
    showobj(x, width)
 end
+
+
+function stop_server(communicator::CommunicatoR)
+   write_message(communicator, nothing)
+   close(communicator.io)
+   exit(0)
+end

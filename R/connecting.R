@@ -49,7 +49,25 @@ getJuliaEnv <- function() {
 startJuliaServer <- function(port = 11980, multiclient = TRUE) {
    port <- runJuliaServer(port, multiclient = multiclient)
    Sys.setenv("JULIACONNECTOR_SERVER" = paste0("localhost:", port))
-   return(port)
+   # Establish and test the connection. This also sets the pkgLocal$communicator
+   juliaEval("0")
+   if (multiclient) {
+      pkgLocal$startedAsMultiClientServer <- TRUE
+   }
+   return(invisible(port))
+}
+
+
+stopJuliaServer <- function() {
+   Sys.unsetenv("JULIACONNECTOR_SERVER")
+   print("stopping Julia server")
+   if (!is.null(pkgLocal$communicator)) {
+      juliaCall("RConnector.stop_server", pkgLocal$communicator)
+      print("closing connection")
+      close(pkgLocal$con)
+      print(" connection closed")
+      stopJuliaConnection()
+   }
 }
 
 
@@ -186,13 +204,26 @@ getJuliaExecutablePath <- function() {
 
 stopJulia <- function() {
    if (!is.null(pkgLocal$con)) {
-      tryCatch({
-         writeBin(BYEBYE, pkgLocal$con)
-         close(pkgLocal$con)
-      }, error = function(e) {})
+      if (is.null(pkgLocal$startedAsMultiClientServer)) {
+         # normal startup of Julia with single client
+         tryCatch({
+            writeBin(BYEBYE, pkgLocal$con)
+            close(pkgLocal$con)
+         }, error = function(e) {})
+         stopJuliaConnection()
+      } else {
+         stopJuliaServer()
+      }
+   }
+}
+
+
+stopJuliaConnection <- function() {
+   if (!is.null(pkgLocal$con)) {
       pkgLocal$con <- NULL
       pkgLocal$port <- NULL
       pkgLocal$communicator <- NULL
+      pkgLocal$startedAsMultiClientServer <- NULL
 
       # clean up references
       invisible(gc(verbose = FALSE))
