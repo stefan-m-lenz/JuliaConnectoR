@@ -46,6 +46,16 @@ getJuliaEnv <- function() {
 }
 
 
+
+#' Start a server that may serves multiple clients (R processes)
+#'
+#' TODO some more info
+#'
+#' @param port a hint for the port that is used by the server.
+#'    If it is not available, a different port is used.
+#'    The final port is returned invisibly.
+#'
+#' @return the port number (invisibly)
 startJuliaServer <- function(port = 11980) {
    if (!is.null(pkgLocal$con)) {
       warning(paste0("There is already a connection to Julia established.\n",
@@ -199,6 +209,10 @@ getJuliaExecutablePath <- function() {
 }
 
 
+#' Stop the connection to Julia
+#'
+#' This ends the connection to Julia. Julia will stop if no R process is
+#' connected and the session is then terminated.
 stopJulia <- function() {
    if (!is.null(pkgLocal$startedAsMultiClientServer)) {
       Sys.unsetenv("JULIACONNECTOR_SERVER")
