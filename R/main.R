@@ -82,8 +82,7 @@ registerCallback <- function(callback) {
 
 .onLoad <- function(libname, pkgname) {
    # register finalizer to stop Julia connection
-   parent <- parent.env(environment())
-   reg.finalizer(parent, finalize, onexit = TRUE)
+   reg.finalizer(pkgLocal, finalize, onexit = TRUE)
 }
 
 

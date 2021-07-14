@@ -75,6 +75,27 @@ function read_byte(c::CommunicatoR)
 end
 
 
+# GLOBAL variable nclients to count the number of clients that are connected
+const nclients = Ref{Int}(0)
+const nclients_lock = ReentrantLock()
+
+function inc_nclients()
+   lock(nclients_lock)
+   nclients.x += 1
+   unlock(nclients_lock)
+end
+
+# decrement number of clients. Stop server if it is reduced to 0.
+function dec_nclients()
+   lock(nclients_lock)
+   nclients.x -= 1
+   if nclients.x <= 0
+      exit(0)
+   end
+   unlock(nclients_lock)
+end
+
+
 """
     serve(port_hint; keeprunnning = false, portfile = "")
 Starts the JuliaConnectoR server, which will accept connections.
@@ -112,6 +133,7 @@ function serve(port_hint::Int;
       while true
          sock = accept(server)
          @async serve_repl(sock)
+         inc_nclients()
       end
    else
       sock = accept(server)
@@ -137,17 +159,22 @@ function serve_repl(sock)
                error("Unexpected leading character $(firstbyte[1])")
             else
                close(sock)
+               dec_nclients()
                return
             end
          end
       catch ex
-         error("Unexpected parsing error. Stopping listening. " *
-               "Original error: $ex")
+         @warn "Unexpected parsing error. Stopping listening. " *
+               "Original error: $ex"
+         dec_nclients()
+         return
       end
 
       result = evaluate_checked!(call, communicator)
       write_message(communicator, result)
    end
+
+   dec_nclients()
 end
 
 
@@ -298,11 +325,4 @@ function showobj(x, width)
       intwidth = DEFAULT_DISPLAY_COLUMNS
    end
    showobj(x, width)
-end
-
-
-function stop_server(communicator::CommunicatoR)
-   write_message(communicator, nothing)
-   close(communicator.io)
-   exit(0)
 end

@@ -983,9 +983,16 @@ test_that("Parametric types are imported", {
 
 
 test_that("Starting and stopping Julia server" , {
+   stopJulia()
    port <- startJuliaServer()
    expect_match(Sys.getenv("JULIACONNECTOR_SERVER"), paste0("localhost:", port))
-   stopJuliaServer()
+
+   # starting the server twice should give a warning and not do anything
+   expect_warning(startJuliaServer())
+   expect_match(Sys.getenv("JULIACONNECTOR_SERVER"), paste0("localhost:", port))
+   expect_equal(juliaEval("1"), 1)
+
+   stopJulia()
    expect_equal(Sys.getenv("JULIACONNECTOR_SERVER"), "")
    expect_null(JuliaConnectoR:::pkgLocal$con)
 })
@@ -998,7 +1005,7 @@ test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", 
    JuliaConnectoR:::stopJulia()
    oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
    # start new JuliaConnectoR server
-   port <- JuliaConnectoR:::startJuliaServer(12980, multiclient = TRUE)
+   port <- JuliaConnectoR:::startJuliaServer(12980)
    expect_match(Sys.getenv("JULIACONNECTOR_SERVER"), paste0("localhost:", port))
 
    # test with wrong variable
