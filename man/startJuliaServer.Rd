@@ -2,18 +2,40 @@
 % Please edit documentation in R/connecting.R
 \name{startJuliaServer}
 \alias{startJuliaServer}
-\title{Start a server that may serves multiple clients (R processes)}
+\title{Start a server that may serve multiple clients (R processes)}
 \usage{
 startJuliaServer(port = 11980)
 }
 \arguments{
 \item{port}{a hint for the port that is used by the server.
 If it is not available, a different port is used.
-The final port is returned invisibly.}
+The final port is returned (invisibly).}
 }
 \value{
 the port number (invisibly)
 }
 \description{
-TODO some more info
+Starting a Julia server allows that different R processes may connect to the
+the same Julia server and share a single session.
+This can be useful for saving start-up/precompilation times when starting
+additional processes or when sharing global variables between processes.
+\emph{For the standard way of starting Julia, this function is not needed.
+It is also not needed if child processes should use separate Julia sessions.}
+}
+\details{
+The functions communicates the server address via setting the
+\env{JULIACONNECTOR_SERVER} environment variable, e.g., to "localhost:11980".
+This variable is communicated automatically to child processes that are
+started after this function has been called.
+The child processes will connect to the same Julia server.
+The variable can also be set explicitly in child processes before connecting
+to Julia to control which server is used.
+Unsetting the variable will result in a normal Julia start-up in the first
+call to Julia.
+}
+\note{
+The standard (error) output from Julia (printing and warnings)
+can currently only be forwarded to one client.
+This is currently the last client that has connected but this may be subject
+to change.
 }
