@@ -990,7 +990,22 @@ test_that("Starting and stopping Julia server" , {
    # starting the server twice should give a warning and not do anything
    expect_warning(startJuliaServer())
    expect_match(Sys.getenv("JULIACONNECTOR_SERVER"), paste0("localhost:", port))
+
+   # now the server should start successfully
    expect_equal(juliaEval("1"), 1)
+
+   # set a variable in a separate process:
+   rPath <- file.path(R.home("bin"), "R")
+   if (Sys.info()["sysname"] == "Windows") {
+      rPath <- paste0(rPath, ".exe")
+   }
+   system2(rPath, c("-e", shQuote(
+      paste0("library(JuliaConnectoR); juliaEval('global x = 1')"))),
+      stdout = FALSE)
+
+   # check that variable is set in this Julia session,
+   # i.e. that the two R processes share the same Julia process
+   expect_equal(juliaEval("x"), 1)
 
    stopJulia()
    expect_equal(Sys.getenv("JULIACONNECTOR_SERVER"), "")

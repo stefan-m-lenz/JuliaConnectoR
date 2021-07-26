@@ -51,6 +51,11 @@ getJuliaEnv <- function() {
 #'
 #' TODO some more info
 #'
+#' Note that the standard (error) output from Julia (printing and warnings)
+#' can currently only be forwarded to one client.
+#' This is currently the last client that has connected but this may be subject
+#' to change.
+#'
 #' @param port a hint for the port that is used by the server.
 #'    If it is not available, a different port is used.
 #'    The final port is returned invisibly.
