@@ -51,7 +51,7 @@ getJuliaEnv <- function() {
 #'
 #' Starting a Julia server allows that different R processes may connect to the
 #' the same Julia server and share a single session.
-#' This can be useful for saving start-up/precompilation times when starting
+#' This can be useful for saving start-up/precompilation time when starting
 #' additional processes or when sharing global variables between processes.
 #' \emph{For the standard way of starting Julia, this function is not needed.
 #' It is also not needed if child processes should use separate Julia sessions.}
@@ -66,6 +66,10 @@ getJuliaEnv <- function() {
 #' Unsetting the variable will result in a normal Julia start-up in the first
 #' call to Julia.
 #'
+#' For using Julia with multiple clients, it can be good to advise Julia to
+#' use multiple threads via setting the \env{JULIA_NUM_THREADS} environment
+#' variable before starting Julia.
+#'
 #' @note The standard (error) output from Julia (printing and warnings)
 #' can currently only be forwarded to one client.
 #' This is currently the last client that has connected but this may be subject
@@ -76,6 +80,27 @@ getJuliaEnv <- function() {
 #'    The final port is returned (invisibly).
 #'
 #' @return the port number (invisibly)
+#'
+#' @examples
+#' if (juliaSetupOk()) {
+#'
+#'    Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
+#'    startJuliaServer()
+#'
+#'    library(future)
+#'    plan(multisession) # use background R processes on the same machine
+#'
+#'    juliaEval("global x = 1")
+#'
+#'    # Child processes now use the same Julia session:
+#'    f1 <- future({juliaEval("x")})
+#'    value(f1)
+#'
+#' }
+#' \dontshow{
+#' plan(sequential) # close background workers
+#' JuliaConnectoR:::stopJulia()
+#' }
 startJuliaServer <- function(port = 11980) {
    if (!is.null(pkgLocal$con)) {
       warning(paste0("There is already a connection to Julia established.\n",
@@ -231,8 +256,8 @@ getJuliaExecutablePath <- function() {
 
 #' Stop the connection to Julia
 #'
-#' This ends the connection to Julia. Julia will stop if no R process is
-#' connected and the session is then terminated.
+#' This ends the connection to Julia. Julia terminates if no R process is
+#' connected any more.
 stopJulia <- function() {
    if (!is.null(pkgLocal$startedAsMultiClientServer)) {
       Sys.unsetenv("JULIACONNECTOR_SERVER")

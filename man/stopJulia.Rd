@@ -7,6 +7,6 @@
 stopJulia()
 }
 \description{
-This ends the connection to Julia. Julia will stop if no R process is
-connected and the session is then terminated.
+This ends the connection to Julia. Julia terminates if no R process is
+connected any more.
 }

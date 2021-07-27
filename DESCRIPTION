@@ -17,4 +17,6 @@ SystemRequirements: Julia >= 1.0
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 Suggests:
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0),
+    future,
+    parallel
