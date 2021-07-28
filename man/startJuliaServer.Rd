@@ -33,6 +33,9 @@ to Julia to control which server is used.
 Unsetting the variable will result in a normal Julia start-up in the first
 call to Julia.
 
+For security reasons, the Julia server accepts only connections
+from localhost.
+
 For using Julia with multiple clients, it can be good to advise Julia to
 use multiple threads via setting the \env{JULIA_NUM_THREADS} environment
 variable before starting Julia.
