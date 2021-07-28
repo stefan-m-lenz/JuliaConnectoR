@@ -1,0 +1,16 @@
+citHeader("To cite JuliaConnectoR in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "The JuliaConnectoR: a functionally oriented interface for integrating Julia in R",
+  author   = c(person("Stefan", "Lenz"),
+               person("Maren", "Hackenberg"),
+               person("Harald", "Binder")),
+  journal  = "arXiv:2005.06334 [cs.MS] (preprint)",
+  year     = 2021,
+  url      = "https://arxiv.org/abs/2005.06334",
+  textVersion = paste0("Stefan Lenz, Maren Hackenberg, Harald Binder (2021). ",
+                       "The JuliaConnectoR: a functionally oriented interface for integrating Julia in R. ",
+                       "arXiv:2005.06334 [cs.MS] (preprint). ",
+                       "Available from https://arxiv.org/abs/2005.06334")
+)
