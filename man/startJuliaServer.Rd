@@ -24,14 +24,17 @@ It is also not needed if child processes should use separate Julia sessions.}
 }
 \details{
 The functions communicates the server address via setting the
-\env{JULIACONNECTOR_SERVER} environment variable, e.g., to "localhost:11980".
-This variable is communicated automatically to child processes that are
-started after this function has been called.
-The child processes will connect to the same Julia server.
+\env{JULIACONNECTOR_SERVER} environment variable.
+A possible value for the variable is "localhost:11980".
+The \env{JULIACONNECTOR_SERVER} variable is communicated automatically via
+the system environment to child processes that are started after this
+function has been called.
+The child processes will then connect to the same Julia server if the
+variable is set.
 The variable can also be set explicitly in child processes before connecting
-to Julia to control which server is used.
+to Julia to connect to a running server.
 Unsetting the variable will result in a normal Julia start-up in the first
-call to Julia.
+call to Julia, using a single-client Julia session.
 
 For security reasons, the Julia server accepts only connections
 from localhost.
@@ -66,4 +69,7 @@ if (juliaSetupOk()) {
 plan(sequential) # close background workers
 JuliaConnectoR:::stopJulia()
 }
+}
+\seealso{
+\link{JULIACONNECTOR_SERVER}
 }

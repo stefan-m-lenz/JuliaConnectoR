@@ -7,7 +7,9 @@
 \alias{JULIACONNECTOR_SERVER}
 \title{Environment variables used by the \pkg{JuliaConnectoR}}
 \description{
-The environment variables must be set before a Julia
+There are some environment variables which can be used to deviate from the
+default behavior of the package.
+To have an effect, these environment variables must be set before a Julia
 connection is established, i.e., before the first call to Julia or before a
 call to  \code{\link{startJuliaServer}}.
 All the variables are optional.
