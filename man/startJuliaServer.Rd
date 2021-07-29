@@ -64,9 +64,10 @@ if (juliaSetupOk()) {
    f1 <- future({juliaEval("x")})
    value(f1)
 
+   plan(sequential) # close background workers
+
 }
 \dontshow{
-plan(sequential) # close background workers
 JuliaConnectoR:::stopJulia()
 }
 }
