@@ -3,6 +3,7 @@
 .git
 JuliaConnectoR.Rproj
 make-manual.R
+extract-README-examples.R
 JuliaConnectoR.pdf
 DEVDOC.md
 README.md
