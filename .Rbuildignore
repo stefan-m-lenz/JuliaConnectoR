@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .git
+.vscode\*
 JuliaConnectoR.Rproj
 make-manual.R
 extract-README-examples.R
