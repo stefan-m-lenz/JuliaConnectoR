@@ -57,6 +57,36 @@ function replace_bitsequal(x, val, replacement)
 end
 
 
+# Returns true if there is a value in the array that is a R NA value,
+# as is determined by the R_IsNA function.
+# see: https://github.com/wch/r-source/blob/502561df523f1dc0430dfe5862c6a174c7067b4f/src/main/arithmetic.c#L126-L137
+# and: https://cran.r-project.org/doc/manuals/r-devel/R-data.html#Special-values
+if Base.ENDIAN_BOM == 0x04030201 # little endian
+   function represents_na(x::Float64)
+      (reinterpret(UInt64, x) << 32) == (UInt(1954) << 32)
+   end
+else
+   function represents_na()
+      # TODO
+      error("big endian not supported yet")
+      false
+   end
+end
+
+# TODO
+function any_na_normalize!(x::AbstractVector{Float64})
+   ret = false
+   for i in eachindex(x)
+      # TODO @inbounds
+      if isnan(x[i]) && represents_na(x[i])
+         x[i] = R_NA_REAL
+         ret = true
+      end
+   end
+   ret
+end
+
+
 function read_attributes(communicator)
    nattributes = read_nattributes(communicator)
    attributes = Dict{String, Any}()
@@ -91,7 +121,7 @@ end
 
 function read_float64s_with_missings(communicator, n::Int)
    ret = read_float64s(communicator, n)
-   if any(isbitsequal(R_NA_REAL), ret)
+   if any_na_normalize!(ret)
       return replace_bitsequal(ret, R_NA_REAL, missing)::Array{Union{Float64,Missing},1}
    else
       return ret
