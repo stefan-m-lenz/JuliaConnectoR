@@ -1309,14 +1309,14 @@ test_that("Data frame can be translated", {
 
    juliaEval('import Pkg;
               try
-                 @eval import JuliaDB
+                 @eval import IndexedTables
               catch ex
-                 Pkg.add("JuliaDB")
+                 Pkg.add("IndexedTables")
               end
-              import JuliaDB')
+              import IndexedTables')
    x <- data.frame(x = c(0, 2, 4), y = c("bla", "blup", "ha"),
                    stringsAsFactors = FALSE)
-   y <- juliaCall("JuliaDB.table", x)
+   y <- juliaCall("IndexedTables.table", x)
    expect_equal(as.data.frame(x), x)
 })
 
@@ -1437,7 +1437,7 @@ test_that("Boltzmann example from README works", {
             try
                @eval import BoltzmannMachines
             catch ex
-               Pkg.add(PackageSpec(name = "BoltzmannMachines", version = v"1.2"))
+               Pkg.add(PackageSpec(name = "BoltzmannMachines", version = v"1.3"))
             end')
    boltzmannExampleR <- system.file("examples", "boltzmann-example.R",
                                      package = "JuliaConnectoR", mustWork = TRUE)
