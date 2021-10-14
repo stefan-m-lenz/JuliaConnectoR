@@ -228,6 +228,17 @@ test_that("Echo: Double vector with missing values", {
 })
 
 
+test_that("Dirty missing values are recognized", {
+   dirtyNa <- c(as.raw(0xa2), as.raw(0x07), as.raw(0x00), as.raw(0x00),
+                as.raw(0x00), as.raw(0x00), as.raw(0xf8), as.raw(0x7f))
+   dirtyNA <- readBin(dirtyNa, what = "double", endian = "little")
+   expect_true(is.na(dirtyNA))
+   expect_true(juliaCall("ismissing", dirtyNA))
+   expect_true(juliaLet("ismissing(x[2])", x = c(1, dirtyNA)))
+   expect_true(is.na(juliaEcho(dirtyNA)))
+})
+
+
 test_that("NaN and NA are handled differently", {
    # NaN in R is translated to a NaN Float64 value in Julia
    # NA in R is translated to a missing value in Julia
