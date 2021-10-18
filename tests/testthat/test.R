@@ -232,10 +232,11 @@ test_that("Dirty missing values are recognized", {
    dirtyNa <- c(as.raw(0xa2), as.raw(0x07), as.raw(0x00), as.raw(0x00),
                 as.raw(0x00), as.raw(0x00), as.raw(0xf8), as.raw(0x7f))
    dirtyNA <- readBin(dirtyNa, what = "double", endian = "little")
-   expect_true(is.na(dirtyNA))
+   expect_true(is.na(dirtyNA) && !is.nan(dirtyNA))
    expect_true(juliaCall("ismissing", dirtyNA))
    expect_true(juliaLet("ismissing(x[2])", x = c(1, dirtyNA)))
-   expect_true(is.na(juliaEcho(dirtyNA)))
+   echoDirtyNA <- juliaEcho(dirtyNA)
+   expect_true(is.na(echoDirtyNA) && ! is.nan(echoDirtyNA))
 })
 
 
