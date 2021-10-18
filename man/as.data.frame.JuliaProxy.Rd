@@ -21,9 +21,19 @@ and create an R data frame from it.
 Strings are not converted to factors.
 }
 \examples{
+\dontshow{
+   if (juliaSetupOk()) {
+      Pkg <- juliaImport("Pkg")
+      Pkg$activate(system.file("examples", "IndexedTables-Project",
+                   package = "JuliaConnectoR"))
+      Pkg$instantiate()
+      # ignore warnings on Julia 1.0:
+      capture.output(juliaImport("IndexedTables"), type = "message")
+   }
+}
 if (juliaSetupOk()) {
 
-   # Demonstrate the usage with the Julia package "IndexedTables"
+   # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
    juliaEval('import Pkg; Pkg.add("IndexedTables")')
    IndexedTables <- juliaImport("IndexedTables")
 
@@ -45,7 +55,9 @@ if (juliaSetupOk()) {
 }
 
 \dontshow{
-rm(mytbl, seltbl)
-JuliaConnectoR:::stopJulia()
+   if (juliaSetupOk()) {
+      rm(mytbl, seltbl)
+      JuliaConnectoR:::stopJulia()
+   }
 }
 }
