@@ -237,6 +237,13 @@ test_that("Dirty missing values are recognized", {
    expect_true(juliaLet("ismissing(x[2])", x = c(1, dirtyNA)))
    echoDirtyNA <- juliaEcho(dirtyNA)
    expect_true(is.na(echoDirtyNA) && ! is.nan(echoDirtyNA))
+   dirtyComplexNA <- complex(real = dirtyNA, imaginary = dirtyNA)
+   expect_true(juliaCall("ismissing", dirtyComplexNA))
+   expect_true(juliaLet("ismissing(x[2])", x = c(1+1i, dirtyComplexNA)))
+   # The following doesn't work: dirtNA coerced to NA+0i, not NA+NA*i:
+   # expect_true(juliaLet("ismissing(x[2])", x = c(1+1i, dirtyNA)))
+   echoDirtyComplexNA <- juliaEcho(dirtyComplexNA)
+   expect_true(is.na(echoDirtyComplexNA) && !is.nan(echoDirtyComplexNA))
 })
 
 
@@ -263,6 +270,8 @@ test_that("NaN and NA are handled differently", {
                 juliaEval("Array{Union{Complex{Float64},Missing},1}"))
    expect_equal(juliaCall("typeof", c(1+1i, NaN)),
                 juliaEval("Array{Complex{Float64},1}"))
+
+   expect_true(juliaLet("ismissing(x[2])", x = c(1+1i, NA)))
 })
 
 

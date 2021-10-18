@@ -100,9 +100,10 @@ end
 
 function read_complexs_with_missings(communicator, n::Int)
    doublepairs = reinterpret(Float64, read_bin(communicator, 16*n))
+   any_nas_found = any_na_normalize!(doublepairs)
    ret = map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
-   if any(isbitsequal(R_NA_COMPLEX), ret)
-      return replace_bitsequal(ret, R_NA_COMPLEX, missing)::Array{Union{Complex{Float64},Missing},1}
+   if any_nas_found
+      return replace_bitsequal(ret, R_NA_COMPLEX, missing)
    else
       return ret
    end
