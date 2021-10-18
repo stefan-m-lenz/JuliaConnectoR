@@ -61,7 +61,7 @@ end
 # See https://github.com/wch/r-source/blob/502561df523f1dc0430dfe5862c6a174c7067b4f/src/main/arithmetic.c#L126-L137
 # and https://cran.r-project.org/doc/manuals/r-devel/R-data.html#Special-values
 # " [...] NA is represented by the NaN value with low-word 0x7a2 (1954 in decimal)."
-const magicnumber1954shifted = (UInt(1954) << 32)
+const magicnumber1954shifted = (UInt64(1954) << 32)
 function represents_na(x::Float64)
    isnan(x) && (reinterpret(UInt64, x) << 32) == magicnumber1954shifted
 end
