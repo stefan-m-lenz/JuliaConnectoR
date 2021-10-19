@@ -273,10 +273,8 @@ stopJulia <- function() {
       pkgLocal$startedAsMultiClientServer <- NULL
    }
    if (!is.null(pkgLocal$con)) {
-      tryCatch({
-         writeBin(BYEBYE, pkgLocal$con)
-         close(pkgLocal$con)
-      }, error = function(e) {})
+      tryCatch({writeBin(BYEBYE, pkgLocal$con)}, error = function(e) {})
+      tryCatch({close(pkgLocal$con)}, error = function(e) {})
       pkgLocal$con <- NULL
       pkgLocal$port <- NULL
       pkgLocal$communicator <- NULL
