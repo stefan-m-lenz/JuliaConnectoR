@@ -247,8 +247,9 @@ readElement <- function() {
          ret <- readRaw(nElements)
          theAttributes <- c(theAttributes, readAttributes())
       } else {
+         warning(paste("Read invalid type ID", typeId))
          stopJulia()
-         stop(paste("Invalid type ID", typeId))
+         stop("Stopped Julia due to protocol error")
       }
 
       if (length(dimensions) > 1) { # reshape
