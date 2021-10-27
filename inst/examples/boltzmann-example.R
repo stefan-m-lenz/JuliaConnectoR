@@ -14,7 +14,7 @@ x <- BM$barsandstripes(100L, 4L)
 x
 
 # Train DBMs with
-dbm <- BM$fitdbm(x, epochs = 40L, learningrates = c(rep(0.05, 20), rep(0.001, 20)),
+dbm <- BM$fitdbm(x, epochs = 40L, learningrate = 0.05,
                  nhiddens = c(4L,3L))
 dbm
 dbm2 <- BM$fitdbm(x, epochs = 10L,
@@ -75,7 +75,7 @@ plot(1:60, monitor$logproblowerbound, "l")
 
 # First approach for Gibbs-Sampling, allows access to hidden nodes
 particles <- BM$initparticles(dbm2, 20L)
-particles <- BM$gibbssample(particles, dbm2, 100L) # the "!" can be omitted
+particles <- BM$`gibbssample!`(particles, dbm2, 100L)
 particles
 
 # Second approach for Gibbs sampling: All-in-one, returning only visible nodes

@@ -137,6 +137,7 @@ function serve(port_hint::Int;
       end
    else
       sock = accept(server)
+      close(server) # don't listen for other clients
       serve_repl(sock)
    end
 end
