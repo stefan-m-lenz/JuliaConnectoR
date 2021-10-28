@@ -2,9 +2,9 @@ struct Fail
    message::String
 end
 
-function Fail(msg, origex)
+function Fail(msg, origex, origex_backtrace)
    Fail(msg * "\nOriginal Julia error message:\n" *
-         sprint(showerror, origex, backtrace()))
+         sprint(showerror, origex, origex_backtrace))
 end
 
 
@@ -251,7 +251,7 @@ function convert_reshape_element(element, attributes, dimensions)
          type = maineval(typestr)
          element = convert.(type, element)
       catch ex
-         return Fail("Conversion to type \"$typestr\" failed", ex)
+         return Fail("Conversion to type \"$typestr\" failed", ex, catch_backtrace())
       end
    end
    return reshape_element(element, dimensions)
@@ -278,7 +278,7 @@ function convert_reshape_raw(element, attributes, dimensions)
             return String(element)
          end
       catch ex
-         return Fail("Conversion to type \"$typestr\" failed", ex)
+         return Fail("Conversion to type \"$typestr\" failed", ex, catch_backtrace())
       end
    end
    return reshape_element(element, dimensions)
@@ -293,7 +293,7 @@ function convert_reshape_string(ret::Array{String}, attributes, dimensions)
             ret[i] = missing
          end
       catch ex
-         return Fail("Translating NAs failed", ex)
+         return Fail("Translating NAs failed", ex, catch_backtrace())
       end
    end
    return convert_reshape_element(ret, attributes, dimensions)
@@ -305,7 +305,7 @@ function read_expression(communicator)
    try
       return maineval(exprstr)
    catch ex
-      return Fail("Evaluation of \"$exprstr\" failed", ex)
+      return Fail("Evaluation of \"$exprstr\" failed", ex, catch_backtrace())
    end
 end
 
@@ -332,7 +332,7 @@ function read_list(communicator)
          namedelements[sym] = namedelement
          names[i] = sym
       catch ex
-         push!(fails, Fail("Ignored element with name $name", ex))
+         push!(fails, Fail("Ignored element with name $name", ex, catch_backtrace()))
       end
    end
 
@@ -378,7 +378,7 @@ function read_call(communicator, name::AbstractString)
    try
       fun::Union{Function, Type} = findfield(name)
    catch ex
-      push!(fails, Fail("Unable to identify function", ex))
+      push!(fails, Fail("Unable to identify function", ex, catch_backtrace()))
    end
    args = read_list(communicator)
    Call(fun, args, fails)

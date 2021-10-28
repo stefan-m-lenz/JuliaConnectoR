@@ -48,13 +48,13 @@ function evaluate_checked!(call::Call, communicator::CommunicatoR)
    try
       parsingcheck(call)
    catch ex
-      return Fail("Parsing in Julia failed.", ex)
+      return Fail("Parsing in Julia failed.", ex, catch_backtrace())
    end
 
    try
       return evaluate!(call, communicator)
    catch ex
-      return Fail("Evaluation in Julia failed.", ex)
+      return Fail("Evaluation in Julia failed.", ex, catch_backtrace())
    end
 end
 
