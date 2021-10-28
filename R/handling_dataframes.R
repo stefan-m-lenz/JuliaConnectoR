@@ -24,7 +24,7 @@
 #' if (juliaSetupOk()) {
 #'
 #'    # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
-#'    juliaEval('import Pkg; Pkg.add("IndexedTables")')
+#'    juliaEval('import Pkg; Pkg.add("IndexedTables", preserve = Pkg.PRESERVE_ALL)')
 #'    IndexedTables <- juliaImport("IndexedTables")
 #'
 #'    mydf <- data.frame(x = c(1, 2, 3),
