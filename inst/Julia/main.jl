@@ -17,6 +17,8 @@ else
    end
 end
 
+using InteractiveUtils # for convenience: this is loaded in the standard REPL as well
+
 include("./RConnector.jl")
 RConnector.serve(parse(Int, ARGS[1]), portfile = ARGS[2],
    multiclient = (ARGS[3] == "t"))
