@@ -24,7 +24,11 @@
 #' if (juliaSetupOk()) {
 #'
 #'    # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
-#'    juliaEval('import Pkg; Pkg.add("IndexedTables", preserve = Pkg.PRESERVE_ALL)')
+#'
+#'    # Install the package first if it is not installed:
+#'    # juliaEval('import Pkg; Pkg.add("IndexedTables")')
+#'
+#'    # Import "IndexedTables" package
 #'    IndexedTables <- juliaImport("IndexedTables")
 #'
 #'    mydf <- data.frame(x = c(1, 2, 3),
@@ -32,14 +36,14 @@
 #'                       z = c(TRUE, FALSE, NA),
 #'                       stringsAsFactors = FALSE)
 #'
-#'    # create a table in Julia, e. g. via IndexedTables
+#'    # Create a table in Julia, e. g. via IndexedTables
 #'    mytbl <- IndexedTables$table(mydf)
 #'
-#'    # this table can, e g. be queried and
-#'    # the result can be translated to an R data frame
+#'    # This table can, e g. be queried and
+#'    # the result can be translated to an R data frame.
 #'    seltbl <- IndexedTables$select(mytbl, juliaExpr("(:x, :y)"))[1:2]
 #'
-#'    # translate selection of Julia table into R data frame
+#'    # Translate selection of Julia table into R data frame
 #'    as.data.frame(seltbl)
 #'
 #' }
