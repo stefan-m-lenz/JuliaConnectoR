@@ -10,9 +10,27 @@ mutable struct CallbackFinalizer
 end
 
 function finalize_callback(cb::CallbackFinalizer)
+   lock(cb.communicator.callbacks_lock)
    delete!(cb.communicator.registered_callbacks, cb.f)
    push!(cb.communicator.finalized_callbacks, cb.id)
+   unlock(cb.communicator.callbacks_lock)
 end
+
+
+function register_callback(communicator::CommunicatoR, f::Function, callbackid::String)
+   lock(communicator.callbacks_lock)
+   communicator.registered_callbacks[f] = callbackid
+   unlock(communicator.callbacks_lock)
+end
+
+
+function funtocallbackid(communicator::CommunicatoR, f::Function)
+   lock(communicator.callbacks_lock)
+   callbackid = get(communicator.registered_callbacks, f, "")
+   unlock(communicator.callbacks_lock)
+   callbackid
+end
+
 
 function CallbackFinalizer(id::String, communicator::CommunicatoR)
    f = identity # any function does the job
@@ -110,9 +128,12 @@ function decrefcounts(communicator::CommunicatoR, refs::Vector{UInt8})
       decrefcount!(communicator, ref)
    end
 
-   # return finalized callbacks
+   # return finalized callbacks and clear list
+   lock(communicator.callbacks_lock)
    ret = deepcopy(communicator.finalized_callbacks)
    empty!(communicator.finalized_callbacks)
+   unlock(communicator.callbacks_lock)
+
    ret
 end
 

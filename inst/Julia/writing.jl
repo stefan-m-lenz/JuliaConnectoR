@@ -327,7 +327,7 @@ end
 
 function write_element(communicator, f::Function)
 
-   callbackid = get(communicator.registered_callbacks, f, "")
+   callbackid = funtocallbackid(communicator, f)
    if callbackid == "" # it's not a callback function
       f_as_string = string(f)
       if endswith(f_as_string, "()") || startswith(f_as_string, '#')

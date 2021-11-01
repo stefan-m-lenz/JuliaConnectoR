@@ -221,7 +221,7 @@ function callbackfun(callbackid::String, communicator::CommunicatoR)
       end
    end
 
-   communicator.registered_callbacks[ret] = callbackid
+   register_callback(communicator, ret, callbackid)
    ret
 end
 
@@ -283,7 +283,7 @@ function capture_outputstreams(communicator::CommunicatoR)
    rd, wr = redirect_stderr()
 
    # Also redirect the logger.
-   #global_logger(SimpleLogger(wr))
+   global_logger(SimpleLogger(wr))
    # For debugging, comment out the line above, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".
