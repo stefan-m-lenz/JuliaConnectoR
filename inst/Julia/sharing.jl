@@ -31,9 +31,13 @@ end
 
 
 function funtocallbackid(communicator::CommunicatoR, f::Function)
+   callbackid = ""
    lock(communicator.callbacks_lock)
-   callbackid = get(communicator.registered_callbacks, f, "")
-   unlock(communicator.callbacks_lock)
+   try
+      callbackid = get(communicator.registered_callbacks, f, "")
+   finally
+      unlock(communicator.callbacks_lock)
+   end
    callbackid
 end
 
