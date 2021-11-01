@@ -45,6 +45,53 @@ getJuliaEnv <- function() {
    return(jlenv)
 }
 
+extractCLArgs <- function(arg) {
+   out <- sub('^\\s', '', arg)
+   out <- out[grepl('^-', out)]
+   out <- sub('((?<!,)\\s+|=| <| \\{|\\[).*', '', out, perl = T)
+   #out <- gsub('-', '', out)
+
+   unlist(strsplit(out, ', '))
+}
+
+getJuliaArgNames <- function() {
+   out <- system2('julia',  shQuote('-h'), stdout = TRUE)
+
+   extractCLArgs(unique(out))
+}
+
+
+setJuliaStartupArgs <- function(...) {
+   args <- unlist(list(...))
+
+   if (!all(grepl('^-', args))) stop('All arguments should start by single (-) or double (--) dashes.')
+
+   argNames <- extractCLArgs(args)
+
+   juliaArgs <- getJuliaArgNames()
+
+   argDiff <- setdiff(argNames, juliaArgs)
+
+   if (length(argDiff) > 0) {
+      stop(
+         'The following argument',
+         ifelse(length(argDiff) == 1, ' is', 's are'),
+         ' not allowed: ', paste(argDiff, collapse = ', '),
+         '. Check https://docs.julialang.org/en/v1/manual/command-line-options/#command-line-options for the allowed list of parameters')
+   }
+
+   dupArgs <- duplicated(argNames)
+
+   if (sum(dupArgs) > 0) {
+      stop('Some arguments are duplicated: ', paste(argNames[dupArgs], collapse = ' '), '.')
+   }
+
+   Sys.setenv(JULIACONNECTOR_JULIAARGS = paste(args, collapse = ' '))
+}
+
+resetJuliaStartupArgs <- function() {
+   Sys.setenv(JULIACONNECTOR_JULIAARGS = '')
+}
 
 
 #' Start a Julia server that may serve multiple clients (R processes)
@@ -159,8 +206,13 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
 
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
+
+   startupArgs <- Sys.getenv('JULIACONNECTOR_JULIAARGS')
+   if (startupArgs != '') startupArgs <- paste(startupArgs, '-- ')
+
+
    system2(command = juliaexe,
-           args = c(shQuote(mainJuliaFile), port, shQuote(portfilename),
+           args = c(startupArgs, shQuote(mainJuliaFile), port, shQuote(portfilename),
                     multiclient),
            wait = FALSE,
            stdout = stdoutfile, stderr = stderrfile,
