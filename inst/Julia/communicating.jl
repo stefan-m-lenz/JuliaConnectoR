@@ -18,17 +18,21 @@ end
 # Making the struct mutable makes it easier to share the object with R,
 # as it always has a fixed address
 mutable struct CommunicatoR{T}
-   # for synchronizing the communication
-   lock::ReentrantLock
-
    # the iostream for communicating with R
    io::T
+
+   # for synchronizing the communication
+   # (stderr and stdout are communicated asynchronously to evaluation)
+   io_lock::ReentrantLock
 
    # used to detect circular references
    objrefs::Set{UInt64}
 
    # for sharing references between Julia and R
    sharedheap::Dict{UInt64, SharedObject}
+
+   # make sharedheap thread safe (needed due to asynchronicity of finalization)
+   sharedheap_lock::ReentrantLock
 
    # whether the next translation is forced to be a full translation
    # in contrast to a mere passing of a reference
@@ -41,17 +45,23 @@ mutable struct CommunicatoR{T}
    # contains callback functions and their corresponding identifiers
    # for the communication with R
    registered_callbacks::Dict{Function, String}
+
+   # make changing finalized_callbacks and registered_callbacks thread safe
+   # (needed due to asynchronicity of finalization)
+   callbacks_lock::ReentrantLock
 end
 
 function CommunicatoR(io)
    CommunicatoR(
-      ReentrantLock(),
       io,
+      ReentrantLock(),
       Set{UInt64}(),
       Dict{UInt64, SharedObject}(),
+      ReentrantLock(),
       false,
       Vector{String}(),
-      Dict{Function, String}()
+      Dict{Function, String}(),
+      ReentrantLock()
    )
 end
 
@@ -219,8 +229,8 @@ end
 function callanonymous(communicator::CommunicatoR, functionref::Vector{UInt8},
       args...; kwargs...)
 
-   objref::ImmutableObjectReference =
-         communicator.sharedheap[parseheapref(functionref)].obj
+   ref = parseheapref(functionref)
+   objref::ImmutableObjectReference = sharedheapget(communicator, ref)
    f::Function = objref.obj
    ret = f(args...; kwargs...)
    ret
@@ -239,7 +249,7 @@ function start_result_message(c::CommunicatoR)
 
    # after the output is handled,
    # take control of the outputstream to send the result
-   lock(c.lock)
+   lock(c.io_lock)
 end
 
 start_fail_message = start_result_message
@@ -251,7 +261,7 @@ function end_result_message(c::CommunicatoR)
    empty!(c.objrefs)
 
    # release lock of outputstream for next call
-   unlock(c.lock)
+   unlock(c.io_lock)
 end
 
 end_fail_message = end_result_message
@@ -259,12 +269,12 @@ end_callback_message = end_result_message
 
 
 function start_output_message(c::CommunicatoR)
-   lock(c.lock)
+   lock(c.io_lock)
 end
 
 
 function end_output_message(c::CommunicatoR)
-   unlock(c.lock)
+   unlock(c.io_lock)
 end
 
 
@@ -273,7 +283,7 @@ function capture_outputstreams(communicator::CommunicatoR)
    rd, wr = redirect_stderr()
 
    # Also redirect the logger.
-   global_logger(SimpleLogger(wr))
+   #global_logger(SimpleLogger(wr))
    # For debugging, comment out the line above, use @debug lines and
    # set the environment variable "JULIA_DEBUG" to "all", e. g. in PowerShell
    # $env:JULIA_DEBUG = "all".

@@ -34,6 +34,18 @@ function full_translation!(communicator::CommunicatoR, mode::Bool)
 end
 
 
+function sharedheapget(communicator::CommunicatoR, ref::UInt64)
+   lock(communicator.sharedheap_lock)
+   ret = communicator.sharedheap[ref].obj
+   unlock(communicator.sharedheap_lock)
+   ret
+end
+
+function sharedheapget(communicator::CommunicatoR, objref::ObjectReference)
+   sharedheapget(communicator, objref.ref)
+end
+
+
 mutable struct ImmutableObjectReference
    obj::Any
 end
@@ -46,11 +58,13 @@ end
 
 function share_mutable_object!(communicator, obj)
    ref = object_reference(obj)
+   lock(communicator.sharedheap_lock)
    if haskey(communicator.sharedheap, ref)
       communicator.sharedheap[ref].refcount += 1
    else
       communicator.sharedheap[ref] = SharedObject(obj)
    end
+   unlock(communicator.sharedheap_lock)
    ref
 end
 
@@ -59,7 +73,9 @@ function share_immutable_object!(communicator, obj)
    obj2 = ImmutableObjectReference(obj)
    ref = object_reference(obj2)
    # the object is newly created and cannot exists already
+   lock(communicator.sharedheap_lock)
    communicator.sharedheap[ref] = SharedObject(obj2)
+   unlock(communicator.sharedheap_lock)
    ref
 end
 
@@ -79,12 +95,14 @@ end
 
 
 function decrefcount!(communicator::CommunicatoR, ref::UInt64)
+   lock(communicator.sharedheap_lock)
    newrefcount = communicator.sharedheap[ref].refcount - 1
    if newrefcount == 0
       delete!(communicator.sharedheap, ref)
    else
       communicator.sharedheap[ref].refcount = newrefcount
    end
+   unlock(communicator.sharedheap_lock)
 end
 
 function decrefcounts(communicator::CommunicatoR, refs::Vector{UInt8})
@@ -104,6 +122,7 @@ function sharedfinalizer(communicator::CommunicatoR, newobj, oldobjref::UInt64)
    # it must reference the original object such that this one lives on.
    # It must be prevented that the old object is garbage collected because
    # this might finalize resources that are needed for the copy to work.
+   lock(communicator.sharedheap_lock)
    if haskey(communicator.sharedheap, oldobjref)
       communicator.sharedheap[oldobjref].refcount += 1
       finalizer(obj -> decrefcount!(communicator, oldobjref), newobj)
@@ -111,6 +130,7 @@ function sharedfinalizer(communicator::CommunicatoR, newobj, oldobjref::UInt64)
       @warn "Please be sure that the revived objects " *
             "do not contain external references."
    end
+   unlock(communicator.sharedheap_lock)
 end
 
 

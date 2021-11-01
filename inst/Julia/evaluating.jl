@@ -122,7 +122,7 @@ function evaluate!(objref::ObjectReference, communicator::CommunicatoR)
    getobj(obj) = obj
 
    try
-      obj = communicator.sharedheap[objref.ref].obj
+      obj = sharedheapget(communicator, objref)
       return getobj(obj)
    catch ex
       error("Object reference " * string(objref.ref, base = 16) *
