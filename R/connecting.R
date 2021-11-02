@@ -45,8 +45,8 @@ getJuliaEnv <- function() {
    return(jlenv)
 }
 
-extractCLArgs <- function(arg) {
-   out <- sub('^\\s', '', arg)
+extractCLOpts <- function(opts) {
+   out <- sub('^\\s', '', opts)
    out <- out[grepl('^-', out)]
    out <- sub('((?<!,)\\s+|=| <| \\{|\\[).*', '', out, perl = T)
    #out <- gsub('-', '', out)
@@ -54,43 +54,43 @@ extractCLArgs <- function(arg) {
    unlist(strsplit(out, ', '))
 }
 
-getJuliaArgNames <- function() {
+getJuliaOptsNames <- function() {
    out <- system2('julia',  shQuote('-h'), stdout = TRUE)
 
-   extractCLArgs(unique(out))
+   extractCLOpts(unique(out))
 }
 
 
-setJuliaStartupArgs <- function(...) {
-   args <- unlist(list(...))
+setJuliaStartupOpts <- function(...) {
+   opts <- unlist(list(...))
 
-   if (!all(grepl('^-', args))) stop('All arguments should start by single (-) or double (--) dashes.')
+   if (!all(grepl('^-', opts))) stop('All options should start by single (-) or double (--) dashes.')
 
-   argNames <- extractCLArgs(args)
+   optNames <- extractCLOpts(opts)
 
-   juliaArgs <- getJuliaArgNames()
+   juliaOpts <- getJuliaOptsNames()
 
-   argDiff <- setdiff(argNames, juliaArgs)
+   optDiff <- setdiff(optNames, juliaOpts)
 
-   if (length(argDiff) > 0) {
+   if (length(optDiff) > 0) {
       stop(
-         'The following argument',
-         ifelse(length(argDiff) == 1, ' is', 's are'),
-         ' not allowed: ', paste(argDiff, collapse = ', '),
+         'The following option',
+         ifelse(length(optDiff) == 1, ' is', 's are'),
+         ' not allowed: ', paste(optDiff, collapse = ', '),
          '. Check https://docs.julialang.org/en/v1/manual/command-line-options/#command-line-options for the allowed list of parameters')
    }
 
-   dupArgs <- duplicated(argNames)
+   dupOpts <- duplicated(optNames)
 
-   if (sum(dupArgs) > 0) {
-      stop('Some arguments are duplicated: ', paste(argNames[dupArgs], collapse = ' '), '.')
+   if (sum(dupOpts) > 0) {
+      stop('Some options are duplicated: ', paste(optNames[dupOpts], collapse = ' '), '.')
    }
 
-   Sys.setenv(JULIACONNECTOR_JULIAARGS = paste(args, collapse = ' '))
+   Sys.setenv(JULIACONNECTOR_JULIAOPTS = paste(opts, collapse = ' '))
 }
 
-resetJuliaStartupArgs <- function() {
-   Sys.setenv(JULIACONNECTOR_JULIAARGS = '')
+resetJuliaStartupOpts <- function() {
+   Sys.setenv(JULIACONNECTOR_JULIAOPTS = '')
 }
 
 
@@ -185,7 +185,10 @@ startJuliaServer <- function(port = 11980) {
 # This port might be different than the port hint, if the given "port"
 # is e. g. already in use.
 runJuliaServer <- function(port = 11980, multiclient = TRUE) {
-   message("Starting Julia ...")
+   startupOpts <- Sys.getenv('JULIACONNECTOR_JULIAOPTS')
+   optsMessage <- ifelse(startupOpts != '', paste0(' (with opts: ', startupOpts, ')'), '')
+
+   message("Starting Julia ...", optsMessage)
 
    # If there is no Julia server specified, start a new one:
    mainJuliaFile <- system.file("Julia", "main.jl",
@@ -207,12 +210,10 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
 
-   startupArgs <- Sys.getenv('JULIACONNECTOR_JULIAARGS')
-   if (startupArgs != '') startupArgs <- paste(startupArgs, '-- ')
-
+   if (startupOpts != '') startupOpts <- paste(startupOpts, '-- ')
 
    system2(command = juliaexe,
-           args = c(startupArgs, shQuote(mainJuliaFile), port, shQuote(portfilename),
+           args = c(startupOpts, shQuote(mainJuliaFile), port, shQuote(portfilename),
                     multiclient),
            wait = FALSE,
            stdout = stdoutfile, stderr = stderrfile,
