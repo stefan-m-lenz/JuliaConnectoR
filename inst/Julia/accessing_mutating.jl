@@ -23,6 +23,8 @@ end
     dimensionidxs(x)
 Returns a proper index for one dimension when indexing multiple elements in
 a multidimensional array.
+This transformation of the indexes makes the R style single indexing possible
+to always return a list or a vector of elements.
 """
 function dimensionidxs(x)
    x
@@ -65,12 +67,12 @@ function getidxs(collection, idx::Number)
    getindex(collection, [idx])
 end
 
-# indexing with e.g. v[1]
+# indexing with e.g. v[1] in R
 function getidxs(collection, idx::Float64)
    getindex(collection, [Int(idx)])
 end
 
-# indexing with e.g. v[1:4]
+# indexing with e.g. v[1:4] in R
 function getidxs(collection, idxs::Vector{Float64})
    getindex(collection, map(Int, idxs))
 end
@@ -80,11 +82,22 @@ function getidxs(collection, idxs::Union{AbstractVector, AbstractRange})
    getindex(collection, idxs)
 end
 
-# multidimensional indexing with a single index, e.g. v[1,2,3]
+# multidimensional indexing
 function getidxs(collection,
       keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int}})
    dimidxs = map(dimensionidxs, keys)
    getindex(collection, dimidxs...)
+end
+
+# multidimensional indexing using a colon in one dimenstion
+function getidxs(collection,
+   keys::Vararg{<:Union{AbstractArray, AbstractRange, Float64, Int, Colon}})
+
+   # same as implementation without colons, except ...
+   dimidxs = map(dimensionidxs, keys)
+   ret = getindex(collection, dimidxs...)
+   # ... drop dimension of single values
+   dropdims(ret; dims = tuple(findall(x -> x isa Number, keys)...))
 end
 
 # indexing dictionary with e.g. d["hi"]

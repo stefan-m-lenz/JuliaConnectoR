@@ -295,6 +295,8 @@ juliaExpr <- function(expr) {
    return(expr)
 }
 
+JULIA_COLON <- juliaExpr(":")
+
 
 #' Translate a Julia proxy object to an R object
 #'

@@ -97,15 +97,33 @@ NULL
 }
 
 
+argListWithColonsForMissings <- function(callargs, ...) {
+   # callargs contains the arguments part of the original call as list.
+   # This can be used to determine whether an argument was missing.
+   lapply(seq_len(...length()), function(i) {
+      if (is.symbol(callargs[[i]]) && callargs[[i]] == "") {
+         # argument is missing, replace with Colon
+         return(JULIA_COLON)
+      } else {
+         return(...elt(i))
+      }
+   })
+}
+
+
 #' @rdname AccessMutate.JuliaProxy
 `[.JuliaProxy` <- function(x, ...) {
-   ret <- do.call(juliaCall, quote = TRUE, c("RConnector.getidxs", x, list(...)))
+   callargs <- as.list(match.call(expand.dots=TRUE))[-c(1,2)]
+   argslist <- argListWithColonsForMissings(callargs, ...)
+
+   ret <- do.call(juliaCall, quote = TRUE, c("RConnector.getidxs", list(x), argslist))
    if (!is.list(ret) && !inherits(ret, "JuliaProxy")) {
       return(as.list(ret)) # compatibility with behaviour of translated objects
    } else {
       return(ret)
    }
 }
+
 
 #' @rdname AccessMutate.JuliaProxy
 `[<-.JuliaProxy` <- function(x, i, j, k, value) {
@@ -124,13 +142,15 @@ NULL
 
 #' @rdname AccessMutate.JuliaProxy
 `[.JuliaSimpleArrayProxy` <- function(x, ...) {
-   ret <- do.call(juliaCall, quote = TRUE, c("RConnector.getidxs", x, list(...)))
+   callargs <- as.list(match.call(expand.dots=TRUE))[-c(1,2)]
+   argslist <- argListWithColonsForMissings(callargs, ...)
+   do.call(juliaCall, quote = TRUE, c("RConnector.getidxs", list(x), argslist))
 }
 
 
 #' @rdname AccessMutate.JuliaProxy
 `[[.JuliaArrayProxy` <- function(x, ...) {
-   do.call(juliaCall, quote = TRUE, c("RConnector.getidx", x, list(...)))
+   do.call(juliaCall, quote = TRUE, c("RConnector.getidx", list(x), list(...)))
 }
 
 #' @rdname AccessMutate.JuliaProxy

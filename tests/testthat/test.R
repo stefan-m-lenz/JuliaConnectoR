@@ -855,6 +855,52 @@ test_that("Vectors of objects can be accessed by index via proxy", {
    expect_equivalent(juliaGet(y[1]), list(17))
    expect_equivalent(juliaGet(y[3]), list(18))
    expect_equivalent(juliaGet(y)[c(4,5)], juliaGet(y[c(4,5)]))
+
+   # double square brackets in matrix
+   x <- juliaPut(matrix(c(1,2,3,4,5,6), nrow = 2))
+   expect_equal(x[[1,2]], 3)
+})
+
+
+test_that("Missing indexes work like colons in Julia", {
+   # empty index works like indexing with [:] in Julia.
+   v <- juliaEval("Any[1;2.0;3]")
+   expect_equal(unlist(juliaGet(v[])), c(1,2,3))
+
+   #TODO decide: [] works differently in R, e.g. matrix(1:6, nrow = 2)[] OK?
+   m <- juliaEval("Any[1 2; 3 4]")
+   expect_equal(unlist(juliaGet(m[])), c(1,3,2,4))
+
+   # matrix of Any
+   x <- juliaEval("Any[1 2 ; 3 4]")
+   # indexing with missing
+   s <- x[, 2]
+   expect_true(juliaLet("s isa Vector", s = s))
+   expect_true(juliaLet("x[:,2] == s", x = x, s = s))
+   # index must also work using variables
+   # (ensure that nothing is messed up via quoting)
+   myindex <- 1L
+   mys <- x[myindex, ]
+   expect_true(juliaLet("x[myindex,:] == mys",
+                        x = x, mys = mys, myindex = myindex))
+
+   # simple array
+   x <- juliaPut(matrix(c(1,2,3,4,5,6), nrow = 2))
+   s <- x[, 2]
+   expect_true(juliaLet("s isa Vector", s = s))
+   mys <- x[myindex, ]
+   expect_true(juliaLet("x[:,2] == s", x = x, s = s))
+   expect_true(juliaLet("x[myindex,:] == mys",
+                        x = x, mys = mys, myindex = myindex))
+
+
+   # three dimensional matrix
+   m3d <- juliaPut(array(1:24, c(2,3,4)))
+   expect_equal(m3d[,,1], matrix(1:6, nrow = 2))
+
+   # TODO: implement and test with mutating.
+   # Problem with distinguishing between single element and multiple elemtns
+   # when having arbitrary types
 })
 
 
