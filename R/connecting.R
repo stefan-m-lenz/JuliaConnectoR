@@ -45,55 +45,6 @@ getJuliaEnv <- function() {
    return(jlenv)
 }
 
-extractCLOpts <- function(opts) {
-   out <- sub('^\\s', '', opts)
-   out <- out[grepl('^-', out)]
-   out <- sub('((?<!,)\\s+|=| <| \\{|\\[).*', '', out, perl = T)
-   #out <- gsub('-', '', out)
-
-   unlist(strsplit(out, ', '))
-}
-
-getJuliaOptsNames <- function() {
-   out <- system2('julia',  shQuote('-h'), stdout = TRUE)
-
-   extractCLOpts(unique(out))
-}
-
-
-setJuliaStartupOpts <- function(...) {
-   opts <- unlist(list(...))
-
-   if (!all(grepl('^-', opts))) stop('All options should start by single (-) or double (--) dashes.')
-
-   optNames <- extractCLOpts(opts)
-
-   juliaOpts <- getJuliaOptsNames()
-
-   optDiff <- setdiff(optNames, juliaOpts)
-
-   if (length(optDiff) > 0) {
-      stop(
-         'The following option',
-         ifelse(length(optDiff) == 1, ' is', 's are'),
-         ' not allowed: ', paste(optDiff, collapse = ', '),
-         '. Check https://docs.julialang.org/en/v1/manual/command-line-options/#command-line-options for the allowed list of parameters')
-   }
-
-   dupOpts <- duplicated(optNames)
-
-   if (sum(dupOpts) > 0) {
-      stop('Some options are duplicated: ', paste(optNames[dupOpts], collapse = ' '), '.')
-   }
-
-   Sys.setenv(JULIACONNECTOR_JULIAOPTS = paste(opts, collapse = ' '))
-}
-
-resetJuliaStartupOpts <- function() {
-   Sys.setenv(JULIACONNECTOR_JULIAOPTS = '')
-}
-
-
 #' Start a Julia server that may serve multiple clients (R processes)
 #'
 #' Starting a Julia server allows that different R processes may connect to the
