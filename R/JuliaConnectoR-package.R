@@ -217,6 +217,11 @@ NULL
 #'    the LD_LIBRARY_PATH variable to a different value for Julia than for R.
 #'    The value can be any R code that defines variables, e.g.,
 #'     \code{"LD_LIBRARY_PATH=''"} is a valid value.}
+#' \item{\env{JULIACONNECTOR_JULIAOPTS}:}{Set start-up options for Julia.
+#'    As an example, consider specifying the project environment and enabling
+#'    code coverage when starting Julia. This can be achieved by setting
+#'    the environment variable to
+#'    \code{"--project=/path/to/project --code-coverage"}.}
 #' \item{\env{JULIACONNECTOR_SERVER}:}{Specifies the server address of a
 #'   (running) Julia server that the R process can connect to.
 #'   A possible example value is "localhost:11980", specifying host and port.

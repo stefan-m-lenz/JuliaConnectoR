@@ -45,6 +45,7 @@ getJuliaEnv <- function() {
    return(jlenv)
 }
 
+
 #' Start a Julia server that may serve multiple clients (R processes)
 #'
 #' Starting a Julia server allows that different R processes may connect to the
@@ -161,7 +162,10 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    # start Julia server in background
    juliaexe <- getJuliaExecutablePath()
 
-   if (startupOpts != '') startupOpts <- paste(startupOpts, '-- ')
+   if (startupOpts != '') {
+      # if startup options are specified, separate them from the arguments via "--"
+      startupOpts <- paste(startupOpts, '-- ')
+   }
 
    system2(command = juliaexe,
            args = c(startupOpts, shQuote(mainJuliaFile), port, shQuote(portfilename),
