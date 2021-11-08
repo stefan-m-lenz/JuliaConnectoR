@@ -1037,6 +1037,37 @@ test_that("Starting and stopping Julia server" , {
 })
 
 
+test_that("Julia startup options can be modified", {
+   stopJulia()
+   oldJuliaOpts <- Sys.getenv("JULIACONNECTOR_JULIAOPTS")
+
+   # set project directory via startup opts
+   projectPathWithSpaces <- file.path(tempdir(), "Dirname with Spaces")
+   dir.create(file.path(tempdir(), "Dirname with Spaces"))
+   specifyProjectOpts <- paste0('--project="', projectPathWithSpaces, '"')
+   Sys.setenv("JULIACONNECTOR_JULIAOPTS" = paste0('--project="',
+                                                  projectPathWithSpaces, '"'))
+   expect_match(capture.output({juliaEval("import Pkg; Pkg.status()")}),
+                regexp = "Dirname with Spaces", fixed = TRUE, all = FALSE)
+   stopJulia()
+
+   # set two startup opts: project directory and deprecation warnings
+   Sys.setenv("JULIACONNECTOR_JULIAOPTS" = paste(specifyProjectOpts,
+                                                "--depwarn=no"))
+   juliaDepWarn <- 'Base.depwarn("there is a deprecation warning", :foo)'
+   expect_length(capture.output({juliaEval(juliaDepWarn)}), 0)
+   stopJulia()
+
+   # clean up
+   unlink(projectPathWithSpaces, recursive = TRUE)
+   if (oldJuliaOpts == '') {
+      Sys.unsetenv("JULIACONNECTOR_JULIAOPTS")
+   } else {
+      Sys.setenv("JULIACONNECTOR_JULIAOPTS" = oldJuliaOpts)
+   }
+})
+
+
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    # if JULIACONNECTOR_SERVER is used, the server must be started with
    # "keeprunning = true" to work.
