@@ -1,14 +1,16 @@
 Package: JuliaConnectoR
 Type: Package
 Title: A Functionally Oriented Interface for Integrating 'Julia' with R
-Version: 1.0.0.9000
+Version: 1.0.0.9002
 Author: Stefan Lenz [aut, cre] (0000-0001-9135-1743), Harald Binder [aut] (0000-0002-5666-8662)
 Maintainer: Stefan Lenz <stefan-m-lenz@web.de>
 Authors@R: c(person("Stefan", "Lenz", role = c("aut", "cre"),
                     email = "stefan-m-lenz@web.de",
                     comment = c(ORCID = "0000-0001-9135-1743")),
-             person("Harald", "Binder", role = c("aut"),
-                    comment = c(ORCID = "0000-0002-5666-8662")))
+             person("Harald", "Binder", role = c("aut", "ths"),
+                    comment = c(ORCID = "0000-0002-5666-8662")),
+             person("Angelo", "D\'Ambrosio",
+                    comment = c(ORCID = "0000-0002-2045-5155"), role = "ctb"))
 Description: Allows to import functions and whole packages from 'Julia' in R.
     Imported 'Julia' functions can directly be called as R functions.
     Data structures can be translated between 'Julia' and R.
