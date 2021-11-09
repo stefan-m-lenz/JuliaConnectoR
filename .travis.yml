@@ -23,9 +23,6 @@ before_install:
        tar -xzf julia-1.6.3-linux-x86_64.tar.gz;
        cd -;
     fi
-  - if [[ $JULIA_BINDIR == *"julia-1.6"* ]]; then
-       export JULIACONNECTOR_JULIAENV="LD_LIBRARY_PATH=''";
-    fi
 
 r:
   - 3.3.3

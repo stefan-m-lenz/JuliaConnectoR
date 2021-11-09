@@ -24,10 +24,14 @@ The environment variables that are used in the package are listed below:
 \item{\env{JULIACONNECTOR_JULIAENV}:}{Specify environment variables only for
    Julia.
    (This does not work on Windows and the variable is ignored there.)
-   This allows, e.g,, to set
+   This allows, e.g., to set
    the LD_LIBRARY_PATH variable to a different value for Julia than for R.
    The value can be any R code that defines variables, e.g.,
-    \code{"LD_LIBRARY_PATH=''"} is a valid value.}
+   \code{"LD_LIBRARY_PATH=''"} is a valid value.
+   On Linux, Julia is started with an empty \code{LD_LIBRARY_PATH}
+   by default as the \code{LD_LIBRARY_PATH} required by R may be incompatible
+   with Julia. If the \code{LD_LIBRARY_PATH} needs to be set to a different
+   value, this can be done via the \code{JULIACONNECTOR_JULIAENV} variable.}
 \item{\env{JULIACONNECTOR_JULIAOPTS}:}{Set start-up options for Julia.
    As an example, consider specifying the project environment and enabling
    code coverage when starting Julia. This can be achieved by setting

@@ -37,9 +37,16 @@ getJuliaEnv <- function() {
          envdef <- Sys.getenv("JULIACONNECTOR_JULIAENV")
          evalenv <- new.env(emptyenv())
          eval(expr = parse(text = envdef), envir = evalenv)
+         if (Sys.info()['sysname'] == "Linux" && is.null(evalenv$LD_LIBRARY_PATH)) {
+            evalenv$LD_LIBRARY_PATH <- "''"
+         }
          # system2 expects a character vector of name=value strings
          jlenv <- unlist(lapply(names(evalenv),
-                         function(x) { paste0(x, "=", evalenv[[x]]) }))
+                         function(x) { paste0(x, "=", shQuote(evalenv[[x]])) }))
+      }
+   } else { # no environment variables for Julia specified by user
+      if (Sys.info()['sysname'] == "Linux") {
+         jlenv <- "LD_LIBRARY_PATH=''"
       }
    }
    return(jlenv)

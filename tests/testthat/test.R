@@ -1392,23 +1392,13 @@ test_that("Broadcasting via dot syntax works", {
 
 
 test_that("Environemnt variables for Julia can be set", {
+   # prepare
    os <- Sys.info()['sysname']
-   # respect old ENV because julia 1.6 on Travis requires
-   # that the LD_LIBRARY_PATH is specified as environment variable
-   prevJuliaEnv <- Sys.getenv("JULIACONNECTOR_JULIAENV")
-
+   oldJuliaEnv <- Sys.getenv("JULIACONNECTOR_JULIAENV")
    JuliaConnectoR:::stopJulia()
 
-   setTestEnv <- function(testEnv) {
-      if (prevJuliaEnv == "") {
-         Sys.setenv(JULIACONNECTOR_JULIAENV = testEnv)
-      } else {
-         Sys.setenv(JULIACONNECTOR_JULIAENV =
-                       paste(prevJuliaEnv, testEnv, sep = ";"))
-      }
-   }
-
-   setTestEnv("TESTVARIABLE1=1")
+   # Test with one variable
+   Sys.setenv(JULIACONNECTOR_JULIAENV = "TESTVARIABLE1=1")
    if (os == "Windows") {
       expect_warning(juliaEval("1+1"))
    } else {
@@ -1416,7 +1406,8 @@ test_that("Environemnt variables for Julia can be set", {
    }
    JuliaConnectoR:::stopJulia()
 
-   setTestEnv("TESTVARIABLE1=1; TESTVARIABLE2='abc'")
+   # Test with two variables
+   Sys.setenv(JULIACONNECTOR_JULIAENV = "TESTVARIABLE1=1; TESTVARIABLE2='abc'")
    if (os == "Windows") {
       expect_warning(juliaEval("1+1"))
    } else {
@@ -1425,10 +1416,17 @@ test_that("Environemnt variables for Julia can be set", {
    }
    JuliaConnectoR:::stopJulia()
 
-   if (prevJuliaEnv == "") {
+   # LD_LIBRARY_PATH can be set via JULIACONNECTOR_JULIAENV
+   Sys.setenv(JULIACONNECTOR_JULIAENV = "LD_LIBRARY_PATH='abc'")
+   if (os == "Linux") {
+      expect_match(JuliaConnectoR:::getJuliaEnv(), "LD_LIBRARY_PATH='abc'")
+   }
+
+   # clean up
+   if (oldJuliaEnv == "") {
       Sys.unsetenv("JULIACONNECTOR_JULIAENV")
    } else {
-      Sys.setenv(JULIACONNECTOR_JULIAENV = prevJuliaEnv)
+      Sys.setenv(JULIACONNECTOR_JULIAENV = oldJuliaEnv)
    }
 })
 
