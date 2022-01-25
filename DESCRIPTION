@@ -1,7 +1,7 @@
 Package: JuliaConnectoR
 Type: Package
 Title: A Functionally Oriented Interface for Integrating 'Julia' with R
-Version: 1.1.0
+Version: 1.1.1
 Maintainer: Stefan Lenz <stefan-m-lenz@web.de>
 Authors@R: c(person("Stefan", "Lenz", role = c("aut", "cre"),
                     email = "stefan-m-lenz@web.de",
@@ -13,6 +13,8 @@ Authors@R: c(person("Stefan", "Lenz", role = c("aut", "cre"),
 Description: Allows to import functions and whole packages from 'Julia' in R.
     Imported 'Julia' functions can directly be called as R functions.
     Data structures can be translated between 'Julia' and R.
+    More details can also be found in the corresponding article
+    <doi:10.18637/jss.v101.i06>.
 License: MIT + file LICENCE
 SystemRequirements: Julia >= 1.0
 Encoding: UTF-8

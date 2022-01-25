@@ -1,16 +1,18 @@
-citHeader("To cite JuliaConnectoR in publications use:")
-
-citEntry(
-  entry    = "Article",
-  title    = "The JuliaConnectoR: a functionally oriented interface for integrating Julia in R",
-  author   = c(person("Stefan", "Lenz"),
-               person("Maren", "Hackenberg"),
-               person("Harald", "Binder")),
-  journal  = "arXiv:2005.06334 [cs.MS] (preprint)",
-  year     = 2021,
-  url      = "https://arxiv.org/abs/2005.06334",
-  textVersion = paste0("Stefan Lenz, Maren Hackenberg, Harald Binder (2021). ",
-                       "The JuliaConnectoR: a functionally oriented interface for integrating Julia in R. ",
-                       "arXiv:2005.06334 [cs.MS] (preprint). ",
-                       "Available from https://arxiv.org/abs/2005.06334")
+bibentry(bibtype = "Article",
+  title        = "The {JuliaConnectoR}: A Functionally-Oriented Interface for Integrating {Julia} in {R}",
+  author       = c(person(given = "Stefan",
+                          family = "Lenz",
+                          email = "lenz@imbi.uni-freiburg.de"),
+                   person(given = "Maren",
+                          family = "Hackenberg"),
+                   person(given = "Harald",
+                          family = "Binder")),
+  journal      = "Journal of Statistical Software",
+  year         = "2022",
+  volume       = "101",
+  number       = "6",
+  pages        = "1--24",
+  doi          = "10.18637/jss.v101.i06",
+  header       = "To cite JuliaConnectoR in publications use:"
 )
+
