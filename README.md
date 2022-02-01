@@ -17,7 +17,7 @@ reference via proxy objects in R or fully translated to R data structures.
 
 More details about the package together with a comparison with competing solutions can be found in the article:
 
-> Lenz S, Hackenberg M, Binder H, 2021. *The JuliaConnectoR: a functionally oriented interface for integrating Julia in R*. http://arxiv.org/abs/2005.06334
+> Lenz, S., Hackenberg, M., & Binder, H. (2022). The JuliaConnectoR: a functionally oriented interface for integrating Julia in R. *Journal of Statistical Software*, 101(6), 1–24. https://doi.org/10.18637/jss.v101.i06
 
 
 ## Installation
