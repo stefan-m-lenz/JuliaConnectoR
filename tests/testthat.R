@@ -2,6 +2,7 @@ library(testthat)
 library(JuliaConnectoR)
 library(utils)
 
+stop(paste0("schluss: ", Sys.getenv("GITHUB_ACTIONS")))
 
 if (juliaSetupOk()) {
    test_check("JuliaConnectoR")
