@@ -24,8 +24,8 @@ jobs:
 
     steps:
       - name: Install Julia 1.0
-      - if: ${{ matrix.julia == '1.0' }}
-      - run: echo "Installing Julia 1.0"
+        if: ${{ matrix.julia == '1.0' }}
+        run: echo "Installing Julia 1.0"
 
       - uses: actions/checkout@v2
 
