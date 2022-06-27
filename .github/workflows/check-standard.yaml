@@ -10,7 +10,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, Julia ${{ matrix.config.julia }})
+    name: ${{ matrix.config.os }} (R ${{ matrix.config.r }}, Julia ${{ matrix.config.julia }})
 
     strategy:
       fail-fast: false
@@ -40,9 +40,9 @@ jobs:
         with:
           version: ${{ matrix.config.julia }}
 
-      - name: Make sure the JuliaConnectoR picks up the right Julia version
+      - name: Make sure the JuliaConnectoR will pick up the right Julia version
         run: |
-          if [[ ! Rscript -e "print(JuliaConnectoR:::getJuliaVersionViaCmd())" ==* ${{ matrix.config.julia }} ]]; then
+          if [[ ! $(Rscript -e "print(JuliaConnectoR:::getJuliaVersionViaCmd())") ==* ${{ matrix.config.julia }} ]]; then
             exit 1;
           fi
 
