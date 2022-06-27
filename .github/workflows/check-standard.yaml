@@ -43,6 +43,6 @@ jobs:
 
       - name: Cache R packages
         uses: actions/cache@v1
-          with:
-            path: ${{ env.R_LIBS_USER }}
-            key: {{ matrix.config.r }}-${{ hashFiles('DESCRIPTION') }}
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ matrix.config.r }}-${{ hashFiles('DESCRIPTION') }}
