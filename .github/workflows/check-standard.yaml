@@ -42,7 +42,7 @@ jobs:
 
       - name: Make sure the JuliaConnectoR will pick up the right Julia version
         run: |
-          if [[ ! $(Rscript -e "print(JuliaConnectoR:::getJuliaVersionViaCmd())") ==* ${{ matrix.config.julia }} ]]; then
+          if [[  $(Rscript -e "print(JuliaConnectoR:::getJuliaVersionViaCmd())") ==* "${{ matrix.config.julia }}" ]]; then
             exit 1;
           fi
 
