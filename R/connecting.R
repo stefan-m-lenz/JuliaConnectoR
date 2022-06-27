@@ -202,7 +202,7 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
 }
 
 
-getJuliaVersion <- function(juliaCmd = getJuliaExecutablePath()) {
+getJuliaVersionViaCmd <- function(juliaCmd = getJuliaExecutablePath()) {
    juliaVersion <- NULL
    try({
       juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE,
@@ -230,7 +230,7 @@ juliaSetupOk <- function() {
       return(FALSE)
    }
 
-   juliaVersion <- getJuliaVersion(juliaCmd)
+   juliaVersion <- getJuliaVersionViaCmd(juliaCmd)
    if (is.null(juliaVersion)) {
       message("Julia could not be started")
       return(FALSE)

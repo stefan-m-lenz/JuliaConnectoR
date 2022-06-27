@@ -17,6 +17,7 @@ jobs:
       matrix:
         config:
           - {os: ubuntu-latest, r: '3.5', julia: '1.0'}
+          - {os: ubuntu-latest, r: 'release', julia: '1.6'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -25,9 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Julia 1.0
-        if: ${{ matrix.julia == '1.0' }}
-        run: echo "Installing Julia 1.0"
+      - uses: julia-actions/setup-julia@v1
+          with:
+            version: ${{ matrix.config.julia }}
 
       - uses: r-lib/actions/setup-r@v1
         with:
@@ -44,5 +45,7 @@ jobs:
       - name: Cache R packages
         uses: actions/cache@v1
         with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ matrix.config.r }}-${{ hashFiles('DESCRIPTION') }}
+          path: |
+            ${{ env.R_LIBS_USER }}
+            ~/.julia/artifacts
+          key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}
