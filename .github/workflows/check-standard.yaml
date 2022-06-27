@@ -43,7 +43,7 @@ jobs:
       - name: Make sure the JuliaConnectoR will pick up the right Julia version
         run: |
           GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION=$(Rscript -e "cat(JuliaConnectoR:::getJuliaVersionViaCmd())");
-          if [[ ! GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION == "${{ matrix.config.julia }}*" ]]; then
+          if ! [[ GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION == "${{ matrix.config.julia }}*" ]]; then
             echo "Julia version is $GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION";
             echo "Julia version should be ${{ matrix.config.julia }}";
             exit 1;
