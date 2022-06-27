@@ -18,6 +18,7 @@ jobs:
         config:
           - {os: ubuntu-latest, r: '3.5', julia: '1.0'}
           - {os: ubuntu-latest, r: 'release', julia: '1.6'}
+          - {os: ubuntu-latest, r: 'devel', julia: '1.6'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +57,6 @@ jobs:
         with:
           path: |
             ${{ env.R_LIBS_USER }}
-            ~/.julia/artifacts
+            ~/.julia/artifacts/
             ~/.julia/packages/
           key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}
