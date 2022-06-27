@@ -10,7 +10,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, Julia ${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
@@ -26,10 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.config.julia }}
-
       - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.config.r }}
@@ -40,6 +36,16 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.config.julia }}
+
+      - name: Make sure the JuliaConnectoR picks up the right Julia version
+        run: |
+          if [ ! Rscript -e "print(JuliaConnectoR:::getJuliaVersionViaCmd())" ==* ${{ matrix.config.julia }} ]
+            exit 1
+          end
+
       - uses: r-lib/actions/check-r-package@v1
 
       - name: Cache R packages
@@ -48,4 +54,5 @@ jobs:
           path: |
             ${{ env.R_LIBS_USER }}
             ~/.julia/artifacts
+            ~/.julia/packages/
           key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}

@@ -207,6 +207,9 @@ getJuliaVersionViaCmd <- function(juliaCmd = getJuliaExecutablePath()) {
    try({
       juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE,
                               env = getJuliaEnv())
+      juliaVersion <- regmatches(juliaVersion,
+                                 regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
+                                         juliaVersion))
    })
    juliaVersion
 }
@@ -236,9 +239,6 @@ juliaSetupOk <- function() {
       return(FALSE)
    }
 
-   juliaVersion <- regmatches(juliaVersion,
-                              regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
-                                      juliaVersion))
    juliaVersion <- as.integer(unlist(strsplit(juliaVersion, ".", fixed = TRUE)))
    if (juliaVersion[1] < 1) {
       message("Julia version is less than 1.0")
