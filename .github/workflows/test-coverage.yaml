@@ -42,7 +42,7 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::codecov()
+        run: covr::coveralls()
         shell: Rscript {0}
 
       - name: Cache R packages
