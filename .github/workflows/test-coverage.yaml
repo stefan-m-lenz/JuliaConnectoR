@@ -43,7 +43,7 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::coveralls(type = c("tests", "examples"))
+        run: covr::coveralls()
         shell: Rscript {0}
 
       - name: Cache R packages
