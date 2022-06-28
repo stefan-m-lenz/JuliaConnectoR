@@ -1,8 +1,8 @@
 # JuliaConnectoR <img src="JuliaConnectoR-Logo.svg" align="right" width="120" />
 
 [![CRAN version](https://www.r-pkg.org/badges/version/JuliaConnectoR)](https://CRAN.R-project.org/package=JuliaConnectoR)
-[![Build Status](https://app.travis-ci.com/stefan-m-lenz/JuliaConnectoR.svg?branch=master)](https://app.travis-ci.com/stefan-m-lenz/JuliaConnectoR?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/stefan-m-lenz/JuliaConnectoR/badge.svg?branch=master)](https://coveralls.io/github/stefan-m-lenz/JuliaConnectoR?branch=master)
+[![Build Status](https://github.com/stefan-m-lenz/JuliaConnectoR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/stefan-m-lenz/JuliaConnectoR/actions)
+[![codecov](https://codecov.io/gh/stefan-m-lenz/JuliaConnectoR/branch/master/graph/badge.svg?token=sCnEUyStzW)](https://codecov.io/gh/stefan-m-lenz/JuliaConnectoR)
 
 This R-package provides a functionally oriented interface between R and Julia.
 The goal is to call functions from Julia packages directly as R functions.

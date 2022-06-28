@@ -201,6 +201,20 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    return(realJuliaPort)
 }
 
+
+getJuliaVersionViaCmd <- function(juliaCmd = getJuliaExecutablePath()) {
+   juliaVersion <- NULL
+   try({
+      juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE,
+                              env = getJuliaEnv())
+      juliaVersion <- regmatches(juliaVersion,
+                                 regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
+                                         juliaVersion))
+   })
+   juliaVersion
+}
+
+
 #' Check Julia setup
 #'
 #' Checks that Julia can be started and that the Julia version is at least 1.0.
@@ -219,19 +233,12 @@ juliaSetupOk <- function() {
       return(FALSE)
    }
 
-   juliaVersion <- NULL
-   try({
-      juliaVersion <- system2(juliaCmd, "--version", stdout = TRUE,
-                              env = getJuliaEnv())
-   })
+   juliaVersion <- getJuliaVersionViaCmd(juliaCmd)
    if (is.null(juliaVersion)) {
       message("Julia could not be started")
       return(FALSE)
    }
 
-   juliaVersion <- regmatches(juliaVersion,
-                              regexpr("[0-9]+\\.[0-9]+\\.[0-9]+",
-                                      juliaVersion))
    juliaVersion <- as.integer(unlist(strsplit(juliaVersion, ".", fixed = TRUE)))
    if (juliaVersion[1] < 1) {
       message("Julia version is less than 1.0")
