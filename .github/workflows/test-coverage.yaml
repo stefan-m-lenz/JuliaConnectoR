@@ -16,7 +16,6 @@ jobs:
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +42,7 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::coveralls()
+        run: covr::codecov()
         shell: Rscript {0}
 
       - name: Cache R packages
