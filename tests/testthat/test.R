@@ -1362,6 +1362,12 @@ test_that("Data frame can be translated", {
                    stringsAsFactors = FALSE)
    y <- juliaCall("IndexedTables.table", x)
    expect_equal(as.data.frame(x), x)
+
+   # Works also without column names (Issue #16)
+   df <- juliaCall("IndexedTables.table", 1:3, 11:13)
+   df <- as.data.frame(df)
+   expect_equal(df[, 1], 1:3)
+   expect_equal(df[, 2], 11:13)
 })
 
 
@@ -1434,7 +1440,7 @@ test_that("Environemnt variables for Julia can be set", {
 test_that("Iris/Flux example from README works", {
    skip_on_cran()
    skip_on_covr()
-   skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern"))
+   skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern", "lenzstef"))
    cat("\nExecuting README examples...\n")
 
    if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
