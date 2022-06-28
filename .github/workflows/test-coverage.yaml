@@ -1,0 +1,55 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/master/examples
+on:
+  - push
+  - pull_request
+
+name: test-coverage
+
+jobs:
+  test-coverage:
+
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - {os: ubuntu-latest, r: 'release', julia: '1.7'}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v1
+        with:
+          extra-packages: covr
+
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.config.julia }}
+
+      - name: Make sure the JuliaConnectoR will pick up the right Julia version
+        run: |
+          GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION=$(Rscript -e "cat(JuliaConnectoR:::getJuliaVersionViaCmd())");
+          if [[ ! $GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION == "${{ matrix.config.julia }}"* ]]; then
+            echo "Julia version is $GITHUB_ACTIONS_JULIACONNECTOR_JULIAVERSION";
+            echo "Julia version should be ${{ matrix.config.julia }}";
+            exit 1;
+          fi
+
+      - name: Test coverage
+        run: covr::codecov()
+        shell: Rscript {0}
+
+      - name: Cache R packages
+        uses: actions/cache@v1
+        with:
+          path: |
+            ${{ env.R_LIBS_USER }}
+            ~/.julia/artifacts/
+            ~/.julia/packages/
+          key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}
