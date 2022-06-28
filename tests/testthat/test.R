@@ -1433,11 +1433,12 @@ test_that("Environemnt variables for Julia can be set", {
 
 test_that("Iris/Flux example from README works", {
    skip_on_cran()
+   skip_on_covr()
    skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern"))
    cat("\nExecuting README examples...\n")
 
    if (grepl("^1\\.0", juliaEval('string(VERSION)'))) {
-      skip_on_travis()
+      skip_on_ci()
    } else {
       projectFolder <- "project_1_6"
    }
