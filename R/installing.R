@@ -56,19 +56,28 @@ extractDownloadInfo <- function(juliaVersionsJson, juliaVersion, sysinfo = Sys.i
    filesInfo
 }
 
-installJuliaWindows <- function(juliaInstallFile) {
+installJuliaWindows <- function(juliaInstallFile, installDir) {
+   utils::unzip(zipfile = juliaInstallFile, exdir = installDir)
+}
+
+installJuliaLinux <- function(juliaInstallFile, installDir) {
 
 }
 
-installJuliaLinux <- function(juliaInstallFile) {
-
+installJuliaMac <- function(juliaInstallFile, installDir) {
+   stop("Not supported yet")
 }
 
-installJuliaMac <- function(juliaInstallFile) {
 
+defaultJuliaInstallDir <- function() {
+   if (version$major < 4) {
+      stop("On R version < 4 an installation directory for Julia must be specified explicitly")
+   } else {
+      return(file.path(tools::R_user_dir("JuliaConnectoR", "data"), "julia"))
+   }
 }
 
-installJulia <- function(juliaVersion = "release") {
+installJulia <- function(juliaVersion = "release", installDir = defaultJuliaInstallDir()) {
    juliaVersionsJsonFileName <- tempfile()
 
    message("Getting information about available Julia versions...\n")
@@ -90,22 +99,23 @@ installJulia <- function(juliaVersion = "release") {
    juliaInstallFile <- tempfile()
    utils::download.file(url = downloadUrl, destfile = juliaInstallFile)
 
-   message("Installing Julia in TODO Ordner...\n")
-   os <- Sys.info()["os"]
+   message(paste0("Installing Julia in \"", gsub("\\\\", "\\", installDir), "\" ...\n"))
+   os <- Sys.info()["sysname"]
+
    if (os == "Windows") {
-      installJuliaWindows(juliaInstallFile)
+      installJuliaWindows(juliaInstallFile, installDir)
    } else if (os == "Linux") {
-      installJuliaLinux(juliaInstallFile)
+      installJuliaLinux(juliaInstallFile, installDir)
    } else if (os == "Darwin") {
-      installJuliaMac(juliaInstallFile)
+      installJuliaMac(juliaInstallFile, installDir)
    }
 
-   file.remove(juliaInstallFile)
+   #file.remove(juliaInstallFile)
 
    # TODO warning if Julia is already connected
    # TODO check if folder is already present
 
    # TODO what if multiple Julia versions are installed?
 
-   return(invisible(NULL)) # TODO or return path?
+   return(invisible(NULL))
 }
