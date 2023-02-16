@@ -33,10 +33,21 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - name: Cache R packages and Julia
+        uses: actions/cache@v3
+        with:
+          path: | # siehe https://github.com/r-lib/actions/blob/v2/setup-r-dependencies/action.yaml
+            ${{ env.R_LIBS_USER }}/*
+            !${{ env.R_LIBS_USER }}/pak
+            ~/.julia/artifacts/
+            ~/.julia/packages/
+          key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck, local::.
           needs: check
+          cache: false # has already been done together with Julia caching above
 
       - uses: julia-actions/setup-julia@v1
         with:
@@ -53,11 +64,3 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
 
-      - name: Cache R packages
-        uses: actions/cache@v1
-        with:
-          path: |
-            ${{ env.R_LIBS_USER }}
-            ~/.julia/artifacts/
-            ~/.julia/packages/
-          key: ${{ matrix.config.r }}-${{ matrix.config.julia }}-${{ hashFiles('DESCRIPTION') }}
