@@ -38,8 +38,6 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - uses: r-lib/actions/check-r-package@v2
-
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.config.julia }}
@@ -53,7 +51,7 @@ jobs:
             exit 1;
           fi
 
-      - uses: r-lib/actions/check-r-package@v1
+      - uses: r-lib/actions/check-r-package@v2
 
       - name: Cache R packages
         uses: actions/cache@v1
