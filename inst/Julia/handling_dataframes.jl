@@ -48,13 +48,18 @@ function r_compatible_type(t::Type{Missing})
    Missing
 end
 
-function r_compatible_type(t::Type{Union{Missing, T}}) where T
+function r_compatible_type(t::Type{Union{Missing, T}}) where T <: Union{Number, Bool, Char, AbstractString}
    Union{Missing, r_compatible_type(T)}
+end
+
+function r_compatible_type(t::Type{T}) where T <: Any
+   error("Column type \"$(T)\" cannot be translated to a type that can be used in an R data frame")
 end
 
 function convert_to_r_compatible_type(x::AbstractArray{T}) where T
    convert(Array{r_compatible_type(T)}, x)
 end
+
 
 """
 Convert an object implementing the Tables.jl interface to an RDataFrame object

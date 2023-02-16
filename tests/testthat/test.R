@@ -1371,6 +1371,13 @@ test_that("Data frame can be translated", {
 })
 
 
+test_that("Attempt to translate Julia Table with incompatible types results in proper error", {
+   juliaEval("import IndexedTables")
+   x <- juliaEval('IndexedTables.table(["a", 1, 2], [1,2,3])')
+   expect_error(as.data.frame(x), regexp = 'Column type "Any" cannot be translated')
+})
+
+
 test_that("Julia types are converted to r compatible types in data frames", {
    x1 <- juliaEval("[1.0f0*im + 1.0f0, 0.0f0]")
    x2 <- juliaEval('map(i -> SubString(i, 2,3), ["asdf", "wert"])')
