@@ -33,7 +33,7 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Cache R packages and Julia
+      - name: Cache R packages and Julia packages
         uses: actions/cache@v3
         with:
           path: | # siehe https://github.com/r-lib/actions/blob/v2/setup-r-dependencies/action.yaml
