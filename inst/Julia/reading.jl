@@ -98,15 +98,19 @@ function read_complexs(communicator, n::Int)
    map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
 end
 
+
+function convert_to_complex_or_missing(re::Float64, im::Float64)
+   if represents_na(re) || represents_na(im)
+      return missing
+   else
+      return Complex{Float64}(re, im)
+   end
+end
+
+
 function read_complexs_with_missings(communicator, n::Int)
    doublepairs = reinterpret(Float64, read_bin(communicator, 16*n))
-   any_nas_found = any_na_normalize!(doublepairs)
-   ret = map(i -> Complex{Float64}(doublepairs[2*i - 1], doublepairs[2*i]), 1:n)
-   if any_nas_found
-      return replace_bitsequal(ret, R_NA_COMPLEX, missing)
-   else
-      return ret
-   end
+   [convert_to_complex_or_missing(doublepairs[2*i - 1], doublepairs[2*i]) for i in 1:n]
 end
 
 
