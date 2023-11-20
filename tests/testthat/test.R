@@ -1351,13 +1351,11 @@ test_that("Data frame can be translated", {
 
    testEcho(data.frame())
 
-   juliaEval('import Pkg;
-              try
-                 @eval import IndexedTables
-              catch ex
-                 Pkg.add("IndexedTables")
-              end
-              import IndexedTables')
+   Pkg <- juliaImport("Pkg")
+   Pkg$activate(system.file("examples", "IndexedTables-Project",
+                            package = "JuliaConnectoR"))
+   Pkg$instantiate()
+   juliaEval("import IndexedTables")
    x <- data.frame(x = c(0, 2, 4), y = c("bla", "blup", "ha"),
                    stringsAsFactors = FALSE)
    y <- juliaCall("IndexedTables.table", x)
