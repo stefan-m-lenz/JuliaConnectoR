@@ -1483,6 +1483,7 @@ test_that("Iris/Flux example from README works", {
 
 
 test_that("Boltzmann example from README works", {
+   skip_on_cran()
    returningError <- function(x) {
       paste0("tryCatch({", x , '},',
              'error = function(e) { paste("e: ",e$message) },',
