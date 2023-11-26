@@ -1471,7 +1471,7 @@ test_that("Iris/Flux example from README works", {
    irisExampleRCode <- readLines(irisExampleR)
 
    scriptEnv <- new.env(emptyenv())
-   suppressMessages(eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
+   suppressWarnings(eval(parse(text = paste(irisExampleRCode, collapse = "\n")),
                          envir = scriptEnv))
 
    # Test that training the model worked
