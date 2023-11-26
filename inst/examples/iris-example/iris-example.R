@@ -1,21 +1,20 @@
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.12"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.14"))')
 
 # The Julia code can simply be reused
-rand_split_data <- juliaEval('
+prepare_data <- juliaEval('
       import Flux
       using Random
       Random.seed!(1);
 
-      function rand_split_data(x, labels)
+      function prepare_data(x, labels)
          nsamples = size(x, 2)
+         x = Matrix{Float32}(x)
          testidxs = randperm(nsamples)[1:(round(Int, nsamples*0.3))]
          trainidxs = setdiff(1:nsamples, testidxs)
          x_train = x[:, trainidxs]
          x_test = x[:, testidxs]
-         labels_train = labels[trainidxs]
-         labels_test = labels[testidxs]
          y = Flux.onehotbatch(labels, unique(labels))
          y_train = y[:, trainidxs]
          y_test = y[:, testidxs]
@@ -25,7 +24,7 @@ rand_split_data <- juliaEval('
 
 x <- as.matrix(iris[, 1:4])
 labels <- iris[, "Species"]
-data <- rand_split_data(t(x), labels)
+data <- prepare_data(t(x), labels)
 trainingdata <- data$training
 testdata <- data$test
 
@@ -36,7 +35,7 @@ Flux <- juliaImport("Flux")
 
 juliaEval("using Statistics") # for Julia code only
 
-juliaEval("import Random; Random.seed!(1);")
+juliaEval("import Random; Random.seed!(11);")
 model <- Flux$Chain(
       Flux$Dense(4L, 4L, Flux$relu),
       Flux$Dense(4L, 4L, Flux$relu),
