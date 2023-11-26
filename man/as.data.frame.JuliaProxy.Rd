@@ -24,7 +24,12 @@ Strings are not converted to factors.
 \dontshow{
    if (juliaSetupOk()) {
       Pkg <- juliaImport("Pkg")
-      Pkg$activate(system.file("examples", "IndexedTables-Project",
+      if (juliaEval('VERSION < v"1.6"')) {
+         subproject <- "1_0"
+      } else {
+         subproject <- "1_6"
+      }
+      Pkg$activate(system.file("examples", "IndexedTables-Project", subproject,
                    package = "JuliaConnectoR"))
       Pkg$instantiate()
       # ignore warnings on Julia 1.0:
