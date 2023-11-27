@@ -45,10 +45,9 @@ loss(model, x, y) = Flux.crossentropy(model(x), y)
 loss(model, data::NamedTuple) = loss(model, data.x, data.y)
 
 function train_network!(model, x, y; epochs, callback)
-   opt = Flux.ADAM()
-   loss_(x, y) = loss(model, x, y)
+   opt = Flux.setup(Flux.Adam(), model);
    for i in 1:epochs
-      Flux.train!(loss_, Flux.params(model), [(x, y)], opt)
+      Flux.train!(loss, model, [(x, y)], opt)
       callback(i)
    end
 end

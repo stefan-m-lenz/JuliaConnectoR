@@ -116,10 +116,9 @@ loss(model, x, y) = Flux.crossentropy(model(x), y)
 loss(model, data::NamedTuple) = loss(model, data.x, data.y)
 
 function train_network!(model, x, y; epochs, callback)
-   opt = Flux.ADAM()
-   loss_(x, y) = loss(model, x, y)
+   opt = Flux.setup(Flux.Adam(), model);
    for i in 1:epochs
-      Flux.train!(loss_, Flux.params(model), [(x, y)], opt)
+      Flux.train!(loss, model, [(x, y)], opt)
       callback(i)
    end
 end
@@ -150,7 +149,7 @@ accuracy(model, testdata)
 ```R
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.12"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.14"))')
 
 # The Julia code can simply be reused
 prepare_data <- juliaEval('
@@ -204,10 +203,9 @@ loss <- juliaEval('loss(model, x, y) = Flux.crossentropy(model(x), y)
 
 train_network <- juliaEval('
    function train_network!(model, x, y; epochs, callback)
-      opt = Flux.ADAM()
-      loss_(x, y) = loss(model, x, y)
+      opt = Flux.setup(Flux.Adam(), model);
       for i in 1:epochs
-         Flux.train!(loss_, Flux.params(model), [(x, y)], opt)
+         Flux.train!(loss, model, [(x, y)], opt)
          callback(i)
       end
    end')
