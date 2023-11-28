@@ -22,7 +22,7 @@ Strings are not converted to factors.
 }
 \examples{
 \dontshow{
-   if (juliaSetupOk()) {
+   if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
       Pkg <- juliaImport("Pkg")
       if (juliaEval('VERSION < v"1.6"')) {
          subproject <- "1_0"
@@ -36,7 +36,8 @@ Strings are not converted to factors.
       capture.output(juliaImport("IndexedTables"), type = "message")
    }
 }
-if (juliaSetupOk()) {
+if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
+   # (This example is not run on CRAN as it takes a little too long.)
 
    # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
 
