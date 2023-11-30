@@ -357,8 +357,8 @@ end
 # corresponding to adding a dot in the call, as
 # f.(args...) is actually equivalent to broadcast(f, args...)
 # (see Julia documentation of dot syntax for vectorizing functions)
-function	broadcasted(f::Function)
-   (args...; kwargs...) -> broadcast((x) -> f(x; kwargs...), args...)
+function broadcasted(f::Function)
+   (args...; kwargs...) -> broadcast((x...) -> f(x...; kwargs...), args...)
 end
 
 function broadcasted(call::Call)
