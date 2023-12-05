@@ -156,8 +156,8 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    portfilename <- tempfile(paste0("juliaPort", Sys.getpid()))
 
    # workaround for https://github.com/rstudio/rstudio/issues/2446
-   stdoutfile <- tempfile('stdout'); stderrfile <- tempfile('stderr')
-   on.exit(unlink(c(stdoutfile, stderrfile)), add = TRUE)
+   startupOutputFile <- tempfile('startupOutput');
+   on.exit(unlink(startupOutputFile), add = TRUE)
 
 
    if (multiclient == TRUE) {
@@ -178,7 +178,7 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
            args = c(startupOpts, shQuote(mainJuliaFile), port, shQuote(portfilename),
                     multiclient),
            wait = FALSE,
-           stdout = stdoutfile, stderr = stderrfile,
+           stdout = startupOutputFile, stderr = startupOutputFile,
            env = getJuliaEnv())
 
    # get information about the real port from the temporary file
@@ -188,8 +188,8 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
       Sys.sleep(sleepTime)
       timeSlept <- timeSlept + sleepTime
       if (timeSlept >= 50) {
-         try({cat(paste(readLines(stderrfile), collapse = "\n"),
-                  file = stderr())})
+         try({cat(paste(readLines(startupOutputFile), collapse = "\n"),
+                  file = stdout())})
          stop("Timeout while waiting for response from Julia server")
       }
    }
