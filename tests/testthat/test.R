@@ -1471,11 +1471,10 @@ test_that("Iris/Flux example from README works", {
       projectFolder <- "project_1_9"
    }
 
-      Pkg <- juliaImport("Pkg")
+   Pkg <- juliaImport("Pkg")
    Pkg$activate(system.file("examples", "iris-example", projectFolder,
                             package = "JuliaConnectoR", mustWork = TRUE))
    Pkg$instantiate()
-   Pkg$build()
 
    irisExampleJl <- system.file("examples", "iris-example", "iris-example.jl",
                                 package = "JuliaConnectoR", mustWork = TRUE)
