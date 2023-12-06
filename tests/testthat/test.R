@@ -1404,6 +1404,18 @@ test_that("Broadcasting via dot syntax works", {
    expect_equal(juliaCall("Statistics.mean.", arrofarrs), c(2.5, 4.5))
    expect_equal(juliaGet(juliaCall("Statistics.mean.", arrofarrs, dims = 1L)),
                 juliaGet(juliaEval("[[2.5], [4.5]]")))
+
+   # Test functions with multiple arguments
+   juliaEval("module TestBroadcasting
+                 function my_add(x,y) x+y end
+                 function my_mul(x,y) x*y end
+             end")
+   expect_equal(juliaCall("TestBroadcasting.my_add.", 10, c(1,2,3)),
+                juliaEval("TestBroadcasting.my_add.(10, [1, 2, 3])"))
+   expect_equal(juliaCall("TestBroadcasting.my_mul.", c(1,2,3), c(4,5,6)),
+                juliaEval("TestBroadcasting.my_mul.([1, 2, 3], [4, 5, 6])"))
+   # Check that dimension mismatch leads to an error
+   expect_error(juliaCall("TestBroadcasting.my_mul.", c(1,2,3,4), c(5,6)))
 })
 
 
