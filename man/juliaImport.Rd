@@ -59,9 +59,7 @@ if (juliaSetupOk()) {
    # import in R via relative module path
    TestModule1 <- juliaImport(".TestModule1")
    TestModule1$test1()
-   \dontshow{
-      JuliaConnectoR:::stopJulia()
-   }
+
    # Importing a local module is also possible in one line,
    # by directly using the module object returned by "include".
    TestModule1 <- juliaImport(juliaCall("include", testModule))
