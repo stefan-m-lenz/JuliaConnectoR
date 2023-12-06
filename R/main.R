@@ -198,15 +198,17 @@ releaseFinalizedRefs <- function() {
 #'
 #' @examples
 #' if (juliaSetupOk()) {
-#'
 #'    juliaEval("1 + 2")
-#'    juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
 #'    juliaEval('using Random; Random.seed!(5);')
 #'
+#' \dontrun{
+#'    juliaEval('using Pkg; Pkg.add("BoltzmannMachines")')
 #' }
-#'
+#' }
 #' \dontshow{
-#' JuliaConnectoR:::stopJulia()
+#'    if (juliaSetupOk()) {
+#'       stopJulia()
+#'    }
 #' }
 juliaEval <- function(expr) {
    ensureJuliaConnection()
