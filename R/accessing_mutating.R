@@ -79,8 +79,10 @@
 #' }
 #'
 #' \dontshow{
-#' rm(x, s, strDict)
-#' JuliaConnectoR:::stopJulia()
+#' if (exists("strDict")) {
+#'    rm(x, s, strDict)
+#' }
+#' stopJulia()
 #' }
 NULL
 

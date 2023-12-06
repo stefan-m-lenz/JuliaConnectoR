@@ -206,9 +206,7 @@ releaseFinalizedRefs <- function() {
 #' }
 #' }
 #' \dontshow{
-#'    if (juliaSetupOk()) {
-#'       stopJulia()
-#'    }
+#' stopJulia()
 #' }
 juliaEval <- function(expr) {
    ensureJuliaConnection()

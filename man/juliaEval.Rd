@@ -33,8 +33,6 @@ if (juliaSetupOk()) {
 }
 }
 \dontshow{
-   if (juliaSetupOk()) {
-      stopJulia()
-   }
+stopJulia()
 }
 }
