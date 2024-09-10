@@ -32,6 +32,16 @@ Or the development version can be installed with:
 
 The package requires that [Julia (version &ge; 1.0) is installed](https://julialang.org/downloads/) and that the Julia executable is in the system search `PATH` or that the `JULIA_BINDIR` environment variable is set to the `bin` directory of the Julia installation.
 
+After you have installed Julia with `juliaup`, execute the command `julia` on the command line. 
+This will do the actual installation of Julia and start Julia for the first time.
+On Linux and Windows, the `JuliaConnectoR` package should now be able to use the Julia installation, as the link to the Julia installation is on the `PATH`.
+On Mac, Julia might not be on the `PATH` when using e.g. RStudio. In this case, ensure that Julia is on the `PATH` in R, or set the `JULIA_BINDIR` variable, as described below.
+
+The specific Julia version can optionally be specified by using the `JULIA_BINDIR` variable. This will take precedence if specified. 
+When using `juliaup`, note that the `JULIA_BINDIR` variable must point to the actual installation directory of Julia. This is different from the directory that is returned when executing `which julia` on the command line, which is the directory that contains the link to the default Julia executable.
+
+To get the proper value of the `JULIA_BINDIR` variable, execute `Sys.BINDIR` on the Julia command line.  Then set the environment variable in R via `Sys.setenv("JULIA_BINDIR" = "/your/path/to/Julia/bin")` before starting Julia and the `JuliaConnectoR` should be able to discover the specified Julia installation.
+
 ## Overview
 
 The following table lists the most important functions exported by the package:
