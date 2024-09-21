@@ -270,11 +270,19 @@ showUpdateTablesMsg <- function() {
 getJuliaExecutablePath <- function() {
    juliaBindir <- Sys.getenv("JULIA_BINDIR")
    if (juliaBindir == "") {
-      if (nchar(Sys.which("julia")) == 0) {
-         stop("Julia not found in path. Please check your Julia setup.")
+      if (Sys.which("julia") == "") {
+         # If Julia is not found on the PATH, check the default Juliaup installation location
+         # and use the Julia command there if it exists.
+         # (On Mac, Julia might not be on the PATH in the R session even though
+         # Julia has been installed in the default way via Juliaup.)
+         juliaCmd <- findJuliaupInstallation()
+         if (is.null(juliaCmd)) {
+            stop(createJuliaNotFoundMsg())
+         }
+      } else { # Julia is on the PATH, simply use the command "julia"
+         juliaCmd <- "julia"
       }
-      juliaCmd <- "julia"
-   } else {
+   } else { # use the JULIA_BINDIR variable, as it is specified
       juliaExe <- list.files(path = juliaBindir, pattern = "^julia.*")
       if (length(juliaExe) == 0) {
          stop(paste0("No Julia executable file found in supposed bin directory \"" ,
@@ -283,6 +291,28 @@ getJuliaExecutablePath <- function() {
       juliaCmd <- file.path(juliaBindir, "julia")
    }
    return(juliaCmd)
+}
+
+
+findJuliaupInstallation <- function() {
+   juliaPath <- paste(path.expand("~"), ".juliaup", "bin", "julia",
+                      sep = .Platform$file.sep)
+   if (file.exists(juliaPath)) {
+      message(paste("Using Julia from default juliaup installation location:",
+                    juliaPath))
+      return(juliaPath)
+   } else {
+      return(NULL)
+   }
+}
+
+
+createJuliaNotFoundMsg <- function() {
+'Julia could not be found.
+Julia needs to be installed and findable for the "JuliaConnectoR" package to work.
+After installing Julia, the best way make Julia findable is to put the folder containing the Julia executable into the PATH environment variable.
+For more information, see the help topic ?`Setup-JuliaConnector`.
+'
 }
 
 

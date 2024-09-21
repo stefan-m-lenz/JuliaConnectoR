@@ -27,12 +27,8 @@
 #' \href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 1.0) is installed}
 #' and that the Julia executable is in the system search \env{PATH} or that the
 #' \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
-#' the Julia installation.
-#' If the \env{JULIA_BINDIR} variable is set, it takes precedence over
-#' looking in the executable path.
-#' By setting the \env{JULIA_BINDIR} variable before starting Julia,
-#' it is therefore possible to use different installations of Julia on the
-#' same machine without having to change the executable path.
+#' the Julia installation. For more details about the setup,
+#' see \code{\link{Setup-JuliaConnectoR}}.
 #'
 #'
 #' @section Function overview:
@@ -240,3 +236,19 @@ NULL
 #' @name EnvVars-JuliaConnectoR
 NULL
 
+
+#' Julia setup
+#'
+#' For setting Julia up to be
+#' You can download and install Julia from \href{https://julialang.org/downloads/}{https://julialang.org/downloads/}.
+#' and that the Julia executable is in the system search \code{\env{PATH}} or that the
+#' \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
+#' the Julia installation.
+#' If the \env{JULIA_BINDIR} variable is set, it takes precedence over
+#' looking in the executable path.
+#' By setting the \env{JULIA_BINDIR} variable before starting Julia,
+#' it is therefore possible to use different installations of Julia on the
+#' same machine without having to change the executable path.
+#'
+#' @name Setup-JuliaConnectoR
+NULL

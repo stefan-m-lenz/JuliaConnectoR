@@ -2,6 +2,7 @@
 % Please edit documentation in R/JuliaConnectoR-package.R
 \docType{package}
 \name{JuliaConnectoR-package}
+\alias{JuliaConnectoR}
 \alias{JuliaConnectoR-package}
 \title{A Functionally Oriented Interface for Integrating Julia with R}
 \description{
@@ -32,12 +33,8 @@ The package requires that
 \href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 1.0) is installed}
 and that the Julia executable is in the system search \env{PATH} or that the
 \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
-the Julia installation.
-If the \env{JULIA_BINDIR} variable is set, it takes precedence over
-looking in the executable path.
-By setting the \env{JULIA_BINDIR} variable before starting Julia,
-it is therefore possible to use different installations of Julia on the
-same machine without having to change the executable path.
+the Julia installation. For more details about the setup,
+see \code{\link{Setup-JuliaConnectoR}}.
 }
 
 \section{Function overview}{
@@ -200,3 +197,17 @@ if code should be portable across different platforms.
 }
 }
 
+\author{
+\strong{Maintainer}: Stefan Lenz \email{stefan-m-lenz@web.de} (\href{https://orcid.org/0000-0001-9135-1743}{ORCID})
+
+Authors:
+\itemize{
+  \item Harald Binder (\href{https://orcid.org/0000-0002-5666-8662}{ORCID}) [thesis advisor]
+}
+
+Other contributors:
+\itemize{
+  \item Angelo D'Ambrosio (\href{https://orcid.org/0000-0002-2045-5155}{ORCID}) [contributor]
+}
+
+}

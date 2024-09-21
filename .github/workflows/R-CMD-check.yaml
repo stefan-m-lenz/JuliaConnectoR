@@ -18,7 +18,7 @@ jobs:
         config:
           - {os: ubuntu-latest, r: '3.6', julia: '1.0'}
           - {os: ubuntu-latest, r: 'release', julia: '1.6'}
-          - {os: ubuntu-latest, r: 'devel', julia: '1.9'}
+          - {os: ubuntu-latest, r: 'devel', julia: '1.10'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
