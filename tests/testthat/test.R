@@ -1109,6 +1109,17 @@ test_that("Error if Julia is not setup properly", {
 })
 
 
+test_that("Fallback on juliaup fails correctly", {
+   skip_on_cran()
+   juliaCmdJuliaup <- file.path(Sys.getenv("HOME"), ".juliaup", "bin", "julia")
+   if (!file.exists(juliaCmdJuliaup)) {
+      expect_error(JuliaConnectoR:::fallbackOnDefaultJuliaupPath(), regexp = "\\?`Setup-JuliaConnectoR`")
+   } else {
+      expect_equal(juliaCmdJuliaup, JuliaConnectoR:::fallbackOnDefaultJuliaupPath())
+   }
+})
+
+
 test_that("Circular references do not lead to a crash", {
 
    definition <- 'mutable struct TestRecur

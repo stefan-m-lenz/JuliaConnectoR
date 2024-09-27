@@ -271,14 +271,7 @@ getJuliaExecutablePath <- function() {
    juliaBindir <- Sys.getenv("JULIA_BINDIR")
    if (juliaBindir == "") {
       if (Sys.which("julia") == "") {
-         # If Julia is not found on the PATH, check the default Juliaup installation location
-         # and use the Julia command there if it exists.
-         # (On Mac, Julia might not be on the PATH in the R session even though
-         # Julia has been installed in the default way via Juliaup.)
-         juliaCmd <- findJuliaupInstallation()
-         if (is.null(juliaCmd)) {
-            stop(createJuliaNotFoundMsg())
-         }
+         juliaCmd <- fallbackOnDefaultJuliaupPath()
       } else { # Julia is on the PATH, simply use the command "julia"
          juliaCmd <- "julia"
       }
@@ -294,28 +287,25 @@ getJuliaExecutablePath <- function() {
 }
 
 
-findJuliaupInstallation <- function() {
-   juliaPath <- paste(path.expand("~"), ".juliaup", "bin", "julia",
-                      sep = .Platform$file.sep)
-   if (file.exists(juliaPath)) {
-      message(paste("Using Julia from default juliaup installation location:",
-                    juliaPath))
-      return(juliaPath)
+fallbackOnDefaultJuliaupPath <- function() {
+   # If Julia is not found on the PATH, check the default Juliaup installation location
+   # on Linux and Mac and use the Julia command there if it exists.
+   # (On Mac, Julia might not be on the PATH in the R session even though
+   # Julia has been installed in the default way via Juliaup.)
+   juliaCmd <- file.path(Sys.getenv("HOME"), ".juliaup", "bin", "julia")
+   if (!file.exists(juliaCmd) || Sys.info()['sysname'] == "Windows") {
+      stop('Julia could not be found.
+Julia needs to be installed and findable for the "JuliaConnectoR" package to work.
+After installing Julia, the best way make Julia findable is to put the folder containing the Julia executable into the PATH environment variable.
+For more information, see the help topic ?`Setup-JuliaConnectoR`.
+')
    } else {
-      return(NULL)
+      return(juliaCmd)
    }
 }
 
 
-createJuliaNotFoundMsg <- function() {
-'Julia could not be found.
-Julia needs to be installed and findable for the "JuliaConnectoR" package to work.
-After installing Julia, the best way make Julia findable is to put the folder containing the Julia executable into the PATH environment variable.
-For more information, see the help topic ?`Setup-JuliaConnector`.
-'
-}
-
-
+#
 #' Stop the connection to Julia
 #'
 #' This ends the connection to Julia. Julia terminates if no R process is
