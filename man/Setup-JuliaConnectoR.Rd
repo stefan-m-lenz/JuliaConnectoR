@@ -4,9 +4,9 @@
 \alias{Setup-JuliaConnectoR}
 \title{Julia setup}
 \description{
-For setting Julia up to be
+Julia must be installed separately from the \pkg{JuliaConnectoR} package.
 You can download and install Julia from \href{https://julialang.org/downloads/}{https://julialang.org/downloads/}.
-and that the Julia executable is in the system search \code{\env{PATH}} or that the
+After the installation, ensure that the Julia executable is in the system search \env{PATH} or that the
 \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 the Julia installation.
 If the \env{JULIA_BINDIR} variable is set, it takes precedence over

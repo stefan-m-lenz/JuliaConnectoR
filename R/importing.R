@@ -273,7 +273,7 @@ juliaImport <- function(modulePath, all = TRUE) {
    createJuliaModuleImport(moduleInfo)
 }
 
-
+#' @exportS3Method JuliaConnectoR::print
 print.JuliaModuleImport <- function(x, ...) {
    cat('Julia module \"')
    moduleInfo <- attr(x, "moduleInfo")

@@ -26,8 +26,10 @@ Strings are not converted to factors.
       Pkg <- juliaImport("Pkg")
       if (juliaEval('VERSION < v"1.6"')) {
          subproject <- "1_0"
-      } else {
+      } else if (juliaEval('VERSION < v"1.10"')) {
          subproject <- "1_6"
+      } else {
+         subproject <- "1_10"
       }
       Pkg$activate(system.file("examples", "IndexedTables-Project", subproject,
                    package = "JuliaConnectoR"))

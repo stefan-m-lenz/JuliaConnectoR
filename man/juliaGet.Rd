@@ -33,7 +33,7 @@ The following table shows the translation of Julia objects into R objects.
 }
 }
 \note{
-Objects containing cicular references cannot be translated back to Julia.
+Objects containing circular references cannot be translated back to Julia.
 
 It is safe to translate objects that contain external references from Julia to R.
 The pointers will be copied as values and the finalization of the translated

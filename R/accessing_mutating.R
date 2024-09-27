@@ -165,7 +165,7 @@ dim.JuliaArrayProxy <- function(x) {
    juliaCall("RConnector.getdim", x)
 }
 
-
+#' @exportS3Method JuliaConnectoR::print
 print.JuliaProxy <- function(x, ...) {
    cat("<Julia object of type ")
    cat(juliaCall("typeof", x))
