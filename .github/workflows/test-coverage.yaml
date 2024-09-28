@@ -53,5 +53,5 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::codecov(type = c("tests", "examples"))
+        run: print(nchar(Sys.getenv("CODECOV_TOKEN")));covr::codecov(token = Sys.getenv("CODECOV_TOKEN"), type = c("tests", "examples"))
         shell: Rscript {0}
