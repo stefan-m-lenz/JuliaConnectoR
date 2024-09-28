@@ -28,7 +28,7 @@
 #' and that the Julia executable is in the system search \env{PATH} or that the
 #' \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 #' the Julia installation. For more details about the setup,
-#' see \code{\link{Setup-JuliaConnectoR}}.
+#' see \code{\link{Julia-Setup}}.
 #'
 #'
 #' @section Function overview:
@@ -237,7 +237,7 @@ NULL
 
 #' Julia setup
 #'
-#' Julia must be installed separately from the \pkg{JuliaConnectoR} package.
+#' Julia must be installed separately in order for the \pkg{JuliaConnectoR} package to work.
 #' You can download and install Julia from \href{https://julialang.org/downloads/}{https://julialang.org/downloads/}.
 #'
 #' \subsection{Setup via the Juliaup installation manager}{
@@ -246,10 +246,10 @@ NULL
 #' }
 #'
 #' \subsection{Juliaup on Windows}{
-#' On Windows, if you have freshly installed Juliaup, start Julia once on the command line.
+#' If you have freshly installed Juliaup, start Julia once on the command line.
 #' This will do the actual installation of the current Julia version.
 #' Juliaup puts the Julia executable on the system \env{PATH}.
-#' This way, the Julia installation can be detected by the \pkg{JuliaConnectoR}
+#' This way, the Julia installation can be detected by the \pkg{JuliaConnectoR}.
 #' }
 #'
 #' \subsection{Juliaup on Mac}{
@@ -275,5 +275,5 @@ NULL
 #' than the one in your system \env{PATH}.
 #' }
 #'
-#' @name Setup-JuliaConnectoR
+#' @name Julia-Setup
 NULL

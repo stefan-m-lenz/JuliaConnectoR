@@ -34,7 +34,7 @@ The package requires that
 and that the Julia executable is in the system search \env{PATH} or that the
 \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
 the Julia installation. For more details about the setup,
-see \code{\link{Setup-JuliaConnectoR}}.
+see \code{\link{Julia-Setup}}.
 }
 
 \section{Function overview}{

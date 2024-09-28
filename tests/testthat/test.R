@@ -1113,7 +1113,7 @@ test_that("Fallback on juliaup fails correctly", {
    skip_on_cran()
    juliaCmdJuliaup <- file.path(Sys.getenv("HOME"), ".juliaup", "bin", "julia")
    if (!file.exists(juliaCmdJuliaup)) {
-      expect_error(JuliaConnectoR:::fallbackOnDefaultJuliaupPath(), regexp = "\\?`Setup-JuliaConnectoR`")
+      expect_error(JuliaConnectoR:::fallbackOnDefaultJuliaupPath(), regexp = "\\?`Julia-Setup`")
    } else {
       expect_equal(juliaCmdJuliaup, JuliaConnectoR:::fallbackOnDefaultJuliaupPath())
    }

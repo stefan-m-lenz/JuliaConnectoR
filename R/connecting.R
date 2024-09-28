@@ -297,7 +297,7 @@ fallbackOnDefaultJuliaupPath <- function() {
       stop('Julia could not be found.
 Julia needs to be installed and findable for the "JuliaConnectoR" package to work.
 After installing Julia, the best way make Julia findable is to put the folder containing the Julia executable into the PATH environment variable.
-For more information, see the help topic ?`Setup-JuliaConnectoR`.
+For more information, see the help topic ?`Julia-Setup`.
 ')
    } else {
       return(juliaCmd)
