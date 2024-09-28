@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         config:
-          - {os: ubuntu-latest, r: 'release', julia: '1.8'}
+          - {os: ubuntu-latest, r: 'release', julia: '1.10'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
