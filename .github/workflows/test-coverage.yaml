@@ -16,7 +16,7 @@ jobs:
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
@@ -53,5 +53,5 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::coveralls(token = Sys.getenv("COVERALLS_TOKEN"), type = c("tests", "examples"))
+        run: print(nchar(Sys.getenv("CODECOV_TOKEN")));covr::codecov(token = Sys.getenv("CODECOV_TOKEN"), type = c("tests", "examples"))
         shell: Rscript {0}
