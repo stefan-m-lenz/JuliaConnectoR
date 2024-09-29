@@ -53,5 +53,5 @@ jobs:
           fi
 
       - name: Test coverage
-        run: covr::coveralls(repo_token = Sys.getenv("COVERALLS_REPO_TOKEN"), type = c("tests", "examples"))
+        run: covr::coveralls(repo_token = Sys.getenv("COVERALLS_REPO_TOKEN"), service_name = "jenkins", type = c("tests", "examples"))
         shell: Rscript {0}
