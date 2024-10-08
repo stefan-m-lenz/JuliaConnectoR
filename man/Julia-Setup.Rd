@@ -21,7 +21,7 @@ This way, the Julia installation can be detected by the \pkg{JuliaConnectoR}.
 }
 
 \subsection{Juliaup on Mac}{
-After the installation of Juliaup, it might not be on the system \env{PATH}
+After the installation of Juliaup, Julia might not be on the system \env{PATH}
 but it should be discovered automatically
 if it is installed in the default location, i.e., the \code{.juliaup}
 folder in your home directory.

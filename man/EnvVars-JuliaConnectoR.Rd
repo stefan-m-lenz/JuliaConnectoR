@@ -17,10 +17,12 @@ All the variables are optional.
 \details{
 The environment variables that are used in the package are listed below:
 \describe{
-\item{\env{JULIA_BINDIR}:}{The directory where the \code{bin} directory of
-  the Julia can be specified explicitly. This allows, e.g., to easily work
-  with different Julia versions without having to modify the system
-  \env{PATH}.}
+\item{\env{JULIA_BINDIR}:}{If this variable is set to the path of the Julia \code{bin} directory
+  before connecting to Julia, the corresponding Julia installation will be used.
+  By using this variable, it is possible to use a different Julia version
+  than the one in the system \env{PATH}.
+  (You can find the correct path to the \code{bin} directory
+  of Julia by evaluating the expression \code{Sys.BINDIR} within Julia.)}
 \item{\env{JULIACONNECTOR_JULIAENV}:}{Specify environment variables only for
    Julia.
    (This does not work on Windows and the variable is ignored there.)

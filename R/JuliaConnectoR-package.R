@@ -25,9 +25,13 @@
 #' @section Setup:
 #' The package requires that
 #' \href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 1.0) is installed}
-#' and that the Julia executable is in the system search \env{PATH} or that the
-#' \env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
-#' the Julia installation. For more details about the setup,
+#' separately from the package.
+#' The Julia installation is discovered via the system search \env{PATH} or the
+#' \env{JULIA_BINDIR} environment variable, which can be set to the \code{bin} directory of
+#' the Julia installation.
+#' If Julia is installed via the Julia installation manager \code{juliaup},
+#' it should be discovered without requiring more configuration.
+#' For more details about the setup,
 #' see \code{\link{Julia-Setup}}.
 #'
 #'
@@ -200,10 +204,12 @@
 #'
 #' The environment variables that are used in the package are listed below:
 #' \describe{
-#' \item{\env{JULIA_BINDIR}:}{The directory where the \code{bin} directory of
-#'   the Julia can be specified explicitly. This allows, e.g., to easily work
-#'   with different Julia versions without having to modify the system
-#'   \env{PATH}.}
+#' \item{\env{JULIA_BINDIR}:}{If this variable is set to the path of the Julia \code{bin} directory
+#'   before connecting to Julia, the corresponding Julia installation will be used.
+#'   By using this variable, it is possible to use a different Julia version
+#'   than the one in the system \env{PATH}.
+#'   (You can find the correct path to the \code{bin} directory
+#'   of Julia by evaluating the expression \code{Sys.BINDIR} within Julia.)}
 #' \item{\env{JULIACONNECTOR_JULIAENV}:}{Specify environment variables only for
 #'    Julia.
 #'    (This does not work on Windows and the variable is ignored there.)
@@ -253,7 +259,7 @@ NULL
 #' }
 #'
 #' \subsection{Juliaup on Mac}{
-#' After the installation of Juliaup, it might not be on the system \env{PATH}
+#' After the installation of Juliaup, Julia might not be on the system \env{PATH}
 #' but it should be discovered automatically
 #' if it is installed in the default location, i.e., the \code{.juliaup}
 #' folder in your home directory.

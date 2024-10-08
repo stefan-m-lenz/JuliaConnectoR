@@ -31,9 +31,13 @@ This makes it also possible to serialize them as R objects.
 
 The package requires that
 \href{https://julialang.org/downloads/}{Julia (Version \eqn{\geq}{>=} 1.0) is installed}
-and that the Julia executable is in the system search \env{PATH} or that the
-\env{JULIA_BINDIR} environment variable is set to the \code{bin} directory of
-the Julia installation. For more details about the setup,
+separately from the package.
+The Julia installation is discovered via the system search \env{PATH} or the
+\env{JULIA_BINDIR} environment variable, which can be set to the \code{bin} directory of
+the Julia installation.
+If Julia is installed via the Julia installation manager \code{juliaup},
+it should be discovered without requiring more configuration.
+For more details about the setup,
 see \code{\link{Julia-Setup}}.
 }
 
@@ -208,6 +212,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Angelo D'Ambrosio (\href{https://orcid.org/0000-0002-2045-5155}{ORCID}) [contributor]
+  \item June Choe (\href{https://orcid.org/0000-0002-0701-921X}{ORCID}) [contributor]
 }
 
 }
