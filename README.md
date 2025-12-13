@@ -67,8 +67,8 @@ Below we see example code for training a neural network for classification on th
 
 ```julia
 using Pkg
-Pkg.add(PackageSpec(name = "RDatasets", version = "0.7"))
-Pkg.add(PackageSpec(name = "Flux", version = "0.14"))
+Pkg.add(PackageSpec(name = "RDatasets", version = "0.8"))
+Pkg.add(PackageSpec(name = "Flux", version = "0.16"))
 
 # Import packages and set a seed
 import Flux
@@ -153,7 +153,7 @@ accuracy(model, testdata)
 ```R
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.14"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.16"))')
 
 # The Julia code can simply be reused
 prepare_data <- juliaEval('

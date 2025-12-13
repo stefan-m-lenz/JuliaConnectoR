@@ -1,7 +1,11 @@
 Sys.unsetenv("R_TESTS")
 
-
 test_that("Some smoke tests", {
+
+   juliaVersion <- juliaEval("string(VERSION)")
+   expect_true(startsWith(juliaVersion, "1"))
+   print(paste("Starting tests with Julia version", juliaVersion))
+
    expect_equal(juliaCall("prod", c(1,2,3)), 6)
    juliaEval("")
    juliaCall("string", list())
@@ -1362,6 +1366,7 @@ test_that("Data frame can be translated", {
 
    testEcho(data.frame())
 
+   skip_on_cran() # don't test IndexedTables on CRAN
    Pkg <- juliaImport("Pkg")
    if (juliaEval('VERSION < v"1.6"')) {
       subproject <- "1_0"
@@ -1478,10 +1483,10 @@ test_that("Iris/Flux example from README works", {
    #skip_if(Sys.info()["login"] %in% c("lenz", "Stefan Lenz", "selectstern", "lenzstef"))
    cat("\nExecuting README examples...\n")
 
-   if (juliaEval('VERSION < v"1.9"')) {
+   if (juliaEval('VERSION < v"1.10"')) {
       skip("Skip Flux example because Julia version is too old")
    } else {
-      projectFolder <- "project_1_9"
+      projectFolder <- "project_1_10"
    }
 
    Pkg <- juliaImport("Pkg")
