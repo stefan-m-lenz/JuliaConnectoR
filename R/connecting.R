@@ -181,17 +181,54 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
            stdout = startupOutputFile, stderr = startupOutputFile,
            env = getJuliaEnv())
 
+   readJuliaOutputSafely <- function() {
+      tryCatch({
+         return(paste(suppressWarnings(readLines(startupOutputFile)), collapse = "\n"))
+      }, error = function(e) {
+         return(paste("[Could not read Julia output log: file is locked by the process.",
+                      "This is expected on Windows if the Julia process has not stopped.]"))
+      })
+   }
+
    # get information about the real port from the temporary file
    sleepTime <- 0.2
    timeSlept <- 0
+
+   timeSinceLastOutput <- 0
+   lastFileSize <- 0
+
+   # timeout happens if there is no output from Julia in this duration
+   silenceLimit <- as.integer(Sys.getenv("JULIACONNECTOR_SILENCE_TIMEOUT", 60))
+
+   # timeout happens after this time elapsed since starting up Julia
+   maxTimeout <- as.integer(Sys.getenv("JULIACONNECTOR_MAX_TIMEOUT", 300))
+
    while (file.access(portfilename, mode = 4) < 0) {
       Sys.sleep(sleepTime)
       timeSlept <- timeSlept + sleepTime
-      if (timeSlept >= 50) {
-         cat(c("Julia startup:\n"))
-         try({cat(paste(readLines(startupOutputFile), collapse = "\n"),
-                  file = stdout())})
-         stop("Timeout while waiting for response from Julia server")
+      timeSinceLastOutput <- timeSinceLastOutput + sleepTime
+
+      # Check if output file has grown (Julia is alive and talking/precompiling)
+      finfo <- file.info(startupOutputFile)
+      currentSize <- finfo$size
+
+      if (!is.na(currentSize) && currentSize > lastFileSize) {
+         # Output detected: Reset the silence timer
+         timeSinceLastOutput <- 0
+         lastFileSize <- currentSize
+      }
+
+      # Check for timeouts
+      if (timeSinceLastOutput >= silenceLimit) {
+         cat(c("Julia startup (timed out due to lack of output):\n"))
+         cat(readJuliaOutputSafely(), "\n")
+         stop(paste("Timeout: No output from Julia server for", silenceLimit, "seconds."))
+      }
+
+      if (timeSlept >= maxTimeout) {
+         cat(c("Julia startup (timed out due to total duration):\n"))
+         cat(readJuliaOutputSafely(), "\n")
+         stop(paste("Timeout: Julia server failed to start within", maxTimeout, "seconds."))
       }
    }
 
@@ -230,23 +267,31 @@ juliaSetupOk <- function() {
       juliaCmd <- getJuliaExecutablePath()
    })
    if (is.null(juliaCmd)) {
-      message("Julia not found")
+      message("Julia setup check failed: Julia command not found")
       return(FALSE)
    }
 
    juliaVersion <- getJuliaVersionViaCmd(juliaCmd)
    if (is.null(juliaVersion)) {
-      message("Julia could not be started")
+      message("Julia setup check failed: Julia version could not be determined")
       return(FALSE)
    }
 
    juliaVersion <- as.integer(unlist(strsplit(juliaVersion, ".", fixed = TRUE)))
    if (juliaVersion[1] < 1) {
-      message("Julia version is less than 1.0")
+      message("Julia setup check failed: Julia version is less than 1.0")
       return(FALSE)
-   } else {
-      return(TRUE)
    }
+
+   # try to actually start the connection
+   setupOk <- tryCatch({
+      ensureJuliaConnection()
+      TRUE
+   }, error = function(e) {
+      message("Julia setup check failed: ", e$message)
+      return(FALSE)
+   })
+   return(setupOk)
 }
 
 
