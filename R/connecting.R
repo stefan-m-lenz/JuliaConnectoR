@@ -97,20 +97,20 @@ getJuliaEnv <- function() {
 #'
 #' @examples
 #' if (juliaSetupOk()) {
+#'    print("dont do this")
+#'    #Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
+#'    #startJuliaServer()
 #'
-#'    Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
-#'    startJuliaServer()
+#'    #library(future)
+#'    #plan(multisession) # use background R processes on the same machine
 #'
-#'    library(future)
-#'    plan(multisession) # use background R processes on the same machine
-#'
-#'    juliaEval("global x = 1")
+#'    #juliaEval("global x = 1")
 #'
 #'    # Child processes now use the same Julia session:
-#'    f1 <- future({juliaEval("x")})
-#'    value(f1)
+#'    #f1 <- future({juliaEval("x")})
+#'    #value(f1)
 #'
-#'    plan(sequential) # close background workers
+#'    #plan(sequential) # close background workers
 #'
 #' }
 #' \dontshow{
