@@ -59,6 +59,8 @@ getJuliaEnv <- function() {
 #' the same Julia server and share a single session.
 #' This can be useful for saving start-up/precompilation time when starting
 #' additional processes or when sharing global variables between processes.
+#' A usage scenario for this is a web server where reloading Julia for each
+#' new session should be avoided.
 #' \emph{For the standard way of starting Julia, this function is not needed.
 #' It is also not needed if child processes should use separate Julia sessions.}
 #'
@@ -97,20 +99,48 @@ getJuliaEnv <- function() {
 #'
 #' @examples
 #' if (juliaSetupOk()) {
-#'    print("dont do this")
-#'    #Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
-#'    #startJuliaServer()
+#'    library(JuliaConnectoR)
+#'    library(future)
 #'
-#'    #library(future)
-#'    #plan(multisession) # use background R processes on the same machine
+#'    # 1) Start a shared Julia TCP server in the main R session, which may use all CPU threads
+#'    Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
+#'    stopJulia() # stop current Julia connection before starting server
+#'    startJuliaServer()
 #'
-#'    #juliaEval("global x = 1")
+#'    # 2) Create R workers
+#'    cl <- parallelly::makeClusterPSOCK(workers = 2)
 #'
-#'    # Child processes now use the same Julia session:
-#'    #f1 <- future({juliaEval("x")})
-#'    #value(f1)
+#'    # 3) Warm-up R workers, load Julia and execute first Julia function
+#'    # (In practice, you could, e.g., trigger Julia pre-compilation here.)
+#'    parallel::clusterEvalQ(cl, {
+#'       library(JuliaConnectoR)
+#'       JuliaConnectoR::juliaEval("1")  # open Julia TCP connection on each worker
+#'    })
 #'
-#'    #plan(sequential) # close background workers
+#'    ## 4) Re-Use those warmed workers for use via futures
+#'    plan(cluster, workers = cl)
+#'
+#'    ## 5) Create a global variable for demonstration purposes (and stay thread safe)
+#'    juliaEval("global const counter = Threads.Atomic{Int}(0)")
+#'
+#'    incrementCounter <- function() {
+#'       JuliaConnectoR::juliaEval("Threads.atomic_add!(counter, 1)")
+#'    }
+#'
+#'    ## 6) Execute futures via worker-pool
+#'    f1 <- future({incrementCounter()})
+#'    f2 <- future({incrementCounter()})
+#'    value(f1)
+#'    value(f2)
+#'
+#'    # Reading the value should demonstrate that the
+#'    # global variable is shared across workers.
+#'    juliaEval("counter[]")
+#'
+#'    ## 7) Cleanup
+#'    plan(sequential)
+#'    parallel::stopCluster(cl)
+#'    stopJulia()
 #'
 #' }
 #' \dontshow{
