@@ -292,10 +292,6 @@ getJuliaVersionViaCmd <- function(juliaCmd = getJuliaExecutablePath()) {
 #' @return \code{TRUE} if the Julia setup is OK; otherwise \code{FALSE}
 juliaSetupOk <- function() {
 
-   if (!is.null(pkgLocal$con)) {
-      return(TRUE) # Julia connection already established
-   }
-
    juliaCmd <- NULL
    try({
       juliaCmd <- getJuliaExecutablePath()
