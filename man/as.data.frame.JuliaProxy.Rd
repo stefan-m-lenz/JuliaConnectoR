@@ -22,7 +22,7 @@ Strings are not converted to factors.
 }
 \examples{
 \dontshow{
-   if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
+   if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
       Pkg <- juliaImport("Pkg")
       if (juliaEval('VERSION < v"1.6"')) {
          subproject <- "1_0"
