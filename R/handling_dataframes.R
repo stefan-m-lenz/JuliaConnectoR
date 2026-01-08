@@ -28,7 +28,7 @@
 #'       capture.output(juliaImport("IndexedTables"), type = "message")
 #'    }
 #' }
-#' if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'    # (This example is not run on CRAN as it takes a little too long.)
 #'
 #'    # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
@@ -57,11 +57,9 @@
 #' }
 #'
 #' \dontshow{
-#'    if (juliaSetupOk()){
+#'    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'       stopJulia()
-#'       if (Sys.getenv("NOT_CRAN") == "true") {
-#'          rm(mytbl, seltbl)
-#'       }
+#'       rm(mytbl, seltbl)
 #'    }
 #' }
 as.data.frame.JuliaProxy <- function(x, ...) {
