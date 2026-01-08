@@ -1393,6 +1393,7 @@ test_that("Data frame can be translated", {
 
 
 test_that("Attempt to translate Julia Table with incompatible types results in proper error", {
+   skip_on_cran() # don't test IndexedTables on CRAN
    juliaEval("import IndexedTables")
    x <- juliaEval('IndexedTables.table(["a", 1, 2], [1,2,3])')
    expect_error(as.data.frame(x), regexp = 'Column type "Any" cannot be translated')
@@ -1437,11 +1438,11 @@ test_that("Broadcasting via dot syntax works", {
 })
 
 
-test_that("Environemnt variables for Julia can be set", {
+test_that("Environment variables for Julia can be set", {
    # prepare
    os <- Sys.info()['sysname']
    oldJuliaEnv <- Sys.getenv("JULIACONNECTOR_JULIAENV")
-   JuliaConnectoR:::stopJulia()
+   stopJulia()
 
    # Test with one variable
    Sys.setenv(JULIACONNECTOR_JULIAENV = "TESTVARIABLE1=1")
