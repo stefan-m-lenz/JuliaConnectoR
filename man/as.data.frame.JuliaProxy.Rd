@@ -67,9 +67,11 @@ if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
 }
 
 \dontshow{
-   if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
-      rm(mytbl, seltbl)
-      JuliaConnectoR:::stopJulia()
+   if (juliaSetupOk()){
+      stopJulia()
+      if (Sys.getenv("NOT_CRAN") == "true") {
+         rm(mytbl, seltbl)
+      }
    }
 }
 }
