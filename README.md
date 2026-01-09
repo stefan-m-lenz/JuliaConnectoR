@@ -33,7 +33,7 @@ Or the development version can be installed with:
 The package requires that [Julia (version &ge; 1.0) is installed](https://julialang.org/downloads/).
 If Julia is installed with Juliaup, it should be discovered successfully.
 Otherwise, make sure your Julia installation is on the system `PATH` or set the `JULIA_BINDIR` system variable.
-More information on that can be found in the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v1.1.4/JuliaConnectoR.pdf).
+More information on that can be found in the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v1.1.5/JuliaConnectoR.pdf).
 
 
 ## Overview
@@ -50,7 +50,7 @@ The following table lists the most important functions exported by the package:
 | `juliaGet` | Fully translate a Julia object to an R object |
 | `juliaExpr` | Use a Julia expressions or refer to a Julia object via a string in R |
 
-For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v1.1.4/JuliaConnectoR.pdf).
+For a detailed description of the functions with some examples, and for more details about the translation of data structures, please see the [latest documentation](https://github.com/stefan-m-lenz/JuliaConnectoR/releases/download/v1.1.5/JuliaConnectoR.pdf).
 
 ## Examples
 
