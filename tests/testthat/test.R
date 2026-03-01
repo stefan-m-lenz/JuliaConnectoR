@@ -163,6 +163,10 @@ test_that("Echo: 1-element vector of String in R", {testEcho("bla")})
 test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
 
+test_that("Factor are translated as integer vectors to Julia", {
+   x <- as.factor(c("a", "a", "b", "c", "c", "c"))
+   expect_equal(as.integer(x), juliaEcho(x))
+})
 
 test_that("Echo: String with missing values", {
    x <- c("Yes", "No", NA)

@@ -141,7 +141,7 @@ writeElement <- function(elem) {
       } else if (typeId == TYPE_ID_INTEGER) {
          writeBin(TYPE_ID_INTEGER, pkgLocal$con)
          writeInt(dimensions(elem))
-         writeArray(elem, size = 4L)
+         writeArray(as.integer(elem), size = 4L)
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_LOGICAL) {
          if (anyNA(elem)) {
