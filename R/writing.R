@@ -9,10 +9,26 @@ writeInt <- function(n) {
    writeBin(as.integer(n), pkgLocal$con, size = 4)
 }
 
-writeLogical <- function(b) {
-   writeBin(as.logical(b), pkgLocal$con, size = 1)
-}
+# define extra variable here to be able to change the value for debugging purposes
+WRITE_BIN_MAX <- .Machine$integer.max
 
+# Wrapper around writeBin, writes to Julia TCP connection.
+# Can write arrays with more than 2^31 - 1 bytes, which writeBin cannot.
+writeArray <- function(arr, size) {
+   arr <- as.vector(arr)
+   if (as.double(size) * as.double(length(arr)) > WRITE_BIN_MAX) {
+      offset <- 0
+      nMaxWritable <- as.integer(floor(WRITE_BIN_MAX / size))
+      while (offset < length(arr)) {
+         chunkLength <- min(length(arr) - offset, nMaxWritable)
+         chunk <- arr[(offset + 1):(offset + chunkLength)]
+         writeBin(chunk, pkgLocal$con, size = size)
+         offset <- offset + chunkLength
+      }
+   } else {
+      writeBin(arr, pkgLocal$con, size = size)
+   }
+}
 
 writeNofAttributes <- function(n) {
    writeBin(as.raw(n), pkgLocal$con)
@@ -120,23 +136,23 @@ writeElement <- function(elem) {
          # all types with a clearly defined number of bytes in R
          writeBin(typeId, pkgLocal$con)
          writeInt(dimensions(elem))
-         writeBin(as.vector(elem), pkgLocal$con)
+         writeArray(elem, size = TYPE_SIZES[[elemType]])
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_INTEGER) {
          writeBin(TYPE_ID_INTEGER, pkgLocal$con)
          writeInt(dimensions(elem))
-         writeInt(elem)
+         writeArray(elem, size = 4L)
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_LOGICAL) {
          if (anyNA(elem)) {
             writeBin(TYPE_ID_INTEGER, pkgLocal$con)
             writeInt(dimensions(elem))
-            writeInt(elem)
+            writeArray(as.integer(elem), size = 4L)
             writeAttributes(list("JLTYPE" = "Union{Missing, Bool}"))
          } else {
             writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
             writeInt(dimensions(elem))
-            writeLogical(elem)
+            writeArray(as.logical(elem), size = 1L)
          }
       } else if (typeId == TYPE_ID_STRING) {
          if (is.null(attr(elem, "JLEXPR"))) {

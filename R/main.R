@@ -39,6 +39,11 @@ TYPE_IDS <- list(
    "list" = TYPE_ID_LIST,
    "symbol" = TYPE_ID_SYMBOL)
 
+TYPE_SIZES <- list(
+   "double" = 8,
+   "complex" = 16,
+   "raw" = 1,
+   "integer" = 4)
 
 # support versions lower than 3.3.0
 endsWithChar <- (function() {
