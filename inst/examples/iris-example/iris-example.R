@@ -1,6 +1,6 @@
 library(JuliaConnectoR)
 
-juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.14"))')
+juliaEval('using Pkg; Pkg.add(PackageSpec(name = "Flux", version = "0.16"))')
 
 # The Julia code can simply be reused
 prepare_data <- juliaEval('
