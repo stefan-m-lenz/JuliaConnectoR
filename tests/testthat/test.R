@@ -1482,6 +1482,19 @@ test_that("Environment variables for Julia can be set", {
 })
 
 
+test_that("Chunked writing of potentially large vectors in R works", {
+   oldvalue <- changePackageVariable("WRITE_BIN_MAX", 50)
+   expect_equal(JuliaConnectoR:::WRITE_BIN_MAX, 50)
+
+   # send larger vector
+   x <- juliaPut(as.vector(runif(151)))
+   # send larger matrix
+   y <- juliaPut(matrix(runif(150), ncol = 10))
+
+   changePackageVariable("WRITE_BIN_MAX", oldvalue) # return to previous state
+})
+
+
 test_that("Iris/Flux example from README works", {
    skip_on_cran()
    skip_on_covr()

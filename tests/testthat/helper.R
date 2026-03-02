@@ -33,3 +33,12 @@ testEcho <- function(x, comparableInJulia = TRUE) {
       expect_equivalent(x, juliaEcho(x))
    }
 }
+
+changePackageVariable <- function(varname, value) {
+   ns <- asNamespace("JuliaConnectoR")
+   oldvalue <- get(varname, envir = ns)
+   unlockBinding(varname, ns)
+   assign(varname, value, envir = ns)
+   lockBinding(varname, ns)
+   return(oldvalue)
+}
