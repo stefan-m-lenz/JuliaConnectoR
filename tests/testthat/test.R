@@ -18,6 +18,13 @@ test_that("Some smoke tests", {
 })
 
 
+test_that("Empty Int64 arrays can be returned", {
+   expect_equal(juliaEval("Int64[]"), integer(0))
+   expect_equal(juliaCall("findall", c(FALSE, FALSE)), integer(0))
+   expect_equal(juliaEval("Union{Missing, Int64}[]"), integer(0))
+})
+
+
 test_that("Output is transferred", {
    output <- capture_output({
       juliaCall("println", as.integer(22))

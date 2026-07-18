@@ -161,6 +161,17 @@ end
 
 function write_element(communicator, arr::Array{Int64}; missings = Int[])
 
+   if isempty(arr)
+      # (extrema below would fail on an empty array)
+      @static if Int == Int64
+         attributes = ()
+      else
+         attributes = (("JLTYPE", "Int64"), )
+      end
+      write_element(communicator, convert(Array{Int32}, arr), attributes, true)
+      return
+   end
+
    arrmin, arrmax = extrema(arr)
    if arrmin >= typemin(Int32) && arrmax <= typemax(Int32)
       @static if Int == Int64
