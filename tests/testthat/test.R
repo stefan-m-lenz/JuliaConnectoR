@@ -45,6 +45,12 @@ test_that("Data frames sent to Julia support integer column access", {
 })
 
 
+test_that("Evaluating a whitespace-only string returns NULL", {
+   expect_null(juliaEval("   "))
+   expect_null(juliaEval("\n\t"))
+})
+
+
 test_that("Output is transferred", {
    output <- capture_output({
       juliaCall("println", as.integer(22))
