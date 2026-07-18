@@ -142,6 +142,7 @@ function serve(port_hint::Int;
    if multiclient
       while true
          sock = accept(server)
+         disable_nagle(sock)
          @async serve_repl(sock)
          inc_nclients()
       end
@@ -149,7 +150,21 @@ function serve(port_hint::Int;
       sock = accept(server)
       # close(server) # don't listen for other clients
       # (not used because then listenany will re-use the same port)
+      disable_nagle(sock)
       serve_repl(sock)
+   end
+end
+
+
+# Disable Nagle's algorithm to avoid delays in the
+# request-response communication with R.
+# (Sockets.nagle requires at least Julia 1.3.)
+function disable_nagle(sock)
+   if isdefined(Sockets, :nagle)
+      try
+         Sockets.nagle(sock, false)
+      catch
+      end
    end
 end
 

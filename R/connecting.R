@@ -10,21 +10,37 @@ juliaConnection <- function() {
       }
       message(paste("Connecting to Julia TCP server at", juliaSocketAdress, "..."))
       return(list(port = juliaPort,
-                  con = socketConnection(host = host_port[1],
-                                         port = juliaPort,
-                                         blocking = TRUE,
-                                         server = FALSE,
-                                         open="r+b", timeout = 10)))
+                  con = juliaSocketConnection(host = host_port[1],
+                                              port = juliaPort,
+                                              timeout = 10)))
    }
 
    port <- runJuliaServer(multiclient = FALSE)
 
    return(list(port = port,
-               con = socketConnection(host = "localhost",
-                                      port = port,
-                                      blocking = TRUE,
-                                      server = FALSE,
-                                      open="r+b", timeout = 2)))
+               con = juliaSocketConnection(host = "localhost",
+                                           port = port,
+                                           timeout = 2)))
+}
+
+
+# Opens the TCP connection to the Julia server.
+# Disables Nagle's algorithm ("no-delay") to avoid delays
+# in the request-response communication with Julia.
+# (The "options" argument of "socketConnection" is only available
+# from R version 4.3 on.)
+juliaSocketConnection <- function(host, port, timeout) {
+   if (getRversion() >= "4.3.0") {
+      con <- socketConnection(host = host, port = port,
+                              blocking = TRUE, server = FALSE,
+                              open = "r+b", timeout = timeout,
+                              options = "no-delay")
+   } else {
+      con <- socketConnection(host = host, port = port,
+                              blocking = TRUE, server = FALSE,
+                              open = "r+b", timeout = timeout)
+   }
+   con
 }
 
 
