@@ -38,6 +38,13 @@ test_that("showobj handles non-Int widths", {
 })
 
 
+test_that("Data frames sent to Julia support integer column access", {
+   x <- juliaPut(data.frame(a = c(1, 2), b = c("x", "y")))
+   expect_equal(juliaCall("Tables.getcolumn", x, 1L), c(1, 2))
+   expect_equal(juliaCall("Tables.getcolumn", x, 2L), c("x", "y"))
+})
+
+
 test_that("Output is transferred", {
    output <- capture_output({
       juliaCall("println", as.integer(22))
