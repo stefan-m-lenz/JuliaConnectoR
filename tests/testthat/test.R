@@ -32,6 +32,12 @@ test_that("read_bin fails cleanly if the stream ends prematurely", {
 })
 
 
+test_that("showobj handles non-Int widths", {
+   expect_match(juliaEval('RConnector.showobj([1, 2, 3], Int32(40))'), "3")
+   expect_match(juliaEval('RConnector.showobj([1, 2, 3], "nonsense")'), "3")
+})
+
+
 test_that("Output is transferred", {
    output <- capture_output({
       juliaCall("println", as.integer(22))
