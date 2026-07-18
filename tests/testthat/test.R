@@ -25,6 +25,13 @@ test_that("Empty Int64 arrays can be returned", {
 })
 
 
+test_that("read_bin fails cleanly if the stream ends prematurely", {
+   expect_error(
+      juliaEval("RConnector.read_bin(RConnector.CommunicatoR(IOBuffer([0x01])), 4)"),
+      regexp = "Connection lost")
+})
+
+
 test_that("Output is transferred", {
    output <- capture_output({
       juliaCall("println", as.integer(22))
