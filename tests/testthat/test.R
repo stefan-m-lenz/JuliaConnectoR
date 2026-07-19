@@ -17,6 +17,11 @@ test_that("Some smoke tests", {
           "Eval with semicolon at end returns NULL")
 })
 
+test_that("Pass character(0) works ", {
+   f <- juliaEval("x -> length(x)")
+   expect_equal(f(character(0)), 0)
+})
+
 
 test_that("Output is transferred", {
    output <- capture_output({
