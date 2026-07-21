@@ -143,10 +143,10 @@ end
 
 
 function mainevalcmd(str::String)
-   if isempty(str)
+   strippedstr = strip(str)
+   if isempty(strippedstr)
       return nothing
    end
-   strippedstr = strip(str)
    ret = include_string(Main, str)
    if strippedstr[end] == ';'
       return nothing

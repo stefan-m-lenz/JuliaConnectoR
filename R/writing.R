@@ -158,7 +158,7 @@ writeElement <- function(elem) {
          if (is.null(attr(elem, "JLEXPR"))) {
             writeBin(TYPE_ID_STRING, pkgLocal$con)
             writeInt(dimensions(elem))
-            for (i in 1:length(elem)) {
+            for (i in seq_along(elem)) {
                writeString(elem[i])
             }
             if (anyNA(elem)) {

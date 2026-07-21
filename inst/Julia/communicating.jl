@@ -74,7 +74,12 @@ end
 function read_bin(c::CommunicatoR, n::Int)
    ret = read(c.io, n)
    while length(ret) < n
-      ret = [ret; read(c.io, length(ret) - n)]
+      # A short read means the stream ended before n bytes were available.
+      chunk = read(c.io, n - length(ret))
+      if isempty(chunk)
+         error("Connection lost while reading message")
+      end
+      append!(ret, chunk)
    end
    ret
 end
@@ -142,6 +147,7 @@ function serve(port_hint::Int;
    if multiclient
       while true
          sock = accept(server)
+         disable_nagle(sock)
          @async serve_repl(sock)
          inc_nclients()
       end
@@ -149,7 +155,21 @@ function serve(port_hint::Int;
       sock = accept(server)
       # close(server) # don't listen for other clients
       # (not used because then listenany will re-use the same port)
+      disable_nagle(sock)
       serve_repl(sock)
+   end
+end
+
+
+# Disable Nagle's algorithm to avoid delays in the
+# request-response communication with R.
+# (Sockets.nagle requires at least Julia 1.3.)
+function disable_nagle(sock)
+   if isdefined(Sockets, :nagle)
+      try
+         Sockets.nagle(sock, false)
+      catch
+      end
    end
 end
 
@@ -331,10 +351,10 @@ function showobj(x, width::Int)
 end
 
 function showobj(x, width)
-   try
-      intwidth = convert(Int, width)
-   catch ex
-      intwidth = DEFAULT_DISPLAY_COLUMNS
+   intwidth = try
+      convert(Int, width)
+   catch
+      DEFAULT_DISPLAY_COLUMNS
    end
-   showobj(x, width)
+   showobj(x, intwidth)
 end

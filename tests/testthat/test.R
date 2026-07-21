@@ -17,6 +17,48 @@ test_that("Some smoke tests", {
           "Eval with semicolon at end returns NULL")
 })
 
+test_that("Pass character(0) works ", {
+   f <- juliaEval("x -> length(x)")
+   expect_equal(f(character(0)), 0)
+})
+
+
+test_that("Empty Int64 arrays can be returned", {
+   expect_equal(juliaEval("Int64[]"), integer(0))
+   expect_equal(juliaCall("findall", c(FALSE, FALSE)), integer(0))
+   expect_equal(juliaEval("Union{Missing, Int64}[]"), integer(0))
+})
+
+
+test_that("read_bin fails cleanly if the stream ends prematurely", {
+   expect_error(
+      juliaEval("RConnector.read_bin(RConnector.CommunicatoR(IOBuffer([0x01])), 4)"),
+      regexp = "Connection lost")
+})
+
+
+test_that("showobj handles non-Int widths", {
+   expect_match(juliaEval('RConnector.showobj([1, 2, 3], Int32(40))'), "3")
+   expect_match(juliaEval('RConnector.showobj([1, 2, 3], "nonsense")'), "3")
+})
+
+
+test_that("Data frames sent to Julia support integer column access", {
+   # Probably works on a much lower version also, but doesn't on 1.0
+   if (juliaEval('VERSION < v"1.10"')) {
+      skip("Skip integer column accesss because Julia version is too old")
+   }
+   x <- juliaPut(data.frame(a = c(1, 2), b = c("x", "y")))
+   expect_equal(juliaCall("Tables.getcolumn", x, 1L), c(1, 2))
+   expect_equal(juliaCall("Tables.getcolumn", x, 2L), c("x", "y"))
+})
+
+
+test_that("Evaluating a whitespace-only string returns NULL", {
+   expect_null(juliaEval("   "))
+   expect_null(juliaEval("\n\t"))
+})
+
 
 test_that("Output is transferred", {
    output <- capture_output({
