@@ -74,7 +74,12 @@ end
 function read_bin(c::CommunicatoR, n::Int)
    ret = read(c.io, n)
    while length(ret) < n
-      ret = [ret; read(c.io, length(ret) - n)]
+      # A short read means the stream ended before n bytes were available.
+      chunk = read(c.io, n - length(ret))
+      if isempty(chunk)
+         error("Connection lost while reading message")
+      end
+      append!(ret, chunk)
    end
    ret
 end
@@ -346,10 +351,10 @@ function showobj(x, width::Int)
 end
 
 function showobj(x, width)
-   try
-      intwidth = convert(Int, width)
-   catch ex
-      intwidth = DEFAULT_DISPLAY_COLUMNS
+   intwidth = try
+      convert(Int, width)
+   catch
+      DEFAULT_DISPLAY_COLUMNS
    end
-   showobj(x, width)
+   showobj(x, intwidth)
 end

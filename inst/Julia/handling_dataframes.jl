@@ -12,7 +12,8 @@ function getcolumn(df::RDataFrame, nm::Symbol)
 end
 
 function getcolumn(df::RDataFrame, i::Int)
-   getfield(getfield(df, :ellist), :namedelements)[getfield(df, :names)[i]]
+   ellist = getfield(df, :ellist)
+   getfield(ellist, :namedelements)[getfield(ellist, :names)[i]]
 end
 
 function getcolumn(df::RDataFrame, ::Type{T}, col::Int, nm::Symbol) where {T}
