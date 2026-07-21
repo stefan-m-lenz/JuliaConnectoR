@@ -39,6 +39,10 @@ test_that("showobj handles non-Int widths", {
 
 
 test_that("Data frames sent to Julia support integer column access", {
+   # Probably works on a much lower version also, but doesn't on 1.0
+   if (juliaEval('VERSION < v"1.10"')) {
+      skip("Skip integer column accesss because Julia version is too old")
+   }
    x <- juliaPut(data.frame(a = c(1, 2), b = c("x", "y")))
    expect_equal(juliaCall("Tables.getcolumn", x, 1L), c(1, 2))
    expect_equal(juliaCall("Tables.getcolumn", x, 2L), c("x", "y"))
