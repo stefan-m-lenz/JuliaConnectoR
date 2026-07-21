@@ -30,17 +30,13 @@ juliaConnection <- function() {
 # (The "options" argument of "socketConnection" is only available
 # from R version 4.3 on.)
 juliaSocketConnection <- function(host, port, timeout) {
+   args <- list(host = host, port = port,
+                blocking = TRUE, server = FALSE,
+                open = "r+b", timeout = timeout)
    if (getRversion() >= "4.3.0") {
-      con <- socketConnection(host = host, port = port,
-                              blocking = TRUE, server = FALSE,
-                              open = "r+b", timeout = timeout,
-                              options = "no-delay")
-   } else {
-      con <- socketConnection(host = host, port = port,
-                              blocking = TRUE, server = FALSE,
-                              open = "r+b", timeout = timeout)
+      args$options <- "no-delay"
    }
-   con
+   do.call(socketConnection, args)
 }
 
 
