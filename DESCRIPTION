@@ -20,6 +20,8 @@ Description: Allows to import functions and whole packages from 'Julia' in R.
     More details can also be found in the corresponding article
     <doi:10.18637/jss.v101.i06>.
 License: MIT + file LICENCE
+URL: https://github.com/stefan-m-lenz/JuliaConnectoR
+BugReports: https://github.com/stefan-m-lenz/JuliaConnectoR/issues
 SystemRequirements: Julia >= 1.0
 Encoding: UTF-8
 RoxygenNote: 7.3.3

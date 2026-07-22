@@ -201,6 +201,14 @@ if code should be portable across different platforms.
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/stefan-m-lenz/JuliaConnectoR}
+  \item Report bugs at \url{https://github.com/stefan-m-lenz/JuliaConnectoR/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Stefan Lenz \email{stefan-m-lenz@web.de} (\href{https://orcid.org/0000-0001-9135-1743}{ORCID})
 
