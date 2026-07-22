@@ -201,6 +201,14 @@ if code should be portable across different platforms.
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/stefan-m-lenz/JuliaConnectoR}
+  \item Report bugs at \url{https://github.com/stefan-m-lenz/JuliaConnectoR/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Stefan Lenz \email{stefan-m-lenz@web.de} (\href{https://orcid.org/0000-0001-9135-1743}{ORCID})
 
@@ -213,6 +221,7 @@ Other contributors:
 \itemize{
   \item Angelo D'Ambrosio (\href{https://orcid.org/0000-0002-2045-5155}{ORCID}) [contributor]
   \item June Choe (\href{https://orcid.org/0000-0002-0701-921X}{ORCID}) [contributor]
+  \item Bjarke Hautop Kristensen (\href{https://orcid.org/0009-0007-3733-1769}{ORCID}) [contributor]
 }
 
 }
