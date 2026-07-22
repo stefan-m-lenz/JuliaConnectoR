@@ -213,6 +213,7 @@ Other contributors:
 \itemize{
   \item Angelo D'Ambrosio (\href{https://orcid.org/0000-0002-2045-5155}{ORCID}) [contributor]
   \item June Choe (\href{https://orcid.org/0000-0002-0701-921X}{ORCID}) [contributor]
+  \item Bjarke Hautop Kristensen (\href{https://orcid.org/0009-0007-3733-1769}{ORCID}) [contributor]
 }
 
 }
