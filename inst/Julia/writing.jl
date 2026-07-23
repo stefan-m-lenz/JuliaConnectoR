@@ -100,9 +100,7 @@ end
 function write_element(communicator, arr::Array{Float64}, attributes = ())
    write_bin(communicator, TYPE_ID_FLOAT64)
    write_dimensions(communicator, arr)
-   for f in arr
-      write_bin(communicator, f)
-   end
+   write_bin(communicator, arr)
    write_attributes(communicator, attributes)
 end
 
@@ -115,9 +113,7 @@ function write_uint8array_element(communicator, arr::AbstractArray{UInt8},
 
    write_bin(communicator, TYPE_ID_RAW)
    write_dimensions(communicator, arr)
-   for d in arr
-      write_bin(communicator, d)
-   end
+   write_bin(communicator, arr)
    write_attributes(communicator, attributes)
 end
 
@@ -153,9 +149,7 @@ function write_element(communicator, arr::Array{Int32},
 
    write_bin(communicator, TYPE_ID_INT)
    write_dimensions(communicator, arr)
-   for i in arr
-      write_bin(communicator, i)
-   end
+   write_bin(communicator, arr)
    write_attributes(communicator, attributes)
 end
 
@@ -224,10 +218,7 @@ function write_element(communicator, arr::Array{Complex{Float64}},
 
    write_bin(communicator, TYPE_ID_COMPLEX)
    write_dimensions(communicator, arr)
-   for d in arr
-      write_bin(communicator, real(d))
-      write_bin(communicator, imag(d))
-   end
+   write_bin(communicator, arr)
    write_attributes(communicator, attributes)
 end
 
@@ -256,9 +247,7 @@ end
 function write_element(communicator, arr::Array{Bool})
    write_bin(communicator, TYPE_ID_BOOL)
    write_dimensions(communicator, arr)
-   for d in arr
-      write_bin(communicator, d)
-   end
+   write_bin(communicator, arr)
 end
 
 function write_element(communicator, arr::Array{Union{Missing,Bool}})
