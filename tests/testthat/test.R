@@ -617,10 +617,7 @@ test_that("String with null can be translated back to Julia", {
 
 
 # Test Let
-test_that("Let: used like eval", {
-   output <- capture_output({expect(is.null(juliaLet("print(1)")), "Failed")})
-   expect_equal(output, "1")
-})
+test_that("Let: used like eval", {expect_equal(juliaLet("2+2"), 4)})
 test_that("Let: must error with no named argument", {expect_error(juliaLet("print(x)", 1), "")})
 test_that("Let: basic echo", {expect(all(juliaLet("identity(x)", x=c(2, 3)) == c(2,3)), "Failed")})
 
