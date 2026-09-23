@@ -1129,6 +1129,22 @@ test_that("A Julia process exiting during a call gives an error, not a hang", {
 })
 
 
+test_that("A Julia process that has exited between calls is reported as such", {
+   skip_on_cran()
+   juliaPid <- juliaEval("getpid()")
+   # The default signal, as tools::SIGKILL is NA on Windows and pskill()
+   # then kills nothing.
+   expect_true(tools::pskill(juliaPid))
+   Sys.sleep(1)
+   setTimeLimit(elapsed = 60, transient = TRUE)
+   on.exit(setTimeLimit(elapsed = Inf))
+   expect_error(expect_warning(juliaCall("prod", c(2, 3)), NA),
+                regexp = "exited unexpectedly")
+   setTimeLimit(elapsed = Inf)
+   expect_equal(juliaCall("prod", c(2, 3)), 6)
+})
+
+
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    # if JULIACONNECTOR_SERVER is used, the server must be started with
    # "keeprunning = true" to work.
