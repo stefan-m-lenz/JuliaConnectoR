@@ -398,12 +398,19 @@ For more information, see the help topic ?`Julia-Setup`.
 #' This ends the connection to Julia. Julia terminates if no R process is
 #' connected any more.
 stopJulia <- function() {
+   releaseJuliaConnection(sayGoodbye = TRUE)
+}
+
+
+releaseJuliaConnection <- function(sayGoodbye) {
    if (!is.null(pkgLocal$startedAsMultiClientServer)) {
       Sys.unsetenv("JULIACONNECTOR_SERVER")
       pkgLocal$startedAsMultiClientServer <- NULL
    }
    if (!is.null(pkgLocal$con)) {
-      tryCatch({writeBin(BYEBYE, pkgLocal$con)}, error = function(e) {})
+      if (sayGoodbye) {
+         tryCatch({writeBin(BYEBYE, pkgLocal$con)}, error = function(e) {})
+      }
       tryCatch({close(pkgLocal$con)}, error = function(e) {})
       pkgLocal$con <- NULL
       pkgLocal$port <- NULL
@@ -413,6 +420,17 @@ stopJulia <- function() {
       invisible(gc(verbose = FALSE))
       pkgLocal$finalizedRefs <- NULL
    }
+}
+
+
+# Called when the connection to Julia has ended while R was waiting for data,
+# which means that the Julia process has exited.
+# The connection is released without saying goodbye, as nobody is listening,
+# so that the next call starts a new Julia session.
+juliaExited <- function() {
+   releaseJuliaConnection(sayGoodbye = FALSE)
+   stop("The Julia process has exited unexpectedly, possibly after a crash. ",
+        "The next call will start a new Julia session.", call. = FALSE)
 }
 
 

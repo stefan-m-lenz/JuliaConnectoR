@@ -156,9 +156,7 @@ juliaCall <- function(...) {
 
 
 doCallJulia <- function(name, jlargs) {
-   writeBin(CALL_INDICATOR, pkgLocal$con)
-   writeString(name)
-   writeList(jlargs)
+   writeCall(name, jlargs)
    messageType <- handleCallbacksAndOutput()
    if (messageType == RESULT_INDICATOR) {
       return(readElement())
@@ -168,6 +166,55 @@ doCallJulia <- function(name, jlargs) {
    } else {
       print(paste(c("Message type not supported (yet): ", messageType)))
       stopJulia()
+   }
+}
+
+
+# Sends a call to Julia.
+# If the Julia process has exited since the previous call, writing to the
+# connection fails: with an error on Linux (SIGPIPE) and with a warning for
+# every single write on Windows. Neither says what has happened. So failures
+# of the writes themselves are collected, and if the connection turns out
+# to have ended, this is reported as the exit of Julia instead.
+# Other conditions, e.g. warnings about elements that cannot be translated,
+# are passed on unchanged.
+writeCall <- function(name, jlargs) {
+   writeFailures <- list()
+   isWriteFailure <- function(cond) {
+      call <- conditionCall(cond)
+      is.call(call) && identical(call[[1]], as.name("writeBin"))
+   }
+   tryCatch({
+      withCallingHandlers({
+         writeBin(CALL_INDICATOR, pkgLocal$con)
+         writeString(name)
+         writeList(jlargs)
+      }, warning = function(w) {
+         if (isWriteFailure(w)) {
+            writeFailures[[length(writeFailures) + 1]] <<- w
+            invokeRestart("muffleWarning")
+         }
+      })
+   }, error = function(e) {
+      if (!isWriteFailure(e)) {
+         stop(e)
+      }
+      writeFailures[[length(writeFailures) + 1]] <<- e
+   })
+   if (length(writeFailures) > 0) {
+      # A socket at its end is readable. Before its end there may still be
+      # output that Julia sent while exiting, e.g. a report about a signal.
+      # Reading on shows that output and then reaches the end, which
+      # reports the exit of Julia.
+      if (isTRUE(socketSelect(list(pkgLocal$con), timeout = 0))) {
+         handleCallbacksAndOutput()
+      }
+      for (cond in writeFailures) {
+         if (inherits(cond, "error")) {
+            stop(cond)
+         }
+         warning(cond)
+      }
    }
 }
 
