@@ -112,7 +112,7 @@ end
 
 
 """
-    serve(port_hint; keeprunnning = false, portfile = "")
+    serve(port_hint; multiclient = false, portfile = "", token = "")
 Starts the JuliaConnectoR server, which will accept connections.
 
 It is attempted to start the server at the port given via `port_hint`.
@@ -126,37 +126,109 @@ If the argument `multiclient` is set to `true`,
 the server will accept multiple clients and keeps running
 after a client disconnects.
 Note that multiple clients share the same global workspace.
+
+If a `token` is given, a client must send it before anything else,
+and a client that doesn't is disconnected.
+The token is written to the `portfile` as well, on the line after the port.
+Without a token, any process on the machine that connects to the port
+is served.
 """
 function serve(port_hint::Int;
       multiclient::Bool = false,
-      portfile::String = "")
+      portfile::String = "",
+      token::String = "")
 
    realport, server = listenany(port_hint)
    println("Julia is listening on port $realport.")
-   # write real port to portfile
+   # write real port (and token) to portfile
    if (portfile != "")
-      open(portfile, "w") do f
+      # The file is renamed into place when it is complete,
+      # so that it can't be read while it is only partly written.
+      partialportfile = portfile * ".partial"
+      touch(partialportfile)
+      chmod(partialportfile, 0o600)
+      open(partialportfile, "w") do f
          write(f, string(Int(realport)))
          write(f, '\n')
+         if token != ""
+            write(f, token)
+            write(f, '\n')
+         end
       end
+      mv(partialportfile, portfile, force = true)
    end
 
    # Prevents crash when run as script and interrupted
    ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
 
+   clients = Channel{TCPSocket}(Inf)
+   @async accept_clients(server, Vector{UInt8}(token), clients)
+
    if multiclient
       while true
-         sock = accept(server)
+         sock = take!(clients)
          disable_nagle(sock)
          @async serve_repl(sock)
          inc_nclients()
       end
    else
-      sock = accept(server)
-      # close(server) # don't listen for other clients
-      # (not used because then listenany will re-use the same port)
+      sock = take!(clients)
+      # don't serve other clients
+      # (The server is not closed because then
+      # listenany will re-use the same port.)
+      close(clients)
       disable_nagle(sock)
       serve_repl(sock)
+   end
+end
+
+
+# Accepts connections and passes the clients on via the channel `clients`,
+# if they send the token first (or if there is no token),
+# until the channel is closed.
+# Each client is authenticated in a task of its own, so that a client
+# that connects and sends nothing doesn't hold up the others.
+function accept_clients(server, token::Vector{UInt8}, clients::Channel)
+   try
+      while isopen(clients)
+         sock = accept(server)
+         @async pass_on_client(sock, token, clients)
+      end
+   finally
+      close(clients)
+   end
+end
+
+
+function pass_on_client(sock, token::Vector{UInt8}, clients::Channel)
+   if isempty(token) || authenticate(sock, token)
+      try
+         put!(clients, sock)
+         return
+      catch
+         # the channel is closed, no more clients are served
+      end
+   end
+   close(sock)
+end
+
+
+# time in seconds that a client has to send the token after connecting
+const AUTHENTICATION_TIMEOUT = 10
+
+# Checks whether the first bytes that the client sends are the token.
+# (The bytes are compared in constant time, so that the time taken
+# reveals nothing about the token.)
+function authenticate(sock, token::Vector{UInt8})
+   timer = Timer(t -> close(sock), AUTHENTICATION_TIMEOUT)
+   try
+      received = read(sock, length(token))
+      return length(received) == length(token) &&
+            reduce(|, xor.(received, token); init = 0x00) == 0x00
+   catch
+      return false
+   finally
+      close(timer)
    end
 end
 

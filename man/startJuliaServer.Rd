@@ -39,7 +39,10 @@ Unsetting the variable will result in a normal Julia start-up in the first
 call to Julia, using a single-client Julia session.
 
 For security reasons, the Julia server accepts only connections
-from localhost.
+from localhost, and only from clients that know the server's token.
+The function communicates the token via the
+\env{JULIACONNECTOR_TOKEN} environment variable,
+which child processes inherit along with \env{JULIACONNECTOR_SERVER}.
 
 For using Julia with multiple clients, it can be good to advise Julia to
 use multiple threads via setting the \env{JULIA_NUM_THREADS} environment

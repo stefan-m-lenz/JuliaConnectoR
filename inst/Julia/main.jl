@@ -19,6 +19,13 @@ end
 
 using InteractiveUtils # for convenience: this is loaded in the standard REPL as well
 
+import Random
+
 include("./RConnector.jl")
+
+# Clients must authenticate with this token, so that only processes that can
+# read the port file (i.e., processes of the same user) can use this Julia.
+token = bytes2hex(rand(Random.RandomDevice(), UInt8, 32))
+
 RConnector.serve(parse(Int, ARGS[1]), portfile = ARGS[2],
-   multiclient = (ARGS[3] == "t"))
+   multiclient = (ARGS[3] == "t"), token = token)

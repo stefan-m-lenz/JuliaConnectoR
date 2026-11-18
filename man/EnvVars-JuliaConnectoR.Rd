@@ -5,6 +5,7 @@
 \alias{JULIA_BINDIR}
 \alias{JULIACONNECTOR_JULIAENV}
 \alias{JULIACONNECTOR_SERVER}
+\alias{JULIACONNECTOR_TOKEN}
 \title{Environment variables used by the \pkg{JuliaConnectoR}}
 \description{
 There are some environment variables which can be used to deviate from the
@@ -47,5 +48,12 @@ The environment variables that are used in the package are listed below:
   Due to security concerns, the Julia server accepts only connections from
   the same machine and connecting to remote machines is currently not
   possible.}
+\item{\env{JULIACONNECTOR_TOKEN}:}{The token that the Julia server
+  at \env{JULIACONNECTOR_SERVER} requires from its clients.
+  The function \code{\link{startJuliaServer}} sets this variable along with
+  \env{JULIACONNECTOR_SERVER}, so that only processes that know the token
+  (such as child processes) can use the server.
+  If the server has been started without a token, the variable must not
+  be set.}
 }
 }

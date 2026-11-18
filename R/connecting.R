@@ -12,15 +12,17 @@ juliaConnection <- function() {
       return(list(port = juliaPort,
                   con = juliaSocketConnection(host = host_port[1],
                                               port = juliaPort,
-                                              timeout = 10)))
+                                              timeout = 10,
+                                              token = Sys.getenv("JULIACONNECTOR_TOKEN"))))
    }
 
-   port <- runJuliaServer(multiclient = FALSE)
+   server <- runJuliaServer(multiclient = FALSE)
 
-   return(list(port = port,
+   return(list(port = server$port,
                con = juliaSocketConnection(host = "localhost",
-                                           port = port,
-                                           timeout = 2)))
+                                           port = server$port,
+                                           timeout = 2,
+                                           token = server$token)))
 }
 
 
@@ -29,14 +31,19 @@ juliaConnection <- function() {
 # in the request-response communication with Julia.
 # (The "options" argument of "socketConnection" is only available
 # from R version 4.3 on.)
-juliaSocketConnection <- function(host, port, timeout) {
+# If the server requires a token, the token is sent first.
+juliaSocketConnection <- function(host, port, timeout, token = "") {
    args <- list(host = host, port = port,
                 blocking = TRUE, server = FALSE,
                 open = "r+b", timeout = timeout)
    if (getRversion() >= "4.3.0") {
       args$options <- "no-delay"
    }
-   do.call(socketConnection, args)
+   con <- do.call(socketConnection, args)
+   if (token != "") {
+      writeBin(charToRaw(token), con)
+   }
+   con
 }
 
 
@@ -90,7 +97,10 @@ getJuliaEnv <- function() {
 #' call to Julia, using a single-client Julia session.
 #'
 #' For security reasons, the Julia server accepts only connections
-#' from localhost.
+#' from localhost, and only from clients that know the server's token.
+#' The function communicates the token via the
+#' \env{JULIACONNECTOR_TOKEN} environment variable,
+#' which child processes inherit along with \env{JULIACONNECTOR_SERVER}.
 #'
 #' For using Julia with multiple clients, it can be good to advise Julia to
 #' use multiple threads via setting the \env{JULIA_NUM_THREADS} environment
@@ -166,24 +176,27 @@ startJuliaServer <- function(port = 11980) {
       return(invisible(NULL))
    }
 
-   port <- runJuliaServer(port, multiclient = TRUE)
-   Sys.setenv("JULIACONNECTOR_SERVER" = paste0("localhost:", port))
+   server <- runJuliaServer(port, multiclient = TRUE)
+   Sys.setenv("JULIACONNECTOR_SERVER" = paste0("localhost:", server$port),
+              "JULIACONNECTOR_TOKEN" = server$token)
 
    # It is noted that Julia has been started to serve multiple clients.
-   # This can later be used for knowing that the environment variable
-   # JULIACONNECTOR_SERVER has become invalid and needs to be unset.
+   # This can later be used for knowing that the environment variables
+   # JULIACONNECTOR_SERVER and JULIACONNECTOR_TOKEN have become invalid
+   # and need to be unset.
    pkgLocal$startedAsMultiClientServer <- TRUE
 
    # Establish and test the connection. This also sets the pkgLocal$communicator
    juliaEval("0")
-   return(invisible(port))
+   return(invisible(server$port))
 }
 
 
 # Starts a Julia process in the background that listens on a port.
 # A port hint is given by the argument "port".
-# The return value is the port where Julia is actually listening.
-# This port might be different than the port hint, if the given "port"
+# The return value is a list containing the "port" where Julia is actually
+# listening and the "token" that clients must send to Julia to be served.
+# The port might be different than the port hint, if the given "port"
 # is e. g. already in use.
 runJuliaServer <- function(port = 11980, multiclient = TRUE) {
    startupOpts <- Sys.getenv('JULIACONNECTOR_JULIAOPTS')
@@ -274,11 +287,12 @@ runJuliaServer <- function(port = 11980, multiclient = TRUE) {
       }
    }
 
+   # the port file contains the port and the token, each on a line
    portfile <- file(portfilename, open = "r")
-   realJuliaPort <- as.integer(readLines(con = portfile, n = 1L, ok = FALSE, encoding = "UTF-8"))
+   portfileLines <- readLines(con = portfile, n = 2L, ok = FALSE, encoding = "UTF-8")
    close(portfile)
    file.remove(portfilename)
-   return(realJuliaPort)
+   return(list(port = as.integer(portfileLines[1]), token = portfileLines[2]))
 }
 
 
@@ -399,7 +413,7 @@ For more information, see the help topic ?`Julia-Setup`.
 #' connected any more.
 stopJulia <- function() {
    if (!is.null(pkgLocal$startedAsMultiClientServer)) {
-      Sys.unsetenv("JULIACONNECTOR_SERVER")
+      Sys.unsetenv(c("JULIACONNECTOR_SERVER", "JULIACONNECTOR_TOKEN"))
       pkgLocal$startedAsMultiClientServer <- NULL
    }
    if (!is.null(pkgLocal$con)) {
