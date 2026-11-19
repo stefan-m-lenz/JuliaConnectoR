@@ -86,6 +86,9 @@ The type correspondences of the basic R data types in Julia are the following:
 \code{complex} \tab \eqn{\rightarrow}{-->} \tab \code{Complex{Float64}} \cr
 \code{raw}  \tab \eqn{\rightarrow}{-->} \tab \code{UInt8} \cr
 \code{symbol} \tab \eqn{\rightarrow}{-->} \tab \code{Symbol} \cr
+\code{Date} \tab \eqn{\rightarrow}{-->} \tab \code{Dates.Date} \cr
+\code{POSIXct}, \code{POSIXlt} \tab \eqn{\rightarrow}{-->} \tab \code{Dates.DateTime} \cr
+\code{factor} \tab \eqn{\rightarrow}{-->} \tab \code{CategoricalArray} or \code{String} (see below) \cr
 }
 
 R vectors of length 1 of the types in the table above will be translated to the types shown.
@@ -97,6 +100,12 @@ For example, the R integer vector \code{c(1L, 2L)} will be of type \code{Vector{
 or \code{Array{Int,1}}, in Julia.
 A double matrix such as \code{matrix(c(1,2,3,4), nrow = 2)}
 will be of type \code{Array{Float64,2}}.
+
+Date-times (\code{POSIXct}) are translated to \code{DateTime}s in UTC,
+rounded to milliseconds.
+Factors are translated to \code{CategoricalArray}s (or \code{CategoricalValue}s)
+if the Julia package \code{CategoricalArrays} can be loaded,
+and otherwise to \code{String}s.
 
 Missing values (\code{NA}) in R are translated to \code{missing} values in Julia.
 R vectors and arrays with missing values are converted to Julia arrays
@@ -147,6 +156,9 @@ The following table shows how basic R-compatible types of Julia are translated t
  \code{Complex{Float64}}\tab \eqn{\rightarrow}{-->} \tab\code{complex} \cr
  \code{Complex{Int\var{X}}} with \var{X} \eqn{\leq}{<=} 64 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
  \code{Complex{Float\var{X}}} with \var{X} \eqn{\leq}{<=} 32 \tab \eqn{\rightarrow}{-->} \tab\code{complex} with type attribute \cr
+ \code{Dates.Date}\tab \eqn{\rightarrow}{-->} \tab\code{Date} \cr
+ \code{Dates.DateTime}\tab \eqn{\rightarrow}{-->} \tab\code{POSIXct} in UTC \cr
+ \code{CategoricalArray} (vector), \code{CategoricalValue}\tab \eqn{\rightarrow}{-->} \tab\code{factor} \cr
 }
 
 Julia \code{Array}s of these types are translated to \code{vector}s or \code{array}s of the corresponding types in R.
