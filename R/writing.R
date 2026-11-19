@@ -117,6 +117,8 @@ writeElement <- function(elem) {
       # (Julia doesn't care about the class)
       writeObjectReference(as.raw(OBJECT_CLASS_ID_NO_INFO),
                            get("ref", elem))
+   } else if (inherits(elem, "POSIXlt")) {
+      writeElement(as.POSIXct(elem))
    } else if (inherits(elem, "data.frame")) {
       writeBin(TYPE_ID_LIST, pkgLocal$con)
       elem <- as.list(elem)

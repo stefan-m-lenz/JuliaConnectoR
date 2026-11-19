@@ -284,7 +284,9 @@ function write_element(communicator, arr::Array)
 end
 
 function write_element(communicator, arr::AbstractArray)
-   if communicator.full_translation
+   if is_categorical(arr) && ndims(arr) == 1
+      write_categorical_element(communicator, arr)
+   elseif communicator.full_translation
       # translate as struct because you can never be sure of the implementation
       write_struct_element(communicator, arr)
    else
@@ -449,7 +451,9 @@ end
 
 function write_element(communicator, obj::T) where T
 
-   if isstructtype(T)
+   if is_categorical(obj) # a CategoricalValue
+      write_categorical_element(communicator, obj)
+   elseif isstructtype(T)
       if communicator.full_translation
          if !isimmutable(obj)
             write_mutable_struct_element(communicator, obj)
