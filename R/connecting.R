@@ -413,6 +413,12 @@ stopJulia <- function() {
       invisible(gc(verbose = FALSE))
       pkgLocal$finalizedRefs <- NULL
    }
+   if (!is.null(pkgLocal$out)) {
+      # (R CMD check fails examples that leave a connection open;
+      # beginMessage() opens the message buffer again)
+      close(pkgLocal$out)
+      pkgLocal$out <- NULL
+   }
 }
 
 
