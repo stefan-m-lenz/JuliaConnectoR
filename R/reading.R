@@ -54,7 +54,10 @@ readMessageType <- function() {
 
 readString <- function() {
    nbytes <- readInt()
-   binstr <- readRaw(nbytes)
+   rawToStringOrRaw(readRaw(nbytes))
+}
+
+rawToStringOrRaw <- function(binstr) {
    retstr <- NULL
    try({retstr <- rawToChar(binstr)}, silent = TRUE)
    if (is.null(retstr)) {
@@ -71,18 +74,27 @@ readString <- function() {
 readStrings <- function(n = 1) {
    ret <- character(n)
    for (i in seq_len(n)) {
-      str <- readString()
-      if (is.raw(str)) {
-         if (n == 1) {
-            return(str)
-         } else {
-            ret <- as.list(ret)
-            ret[[i]] <- str
-            return(c(ret[1:i], readStringList(n - i)))
+      binstr <- readRaw(readInt())
+      # A NUL character is allowed in Julia, but not in R. Only then is it
+      # worth handling the string like readString() does, which costs more.
+      if (any(binstr == as.raw(0))) {
+         str <- rawToStringOrRaw(binstr)
+         if (is.raw(str)) {
+            Encoding(ret) <- "UTF-8"
+            if (n == 1) {
+               return(str)
+            } else {
+               ret <- as.list(ret)
+               ret[[i]] <- str
+               return(c(ret[1:i], readStringList(n - i)))
+            }
          }
+         ret[i] <- str
+      } else {
+         ret[i] <- rawToChar(binstr)
       }
-      ret[i] <- str
    }
+   Encoding(ret) <- "UTF-8"
    ret
 }
 

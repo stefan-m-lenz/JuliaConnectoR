@@ -1,22 +1,87 @@
+# Outgoing messages are assembled in an in-memory buffer, pkgLocal$out, and
+# sent to Julia with one writeBin() call (see sendBuffered()). Every writeBin()
+# on the socket connection waits for the socket and sends a packet of its own,
+# which made writing the parts of a message one by one dominate the time of
+# calls with small arguments.
+beginMessage <- function() {
+   out <- pkgLocal$out
+   if (is.null(out)) {
+      pkgLocal$out <- rawConnection(raw(0), open = "r+b")
+   } else {
+      seek(out, 0)
+      truncate(out)
+   }
+}
+
+# Sends what has been buffered of the current message to Julia
+sendBuffered <- function() {
+   out <- pkgLocal$out
+   writeBin(rawConnectionValue(out), pkgLocal$con)
+   seek(out, 0)
+   truncate(out)
+}
+
+writeCallMessage <- function(name, args) {
+   beginMessage()
+   writeBin(CALL_INDICATOR, pkgLocal$out)
+   writeString(name)
+   writeList(args)
+   sendBuffered()
+}
+
 writeString <- function(str) {
    str <- enc2utf8(str)
    utf8bytes <- charToRaw(str)
-   writeBin(length(utf8bytes), pkgLocal$con)
-   writeBin(utf8bytes, pkgLocal$con)
+   writeBin(length(utf8bytes), pkgLocal$out)
+   writeBin(utf8bytes, pkgLocal$out)
+}
+
+# Writes the strings as the protocol's sequence of byte counts and UTF-8 bytes,
+# all at once, instead of with two writeBin() calls per string
+writeStrings <- function(strs) {
+   n <- length(strs)
+   if (n == 0) {
+      return(invisible(NULL))
+   }
+
+   strs <- enc2utf8(strs)
+   # (an NA is written as "NA", like writeString() does)
+   nbytes <- as.vector(nchar(strs, type = "bytes", keepNA = FALSE))
+   strbytes <- charToRaw(paste0(strs, collapse = ""))
+
+   ret <- raw(4 * n + length(strbytes))
+   headerStarts <- 4 * (seq_len(n) - 1) + c(0, cumsum(as.double(nbytes))[-n])
+   headerPositions <- rep(headerStarts, each = 4) + 1:4
+   ret[headerPositions] <- writeBin(nbytes, raw(), size = 4)
+   ret[-headerPositions] <- strbytes
+   writeArray(ret, size = 1L)
 }
 
 writeInt <- function(n) {
-   writeBin(as.integer(n), pkgLocal$con, size = 4)
+   writeBin(as.integer(n), pkgLocal$out, size = 4)
 }
 
 # define extra variable here to be able to change the value for debugging purposes
 WRITE_BIN_MAX <- .Machine$integer.max
 
-# Wrapper around writeBin, writes to Julia TCP connection.
+# Arrays of at least this many bytes are written to the socket directly
+# instead of being copied into the message buffer first
+DIRECT_WRITE_MIN <- 65536
+
+# Wrapper around writeBin, writes to the current message.
 # Can write arrays with more than 2^31 - 1 bytes, which writeBin cannot.
 writeArray <- function(arr, size) {
    arr <- as.vector(arr)
-   if (as.double(size) * as.double(length(arr)) > WRITE_BIN_MAX) {
+   nbytes <- as.double(size) * as.double(length(arr))
+   if (nbytes < DIRECT_WRITE_MIN) {
+      writeBin(arr, pkgLocal$out, size = size)
+      return(invisible(NULL))
+   }
+
+   # the part of the message before the array goes first
+   sendBuffered()
+
+   if (nbytes > WRITE_BIN_MAX) {
       offset <- 0
       nMaxWritable <- as.integer(floor(WRITE_BIN_MAX / size))
       while (offset < length(arr)) {
@@ -31,7 +96,7 @@ writeArray <- function(arr, size) {
 }
 
 writeNofAttributes <- function(n) {
-   writeBin(as.raw(n), pkgLocal$con)
+   writeBin(as.raw(n), pkgLocal$out)
 }
 
 dimensions <- function(x) {
@@ -82,23 +147,23 @@ writeListAttributes <- function(theAttributes) {
 
 
 writeCallback <- function(elem) {
-   writeBin(TYPE_ID_CALLBACK, pkgLocal$con)
+   writeBin(TYPE_ID_CALLBACK, pkgLocal$out)
    callbackId <- registerCallback(elem)
    writeString(callbackId)
 }
 
 
 writeObjectReference <- function(objectClassId, ref) {
-   writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$con)
-   writeBin(objectClassId, pkgLocal$con)
-   writeBin(ref, pkgLocal$con)
+   writeBin(TYPE_ID_OBJECT_REFERENCE, pkgLocal$out)
+   writeBin(objectClassId, pkgLocal$out)
+   writeBin(ref, pkgLocal$out)
 }
 
 
 writeElement <- function(elem) {
 
    if (is.null(elem)) {
-      writeBin(TYPE_ID_NULL, pkgLocal$con)
+      writeBin(TYPE_ID_NULL, pkgLocal$out)
       return()
    }
 
@@ -118,7 +183,7 @@ writeElement <- function(elem) {
       writeObjectReference(as.raw(OBJECT_CLASS_ID_NO_INFO),
                            get("ref", elem))
    } else if (inherits(elem, "data.frame")) {
-      writeBin(TYPE_ID_LIST, pkgLocal$con)
+      writeBin(TYPE_ID_LIST, pkgLocal$out)
       elem <- as.list(elem)
       attr(elem, "IS_DF") <- TRUE
       writeList(elem)
@@ -134,33 +199,31 @@ writeElement <- function(elem) {
 
       if (typeId <= TYPE_ID_RAW) {
          # all types with a clearly defined number of bytes in R
-         writeBin(typeId, pkgLocal$con)
+         writeBin(typeId, pkgLocal$out)
          writeInt(dimensions(elem))
          writeArray(elem, size = TYPE_SIZES[[elemType]])
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_INTEGER) {
-         writeBin(TYPE_ID_INTEGER, pkgLocal$con)
+         writeBin(TYPE_ID_INTEGER, pkgLocal$out)
          writeInt(dimensions(elem))
          writeArray(as.integer(elem), size = 4L)
          writeAttributes(attributes(elem))
       } else if (typeId == TYPE_ID_LOGICAL) {
          if (anyNA(elem)) {
-            writeBin(TYPE_ID_INTEGER, pkgLocal$con)
+            writeBin(TYPE_ID_INTEGER, pkgLocal$out)
             writeInt(dimensions(elem))
             writeArray(as.integer(elem), size = 4L)
             writeAttributes(list("JLTYPE" = "Union{Missing, Bool}"))
          } else {
-            writeBin(TYPE_ID_LOGICAL, pkgLocal$con)
+            writeBin(TYPE_ID_LOGICAL, pkgLocal$out)
             writeInt(dimensions(elem))
             writeArray(as.logical(elem), size = 1L)
          }
       } else if (typeId == TYPE_ID_STRING) {
          if (is.null(attr(elem, "JLEXPR"))) {
-            writeBin(TYPE_ID_STRING, pkgLocal$con)
+            writeBin(TYPE_ID_STRING, pkgLocal$out)
             writeInt(dimensions(elem))
-            for (i in seq_along(elem)) {
-               writeString(elem[i])
-            }
+            writeStrings(elem)
             if (anyNA(elem)) {
                attr(elem, "NA") <- which(is.na(elem))
             }
@@ -169,10 +232,10 @@ writeElement <- function(elem) {
             writeExpression(elem)
          }
       } else if (typeId == TYPE_ID_LIST) {
-         writeBin(typeId, pkgLocal$con)
+         writeBin(typeId, pkgLocal$out)
          writeList(elem)
       } else if (typeId == TYPE_ID_SYMBOL) {
-         writeBin(typeId, pkgLocal$con)
+         writeBin(typeId, pkgLocal$out)
          writeString(as.character(elem))
       }
    }
@@ -180,7 +243,7 @@ writeElement <- function(elem) {
 
 
 writeExpression <- function(str) {
-   writeBin(TYPE_ID_EXPRESSION, pkgLocal$con)
+   writeBin(TYPE_ID_EXPRESSION, pkgLocal$out)
    writeString(str)
 }
 
@@ -218,12 +281,16 @@ writeList <- function(theList) {
 
 
 writeFailMessage <- function(msgStr) {
-   writeBin(FAIL_INDICATOR, pkgLocal$con)
+   beginMessage()
+   writeBin(FAIL_INDICATOR, pkgLocal$out)
    writeString(msgStr)
+   sendBuffered()
 }
 
 writeResultMessage <- function(result) {
-   writeBin(RESULT_INDICATOR, pkgLocal$con)
+   beginMessage()
+   writeBin(RESULT_INDICATOR, pkgLocal$out)
    writeElement(result)
+   sendBuffered()
 }
 

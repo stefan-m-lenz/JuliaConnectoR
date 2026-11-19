@@ -156,9 +156,7 @@ juliaCall <- function(...) {
 
 
 doCallJulia <- function(name, jlargs) {
-   writeBin(CALL_INDICATOR, pkgLocal$con)
-   writeString(name)
-   writeList(jlargs)
+   writeCallMessage(name, jlargs)
    messageType <- handleCallbacksAndOutput()
    if (messageType == RESULT_INDICATOR) {
       return(readElement())
