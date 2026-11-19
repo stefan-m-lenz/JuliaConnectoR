@@ -444,8 +444,10 @@ end
 
 # The ioctl request for the number of bytes waiting in a pipe, or 0 if unknown.
 # (poll() would also tell, but costs about 10 us on macOS.)
+# On Linux, the value differs on some architectures (e.g. powerpc, mips).
 const FIONREAD = Sys.isapple() || Sys.isbsd() ? Culong(0x4004667f) :
-                 Sys.islinux() ? Culong(0x541B) : Culong(0)
+      Sys.islinux() && Sys.ARCH in (:x86_64, :i686, :aarch64, :armv7l, :armv6l,
+         :riscv64) ? Culong(0x541B) : Culong(0)
 
 # Whether the pipe holds data that has not been read yet
 # (data that the event loop has not handed to the reader),
