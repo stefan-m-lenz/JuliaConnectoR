@@ -56,5 +56,6 @@ include("evaluating.jl")
 include("writing.jl")
 include("exporting.jl")
 include("accessing_mutating.jl")
+include("categorical.jl")
 
 end

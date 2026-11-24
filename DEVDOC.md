@@ -1,5 +1,35 @@
 # Serialization Grammar
 
+## Testing categorical factor conversion
+
+`juliaCategorical()` uses the optional Julia package CategoricalArrays.jl.
+The server includes `inst/Julia/categorical.jl` at startup, but imports the
+package only on the first valid conversion. Conversion never installs packages.
+The helper uses public CategoricalArrays APIs and `Base.invokelatest` to support
+the first call immediately after the lazy import.
+
+Install the R package into a development library, then run the focused tests:
+
+```r
+Sys.setenv(NOT_CRAN = "true")
+testthat::test_local(filter = "juliaCategorical")
+```
+
+These tests install CategoricalArrays.jl in the active Julia environment if it
+is absent, following the existing optional Julia package test convention. For
+offline testing, install it beforehand with
+`juliaEval('import Pkg; Pkg.add("CategoricalArrays")')`. Missing dependencies,
+installation failures and Julia runtime errors fail the tests outside CRAN;
+only `skip_on_cran()` suppresses these tests. Both CI workflows explicitly set
+`NOT_CRAN=true` and install CategoricalArrays before running checks, because
+R CMD check runs documentation examples before tests. The focused tests also
+execute the generated Rd examples.
+
+Regenerate `man/juliaCategorical.Rd` with `roxygen2::roxygenise()`. The repository
+maintains `NAMESPACE` manually, including the export for `juliaCategorical`.
+
+## Protocol
+
     message = '0x01' call
             | '0x00' element
             | '0x50' output

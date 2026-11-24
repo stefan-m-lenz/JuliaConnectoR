@@ -23,6 +23,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: "true"
 
     steps:
       - uses: actions/checkout@v2
@@ -52,6 +53,11 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.config.julia }}
+
+      # Examples run before tests in R CMD check, so provision their optional
+      # dependency here instead of relying on installation inside the tests.
+      - name: Install categorical example dependency
+        run: julia -e 'import Pkg; Pkg.add("CategoricalArrays")'
 
       - name: Make sure the JuliaConnectoR will pick up the right Julia version
         run: |
