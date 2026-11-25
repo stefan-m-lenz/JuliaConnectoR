@@ -205,9 +205,94 @@ test_that("Echo: 1-element vector of String in R", {testEcho("bla")})
 test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
 
-test_that("Factor are translated as integer vectors to Julia", {
-   x <- as.factor(c("a", "a", "b", "c", "c", "c"))
-   expect_equal(as.integer(x), juliaEcho(x))
+categoricalArraysLoadable <- function() {
+   juliaEval('Base.locate_package(Base.PkgId(
+      Base.UUID("324d7699-5711-5eae-9e2f-1d82baa6b597"), "CategoricalArrays")) !== nothing')
+}
+
+test_that("Factors are translated to CategoricalArrays or strings in Julia", {
+   x <- factor(c("b", "a", NA, "b"), levels = c("a", "b", "unused"))
+   expect_true(juliaLet('isequal([ismissing(v) ? v : string(v) for v in x], ["b", "a", missing, "b"])',
+                        x = x))
+
+   if (categoricalArraysLoadable()) {
+      expect_true(juliaLet('x isa AbstractVector && nameof(typeof(x)) == :CategoricalArray', x = x))
+      expect_identical(juliaEcho(x), x)
+
+      x <- factor(c("lo", "hi"), levels = c("lo", "hi"), ordered = TRUE)
+      expect_identical(juliaEcho(x), x)
+      expect_true(juliaLet("x isa AbstractVector && x[1] < x[2]", x = x))
+
+      expect_true(juliaLet('nameof(typeof(x)) == :CategoricalValue', x = factor("a")))
+      expect_identical(juliaEcho(factor("a")), factor("a"))
+   } else {
+      expect_identical(juliaEcho(x), as.character(x))
+      expect_identical(juliaEcho(factor("a")), "a")
+   }
+
+   # (a factor with an NA level stays an integer vector)
+   expect_equal(juliaEcho(factor(c("a", NA), exclude = NULL)), c(1L, 2L))
+})
+
+
+test_that("Dates are translated", {
+   juliaEval("import Dates")
+   x <- as.Date(c("2026-11-19", NA, "1969-12-31"))
+   expect_true(juliaLet('x isa Vector{Union{Missing, Dates.Date}}', x = x))
+   expect_true(juliaLet('isequal(x, [Dates.Date(2026, 11, 19), missing, Dates.Date(1969, 12, 31)])',
+                        x = x))
+   expect_identical(juliaEcho(x), x)
+   expect_true(juliaLet('x == Dates.Date(2026, 11, 19)', x = as.Date("2026-11-19")))
+   expect_true(juliaLet('x == Dates.Date(2024, 10, 4)', x = structure(20000L, class = "Date")))
+
+   x <- structure(as.Date("2026-01-01") + 0:3, dim = c(2L, 2L))
+   expect_identical(juliaEcho(x), x)
+
+   expect_identical(juliaEval("Dates.Date(2026, 11, 19)"), as.Date("2026-11-19"))
+   expect_identical(juliaEval("collect(Dates.Date(2026, 1, 30):Dates.Day(1):Dates.Date(2026, 2, 2))"),
+                    as.Date("2026-01-30") + 0:3)
+})
+
+
+test_that("Date-times are translated", {
+   juliaEval("import Dates")
+   x <- as.POSIXct(c("2026-11-19 12:34:56.789", NA), tz = "UTC")
+   expect_true(juliaLet('isequal(x, [Dates.DateTime(2026, 11, 19, 12, 34, 56, 789), missing])',
+                        x = x))
+   y <- juliaEcho(x)
+   expect_s3_class(y, "POSIXct")
+   expect_equal(as.numeric(y), as.numeric(x), tolerance = 1e-12)
+   expect_identical(attr(y, "tzone"), "UTC")
+
+   # in another time zone, the instant is kept
+   x <- as.POSIXct("2026-11-19 12:00:00", tz = "America/New_York")
+   expect_true(juliaLet('x == Dates.DateTime(2026, 11, 19, 17, 0, 0)', x = x))
+   expect_equal(as.numeric(juliaEcho(x)), as.numeric(x))
+
+   x <- as.POSIXlt("2026-11-19 01:02:03", tz = "UTC")
+   expect_true(juliaLet('x == Dates.DateTime(2026, 11, 19, 1, 2, 3)', x = x))
+
+   expect_equal(juliaEval("Dates.DateTime(2026, 11, 19, 1, 2, 3)"),
+                as.POSIXct("2026-11-19 01:02:03", tz = "UTC"))
+})
+
+
+test_that("Dates and factors in data frames are translated", {
+   juliaEval("import Dates")
+   df <- data.frame(d = as.Date("2026-01-01") + 0:2,
+                    t = as.POSIXct("2026-01-01 10:00:00", tz = "UTC") + 0:2,
+                    f = factor(c("x", "y", "x")))
+   expect_true(juliaLet('Tables.getcolumn(x, :d) == Dates.Date(2026, 1, 1) .+ Dates.Day.(0:2)',
+                        x = df))
+
+   y <- as.data.frame(juliaEcho(df))
+   expect_identical(y$d, df$d)
+   expect_equal(as.numeric(y$t), as.numeric(df$t))
+   if (categoricalArraysLoadable()) {
+      expect_identical(y$f, df$f)
+   } else {
+      expect_identical(y$f, as.character(df$f))
+   }
 })
 
 test_that("Echo: String with missing values", {

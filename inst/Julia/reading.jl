@@ -212,10 +212,18 @@ function read_element(communicator)
       if typeid == TYPE_ID_FLOAT64
          ret = read_float64s_with_missings(communicator, nelements)
          attributes = read_attributes(communicator)
+         converted = convert_r_class(ret, attributes, dimensions)
+         if converted !== nothing
+            return converted
+         end
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_INT
          ret = read_ints_with_missings(communicator, nelements)
          attributes = read_attributes(communicator)
+         converted = convert_r_class(ret, attributes, dimensions)
+         if converted !== nothing
+            return converted
+         end
          return convert_reshape_element(ret, attributes, dimensions)
       elseif typeid == TYPE_ID_BOOL
          ret = read_bools(communicator, nelements)

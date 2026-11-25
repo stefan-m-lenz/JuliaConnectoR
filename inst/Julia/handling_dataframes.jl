@@ -53,6 +53,14 @@ function r_compatible_type(t::Type{Union{Missing, T}}) where T <: Union{Number, 
    Union{Missing, r_compatible_type(T)}
 end
 
+function r_compatible_type(t::Type{T}) where T <: Union{Dates.Date, Dates.DateTime}
+   T
+end
+
+function r_compatible_type(t::Type{Union{Missing, T}}) where T <: Union{Dates.Date, Dates.DateTime}
+   Union{Missing, T}
+end
+
 function r_compatible_type(t::Type{T}) where T <: Any
    error("Column type \"$(T)\" cannot be translated to a type that can be used in an R data frame")
 end
@@ -71,7 +79,13 @@ function get_df(obj)
    cols = columns(obj)
    colnames = columnnames(cols)
    for col in columnnames(cols)
-      coldict[Symbol(col)] = convert_to_r_compatible_type(getcolumn(cols, col))
+      column = getcolumn(cols, col)
+      if is_categorical(column)
+         # (translated to a factor)
+         coldict[Symbol(col)] = column
+      else
+         coldict[Symbol(col)] = convert_to_r_compatible_type(column)
+      end
    end
    colnamesarr = Symbol.(collect(colnames))
 

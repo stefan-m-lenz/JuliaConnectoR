@@ -3,6 +3,7 @@ module RConnector
 using Sockets
 using Logging
 import REPL
+import Dates
 import Main.Tables: istable, columnaccess,
                     columns, AbstractColumns,
                     getcolumn, columnnames
@@ -52,6 +53,7 @@ include("sharing.jl")
 include("handling_undefined.jl")
 include("reading.jl")
 include("handling_dataframes.jl")
+include("handling_dates_factors.jl")
 include("evaluating.jl")
 include("writing.jl")
 include("exporting.jl")
