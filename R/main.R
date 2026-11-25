@@ -107,7 +107,7 @@ finalize <- function(env) {
 #' All arguments to the Julia function are translated to Julia data structures.
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    juliaCall("/", 4, 2)
 #'    juliaCall("Base.div", 4, 2)
@@ -203,6 +203,7 @@ releaseFinalizedRefs <- function() {
 #'
 #' @examples
 #' if (juliaSetupOk()) {
+#'
 #'    juliaEval("1 + 2")
 #'    juliaEval('using Random; Random.seed!(5);')
 #'

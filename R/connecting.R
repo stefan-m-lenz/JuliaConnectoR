@@ -120,7 +120,7 @@ getJuliaEnv <- function() {
 #' @seealso \link{JULIACONNECTOR_SERVER}
 #'
 #' @examples
-#' if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'    library(JuliaConnectoR)
 #'    library(future)
 #'

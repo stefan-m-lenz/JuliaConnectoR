@@ -208,7 +208,7 @@ getAbsoluteModulePath <- function(moduleArg) {
 #' @export
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    # Importing a package and using one of its exported functions
 #'    UUIDs <- juliaImport("UUIDs")
