@@ -55,7 +55,7 @@ This is currently the last client that has connected but this may be subject
 to change.
 }
 \examples{
-if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
    library(JuliaConnectoR)
    library(future)
 

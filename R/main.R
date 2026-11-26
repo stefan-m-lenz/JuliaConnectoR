@@ -202,7 +202,7 @@ releaseFinalizedRefs <- function() {
 #' is a semicolon.
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    juliaEval("1 + 2")
 #'    juliaEval('using Random; Random.seed!(5);')
@@ -231,7 +231,7 @@ juliaEval <- function(expr) {
 #'    The resulting function will be called using these arguments.
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    # Wrap a Julia function and use it
 #'    juliaSqrt <- juliaFun("sqrt")
@@ -284,7 +284,7 @@ juliaFun <- function(name, ...) {
 #' @param expr a character vector which should contain one string
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    # Create complicated objects like version strings in Julia, and compare them
 #'    v1 <- juliaExpr('v"1.0.1"')
@@ -364,7 +364,7 @@ juliaGet.JuliaProxy <- function(x) {
 #' @param x an R object (can also be a translated Julia object)
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    # Transfer a large vector to Julia and use it in multiple calls
 #'    x <- juliaPut(rnorm(100))
@@ -423,7 +423,7 @@ juliaPut <- function(x) {
 #' If Julia returns \code{nothing}, an invisible \code{NULL} is returned.
 #'
 #' @examples
-#' if (juliaSetupOk()) {
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
 #'    # Intended use: Create a complex Julia object
 #'    # using Julia syntax and data from the R workspace
