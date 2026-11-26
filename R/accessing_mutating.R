@@ -35,7 +35,7 @@
 #' @examples
 #'
 #' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
-#'message("Executing Julia example")
+#'
 #'    # (Mutable) struct
 #'    juliaEval("mutable struct MyStruct
 #'                  x::Int

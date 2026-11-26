@@ -121,6 +121,7 @@ getJuliaEnv <- function() {
 #'
 #' @examples
 #' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+#'
 #'    library(JuliaConnectoR)
 #'    library(future)
 #'
