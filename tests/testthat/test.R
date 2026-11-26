@@ -106,6 +106,33 @@ test_that("Warnings and normal output are both transferred and stable", {
 })
 
 
+test_that("All output is transferred before the result", {
+   for (n in c(1, 100, 100000)) {
+      stderroutput <- NULL
+      stdoutput <- capture.output({
+         stderroutput <- capture.output(type = "message", {
+            ret <- juliaLet('print(repeat("a", n)); print(stderr, repeat("b", n)); 17',
+                            n = as.integer(n))
+         })
+      })
+      expect_equal(ret, 17)
+      expect_equal(paste(stdoutput, collapse = ""), strrep("a", n))
+      expect_equal(paste(stderroutput, collapse = ""), strrep("b", n))
+   }
+})
+
+
+test_that("Output written to the file descriptor is transferred before the result", {
+   # (written by C code, the output does not pass through Julia's event loop)
+   skip_on_os("windows")
+   output <- capture.output({
+      ret <- juliaEval('ccall(:write, Cssize_t, (Cint, Ptr{UInt8}, Csize_t), 1, "fd-output\\n", 10); 17')
+   })
+   expect_equal(ret, 17)
+   expect_equal(output, "fd-output")
+})
+
+
 test_that("A return value of nothing is not printed", {
    output <- capture_output({
       juliaEval("nothing")
@@ -204,6 +231,17 @@ test_that("Echo: 0-element vector of String in Julia", {testEcho("String[]")})
 test_that("Echo: 1-element vector of String in R", {testEcho("bla")})
 test_that("Echo: 2-element vector of String in R", {testEcho(c("bla", "blup"))})
 test_that("Echo: 2-element vector of String in Julia", {testEcho(juliaEval('String["bla", "blup"]'))})
+
+test_that("Echo: String vectors with empty, non-ASCII and long strings", {
+   x <- c("a", "", "ä中", NA, "", "z")
+   expect_identical(juliaEcho(x), x)
+   expect_identical(juliaCall("length", x), length(x))
+
+   # more than 64 KB, which are sent without copying them into the message buffer
+   x <- c("start", strrep("ä", 40000), "", NA, as.character(1:10000))
+   expect_identical(juliaEcho(x), x)
+   expect_identical(juliaLet("ncodeunits(x[2])", x = x), 80000L)
+})
 
 test_that("Factor are translated as integer vectors to Julia", {
    x <- as.factor(c("a", "a", "b", "c", "c", "c"))

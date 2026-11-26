@@ -49,6 +49,15 @@ mutable struct CommunicatoR{T}
    # make changing finalized_callbacks and registered_callbacks thread safe
    # (needed due to asynchronicity of finalization)
    callbacks_lock::ReentrantLock
+
+   # The message being written, sent to R in one piece by `send_buffered`.
+   # Each write to the socket waits for the event loop, so writing the parts
+   # of a message one by one dominated the time of calls with small results.
+   # Guarded by io_lock, like the messages themselves.
+   outbuf::IOBuffer
+
+   # the tasks sending stdout and stderr to R (see redirect_outputstream)
+   forwarders::Vector{Any}
 end
 
 function CommunicatoR(io)
@@ -61,13 +70,51 @@ function CommunicatoR(io)
       false,
       Vector{String}(),
       Dict{Function, String}(),
-      ReentrantLock()
+      ReentrantLock(),
+      IOBuffer(),
+      Any[]
    )
 end
 
 
+# Arrays of at least this many bytes are written to the socket directly
+# instead of being copied into the message buffer first
+const DIRECT_WRITE_MIN = 65536
+
 function write_bin(c::CommunicatoR, x)
-   write(c.io, x)
+   write(c.outbuf, x)
+end
+
+function write_bin(c::CommunicatoR, x::Array)
+   if sizeof(x) < DIRECT_WRITE_MIN
+      write(c.outbuf, x)
+   else
+      # the part of the message before the array goes first
+      send_buffered(c)
+      write(c.io, x)
+   end
+end
+
+# Sends what has been buffered of the current message to R
+function send_buffered(c::CommunicatoR)
+   if position(c.outbuf) > 0
+      write(c.io, take!(c.outbuf))
+   end
+   nothing
+end
+
+function begin_message(c::CommunicatoR)
+   lock(c.io_lock)
+   # (a message that failed while it was written must not be sent in part)
+   truncate(c.outbuf, 0)
+end
+
+function end_message(c::CommunicatoR)
+   try
+      send_buffered(c)
+   finally
+      unlock(c.io_lock)
+   end
 end
 
 
@@ -257,19 +304,36 @@ function callanonymous(communicator::CommunicatoR, functionref::Vector{UInt8},
 end
 
 
+# Upper bound on the rounds that output pending in a pipe is waited for,
+# in case a task keeps writing to it
+const MAX_OUTPUT_ROUNDS = 100
+
 function start_result_message(c::CommunicatoR)
    # Ensure that output is transferred before the result:
    # Let the tasks redirecting the outputstreams take over
-   # (see function redirect_outputstream)
-   flush(c.io)
-   flush(stdout)
-   yield()
-   flush(stderr)
-   yield()
+   # (see function redirect_outputstream).
+   # Each round waits for the event loop twice and costs more than a small
+   # call itself, so it is skipped when no output is pending.
+   for _ in 1:MAX_OUTPUT_ROUNDS
+      pending = output_pending(c)
+      if pending === false
+         break
+      end
+
+      flush(stdout)
+      yield()
+      flush(stderr)
+      yield()
+
+      if pending === missing
+         # can't tell whether output is left: one round, as ever
+         break
+      end
+   end
 
    # after the output is handled,
    # take control of the outputstream to send the result
-   lock(c.io_lock)
+   begin_message(c)
 end
 
 start_fail_message = start_result_message
@@ -281,7 +345,7 @@ function end_result_message(c::CommunicatoR)
    empty!(c.objrefs)
 
    # release lock of outputstream for next call
-   unlock(c.io_lock)
+   end_message(c)
 end
 
 end_fail_message = end_result_message
@@ -289,12 +353,12 @@ end_callback_message = end_result_message
 
 
 function start_output_message(c::CommunicatoR)
-   lock(c.io_lock)
+   begin_message(c)
 end
 
 
 function end_output_message(c::CommunicatoR)
-   unlock(c.io_lock)
+   end_message(c)
 end
 
 
@@ -317,14 +381,89 @@ function capture_outputstreams(communicator::CommunicatoR)
 end
 
 
+mutable struct OutputForwarder
+   # the read end of the pipe that the output stream is redirected to
+   reader::Any
+
+   # its file descriptor, or -1 if it can't be polled (see pipe_readable)
+   fd::Cint
+
+   # whether output that has been read from the pipe is being sent to R
+   sending::Bool
+end
+
+function OutputForwarder(reader)
+   fd = Cint(-1)
+   @static if !Sys.iswindows()
+      try
+         fd = Base.cconvert(Cint, Base._fd(reader))
+      catch
+      end
+   end
+   OutputForwarder(reader, fd, false)
+end
+
+
 # Starts an asynchronous task that sends the output to R
 function redirect_outputstream(communicator::CommunicatoR, reader,
       output_type_indicator::UInt8)
 
+   forwarder = OutputForwarder(reader)
+   push!(communicator.forwarders, forwarder)
+
    @async while isopen(communicator.io) && isopen(reader)
       iobuffer = readavailable(reader)
-      write_output_message(communicator, iobuffer, output_type_indicator)
+      forwarder.sending = true
+      try
+         write_output_message(communicator, iobuffer, output_type_indicator)
+      finally
+         forwarder.sending = false
+      end
    end
+end
+
+
+# Whether output may still have to be sent to R before a result:
+# `true` or `false`, or `missing` if that can't be told.
+function output_pending(c::CommunicatoR)
+   ret = false
+   for forwarder in c.forwarders
+      if forwarder.sending || bytesavailable(forwarder.reader) > 0
+         return true
+      end
+      readable = pipe_readable(forwarder)
+      if readable === true
+         return true
+      elseif readable === missing
+         ret = missing
+      end
+   end
+   ret
+end
+
+
+# The ioctl request for the number of bytes waiting in a pipe, or 0 if unknown.
+# (poll() would also tell, but costs about 10 us on macOS.)
+# On Linux, the value differs on some architectures (e.g. powerpc, mips).
+const FIONREAD = Sys.isapple() || Sys.isbsd() ? Culong(0x4004667f) :
+      Sys.islinux() && Sys.ARCH in (:x86_64, :i686, :aarch64, :armv7l, :armv6l,
+         :riscv64) ? Culong(0x541B) : Culong(0)
+
+# Whether the pipe holds data that has not been read yet
+# (data that the event loop has not handed to the reader),
+# or `missing` if that can't be told
+function pipe_readable(forwarder::OutputForwarder)
+   if forwarder.fd < 0 || FIONREAD == 0
+      return missing
+   end
+
+   nbytes = Ref{Cint}(0)
+   # (ioctl is variadic, which matters for the calling convention on arm64 macOS)
+   if ccall(:ioctl, Cint, (Cint, Culong, Ptr{Cint}...),
+         forwarder.fd, FIONREAD, nbytes) != 0
+      return missing
+   end
+   nbytes[] > 0
 end
 
 
