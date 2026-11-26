@@ -18,7 +18,7 @@ This is useful to prevent that large R vectors / matrices
 are repeatedly translated when using an object in multiple calls to Julia.
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
    # Transfer a large vector to Julia and use it in multiple calls
    x <- juliaPut(rnorm(100))

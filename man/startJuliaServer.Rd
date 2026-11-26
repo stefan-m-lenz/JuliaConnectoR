@@ -39,7 +39,10 @@ Unsetting the variable will result in a normal Julia start-up in the first
 call to Julia, using a single-client Julia session.
 
 For security reasons, the Julia server accepts only connections
-from localhost.
+from localhost, and only from clients that know the server's token.
+The function communicates the token via the
+\env{JULIACONNECTOR_TOKEN} environment variable,
+which child processes inherit along with \env{JULIACONNECTOR_SERVER}.
 
 For using Julia with multiple clients, it can be good to advise Julia to
 use multiple threads via setting the \env{JULIA_NUM_THREADS} environment
@@ -52,48 +55,29 @@ This is currently the last client that has connected but this may be subject
 to change.
 }
 \examples{
-if (juliaSetupOk() && Sys.getenv("NOT_CRAN") == "true") {
-   library(JuliaConnectoR)
-   library(future)
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+   stopJulia() # ensure to start fresh
 
-   # 1) Start a shared Julia TCP server in the main R session, which may use all CPU threads
-   Sys.setenv("JULIA_NUM_THREADS" = parallel::detectCores())
-   stopJulia() # stop current Julia connection before starting server
    startJuliaServer()
 
-   # 2) Create R workers
    cl <- parallelly::makeClusterPSOCK(workers = 2)
 
-   # 3) Warm-up R workers, load Julia and execute first Julia function
-   # (In practice, you could, e.g., trigger Julia pre-compilation here.)
-   parallel::clusterEvalQ(cl, {
-      library(JuliaConnectoR)
-      JuliaConnectoR::juliaEval("1")  # open Julia TCP connection on each worker
+   # Worker 1 creates a variable in the shared Julia session.
+   parallel::clusterCall(cl[1], function() {
+      JuliaConnectoR::juliaEval("global shared_value = 42")
    })
 
-   ## 4) Re-Use those warmed workers for use via futures
-   plan(cluster, workers = cl)
+   # Worker 2 reads the same variable.
+   result <- parallel::clusterCall(cl[2], function() {
+      JuliaConnectoR::juliaEval("shared_value")
+   })
 
-   ## 5) Create a global variable for demonstration purposes (and stay thread safe)
-   juliaEval("global const counter = Threads.Atomic{Int}(0)")
+   print(result[[1]])
+   stopifnot(result[[1]] == 42)
 
-   incrementCounter <- function() {
-      JuliaConnectoR::juliaEval("Threads.atomic_add!(counter, 1)")
-   }
 
-   ## 6) Execute futures via worker-pool
-   f1 <- future({incrementCounter()})
-   f2 <- future({incrementCounter()})
-   value(f1)
-   value(f2)
+   try(parallel::stopCluster(cl), silent = TRUE)
 
-   # Reading the value should demonstrate that the
-   # global variable is shared across workers.
-   juliaEval("counter[]")
-
-   ## 7) Cleanup
-   plan(sequential)
-   parallel::stopCluster(cl)
    stopJulia()
 
 }

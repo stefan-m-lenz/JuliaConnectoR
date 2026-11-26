@@ -1080,7 +1080,68 @@ test_that("Starting and stopping Julia server" , {
 
    stopJulia()
    expect_equal(Sys.getenv("JULIACONNECTOR_SERVER"), "")
+   expect_equal(Sys.getenv("JULIACONNECTOR_TOKEN"), "")
    expect_null(JuliaConnectoR:::pkgLocal$con)
+})
+
+
+# Whether the server closes the connection, sending nothing first,
+# within the timeout (in seconds).
+isConnectionClosedByServer <- function(con, timeout) {
+   socketSelect(list(con), timeout = timeout) &&
+      length(readBin(con, "raw", 1L)) == 0L
+}
+
+
+test_that("Julia serves only clients that send the token", {
+   stopJulia()
+   oldJuliaConnectorServer <- Sys.getenv("JULIACONNECTOR_SERVER")
+   oldJuliaConnectorToken <- Sys.getenv("JULIACONNECTOR_TOKEN")
+
+   server <- JuliaConnectoR:::runJuliaServer(multiclient = FALSE)
+   expect_match(server$token, "^[0-9a-f]{64}$")
+
+   # A client that connects first, with a wrong token, is disconnected ...
+   wrongToken <- paste(rev(strsplit(server$token, "")[[1]]), collapse = "")
+   intruder <- JuliaConnectoR:::juliaSocketConnection("localhost", server$port,
+                                                      timeout = 10,
+                                                      token = wrongToken)
+   expect_true(isConnectionClosedByServer(intruder, 5))
+   close(intruder)
+
+   # ... as is a client that sends no token but a call ...
+   intruder <- JuliaConnectoR:::juliaSocketConnection("localhost", server$port,
+                                                      timeout = 10)
+   writeBin(c(JuliaConnectoR:::CALL_INDICATOR, as.raw(rep(0L, 63L))), intruder)
+   expect_true(isConnectionClosedByServer(intruder, 5))
+   close(intruder)
+
+   # ... and the client with the token is served
+   Sys.setenv("JULIACONNECTOR_SERVER" = paste0("localhost:", server$port),
+              "JULIACONNECTOR_TOKEN" = server$token)
+   expect_equal(juliaEval("1 + 1"), 2)
+   stopJulia()
+
+   # with startJuliaServer(), clients without the token are not served either
+   port <- startJuliaServer()
+   intruder <- JuliaConnectoR:::juliaSocketConnection("localhost", port,
+                                                      timeout = 10,
+                                                      token = wrongToken)
+   expect_true(isConnectionClosedByServer(intruder, 5))
+   close(intruder)
+   expect_equal(juliaEval("1 + 1"), 2)
+   stopJulia()
+
+   if (oldJuliaConnectorServer == "") {
+      Sys.unsetenv("JULIACONNECTOR_SERVER")
+   } else {
+      Sys.setenv("JULIACONNECTOR_SERVER" = oldJuliaConnectorServer)
+   }
+   if (oldJuliaConnectorToken == "") {
+      Sys.unsetenv("JULIACONNECTOR_TOKEN")
+   } else {
+      Sys.setenv("JULIACONNECTOR_TOKEN" = oldJuliaConnectorToken)
+   }
 })
 
 

@@ -24,7 +24,8 @@ If the code needs to use R variables, consider using \code{juliaLet}
 instead.
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+
    juliaEval("1 + 2")
    juliaEval('using Random; Random.seed!(5);')
 

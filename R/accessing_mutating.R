@@ -33,48 +33,56 @@
 #'    the length of the replacement must match the number of elements to replace.
 #' @name AccessMutate.JuliaProxy
 #' @examples
-#' \dontrun{#'
-#' # (Mutable) struct
-#' juliaEval("mutable struct MyStruct
-#'               x::Int
-#'            end")
 #'
-#' MyStruct <- juliaFun("MyStruct")
-#' s <- MyStruct(1L)
-#' s$x
-#' s$x <- 2
-#' s[["x"]]
+#' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 #'
-#' # Array
-#' x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))
-#' x
-#' length(x)
-#' x[[1]]
-#' x[[1]]$x
-#' x[[1]] <- MyStruct(2L)
-#' x[2:3]
-#' x[2:3] <- MyStruct(2L)
-#' x
+#'    # (Mutable) struct
+#'    juliaEval("mutable struct MyStruct
+#'                  x::Int
+#'               end")
 #'
-#' # Tuple
-#' x <- juliaEval("(1, 2, 3)")
-#' x[[1]]
-#' x[1:2]
-#' length(x)
+#'    MyStruct <- juliaFun("MyStruct")
+#'    s <- MyStruct(1L)
+#'    s$x
+#'    s$x <- 2
+#'    s[["x"]]
 #'
-#' # NamedTuple
-#' x <- juliaEval("(a=1, b=2)")
-#' x$a
+#'    # Array
+#'    x <- juliaCall("map", MyStruct, c(1L, 2L, 3L))
+#'    x
+#'    length(x)
+#'    x[[1]]
+#'    x[[1]]$x
+#'    x[[1]] <- MyStruct(2L)
+#'    x[2:3]
+#'    x[2:3] <- MyStruct(2L)
+#'    x
 #'
-#' # Dictionary
-#' strDict <- juliaEval('Dict("hi" => 1, "hello" => 2)')
-#' strDict
-#' strDict$hi
-#' strDict$hi <- 0
-#' strDict[["hi"]] <- 2
-#' strDict["howdy", "greetings"] <- c(2, 3)
-#' strDict["hi", "howdy"]
+#'    # Tuple
+#'    x <- juliaEval("(1, 2, 3)")
+#'    x[[1]]
+#'    x[1:2]
+#'    length(x)
 #'
+#'    # NamedTuple
+#'    x <- juliaEval("(a=1, b=2)")
+#'    x$a
+#'
+#'    # Dictionary
+#'    strDict <- juliaEval('Dict("hi" => 1, "hello" => 2)')
+#'    strDict
+#'    strDict$hi
+#'    strDict$hi <- 0
+#'    strDict[["hi"]] <- 2
+#'    strDict["howdy", "greetings"] <- c(2, 3)
+#'    strDict["hi", "howdy"]
+#'
+#' }
+#' \dontshow{
+#'    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+#'       rm(MyStruct, s, x, strDict)
+#'       JuliaConnectoR:::stopJulia()
+#'    }
 #' }
 NULL
 

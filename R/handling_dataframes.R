@@ -13,6 +13,7 @@
 #' @examples
 #' \dontshow{
 #'    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+#'
 #'       Pkg <- juliaImport("Pkg")
 #'       if (juliaEval('VERSION < v"1.6"')) {
 #'          subproject <- "1_0"
@@ -27,9 +28,9 @@
 #'       # ignore warnings on Julia 1.0:
 #'       capture.output(juliaImport("IndexedTables"), type = "message")
 #'    }
+#'
 #' }
 #' if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
-#'    # (This example is not run on CRAN as it takes a little too long.)
 #'
 #'    # Demonstrate the usage with the Julia package "IndexedTables" (v1.0)
 #'
@@ -58,8 +59,8 @@
 #'
 #' \dontshow{
 #'    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
-#'       stopJulia()
 #'       rm(mytbl, seltbl)
+#'       stopJulia()
 #'    }
 #' }
 as.data.frame.JuliaProxy <- function(x, ...) {

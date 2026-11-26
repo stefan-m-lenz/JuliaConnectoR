@@ -42,7 +42,7 @@ using the keyword \code{global} in front of the Julia variables
 (see examples).
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
    # Intended use: Create a complex Julia object
    # using Julia syntax and data from the R workspace

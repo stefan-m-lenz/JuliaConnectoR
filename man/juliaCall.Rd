@@ -21,7 +21,7 @@ It is also possible to use a dot at the end of the function name
 for applying the function in a vectorized manner via "broadcasting" in Julia.
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
    juliaCall("/", 4, 2)
    juliaCall("Base.div", 4, 2)

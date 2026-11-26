@@ -18,7 +18,7 @@ when it is called. Like any R function, the returned function can
 also be passed as a function argument to Julia functions.
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
    # Wrap a Julia function and use it
    juliaSqrt <- juliaFun("sqrt")

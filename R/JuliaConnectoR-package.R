@@ -234,9 +234,17 @@
 #'   Due to security concerns, the Julia server accepts only connections from
 #'   the same machine and connecting to remote machines is currently not
 #'   possible.}
+#' \item{\env{JULIACONNECTOR_TOKEN}:}{The token that the Julia server
+#'   at \env{JULIACONNECTOR_SERVER} requires from its clients.
+#'   The function \code{\link{startJuliaServer}} sets this variable along with
+#'   \env{JULIACONNECTOR_SERVER}, so that only processes that know the token
+#'   (such as child processes) can use the server.
+#'   If the server has been started without a token, the variable must not
+#'   be set.}
 #' }
 #'
 #' @aliases JULIA_BINDIR JULIACONNECTOR_JULIAENV JULIACONNECTOR_SERVER
+#'   JULIACONNECTOR_TOKEN
 #' @name EnvVars-JuliaConnectoR
 NULL
 

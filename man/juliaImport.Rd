@@ -42,7 +42,7 @@ alternative names.
 (See also \link{JuliaConnectoR-package} under "Limitations".)
 }
 \examples{
-if (juliaSetupOk()) {
+if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
    # Importing a package and using one of its exported functions
    UUIDs <- juliaImport("UUIDs")
