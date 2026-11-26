@@ -118,4 +118,7 @@ if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
    strDict["hi", "howdy"]
 
 }
+\dontshow{
+JuliaConnectoR:::stopJulia()
+}
 }

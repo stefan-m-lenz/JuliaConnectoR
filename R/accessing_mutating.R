@@ -78,6 +78,9 @@
 #'    strDict["hi", "howdy"]
 #'
 #' }
+#' \dontshow{
+#' JuliaConnectoR:::stopJulia()
+#' }
 NULL
 
 
