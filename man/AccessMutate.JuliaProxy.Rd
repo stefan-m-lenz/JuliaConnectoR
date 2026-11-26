@@ -119,6 +119,9 @@ if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
 }
 \dontshow{
-JuliaConnectoR:::stopJulia()
+   if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
+      rm(MyStruct, s, x, strDict)
+      JuliaConnectoR:::stopJulia()
+   }
 }
 }
