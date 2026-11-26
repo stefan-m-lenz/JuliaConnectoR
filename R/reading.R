@@ -1,49 +1,59 @@
-readLogical <- function(n) {
-   ret <- readBin(pkgLocal$con, "logical", n = n, size = 1)
+# Reads exactly `n` elements from the connection to Julia.
+#
+# The socket has a read timeout, so a read that comes back short usually
+# means that Julia has not answered yet, e.g. during a long computation,
+# and it is retried. But if the Julia process has exited, e.g. after a
+# crash, the socket is at its end: every read returns nothing immediately,
+# and retrying would spin forever at full CPU. Both cases look the same to
+# readBin(). They differ in socketSelect(): a socket at its end is reported
+# as readable even though nothing can be read from it.
+# An empty read is only taken as the end of the connection if it happens
+# twice in a row on a readable socket. After the first one, data may simply
+# have arrived just after the read gave up.
+readBinFully <- function(what, n, size = NA_integer_, signed = TRUE) {
+   con <- pkgLocal$con
+   ret <- readBin(con, what, n, size = size, signed = signed)
+   emptyAndReadable <- FALSE
    while (length(ret) < n) {
-      ret <- c(ret, readBin(pkgLocal$con, "logical",
-                            n - length(ret), size = 1))
+      chunk <- readBin(con, what, n - length(ret), size = size, signed = signed)
+      if (length(chunk) > 0) {
+         emptyAndReadable <- FALSE
+         ret <- c(ret, chunk)
+      } else if (isTRUE(socketSelect(list(con), timeout = 0))) {
+         if (emptyAndReadable) {
+            juliaExited()
+         }
+         emptyAndReadable <- TRUE
+      } else {
+         emptyAndReadable <- FALSE
+      }
    }
    ret
+}
+
+
+readLogical <- function(n) {
+   readBinFully("logical", n, size = 1)
 }
 
 
 readInt <- function(n = 1) {
-   ret <- readBin(pkgLocal$con, "integer", n, size = 4)
-   while (length(ret) < n) {
-      ret <- c(ret, readBin(pkgLocal$con, "integer",
-                            n - length(ret), size = 4))
-   }
-   ret
+   readBinFully("integer", n, size = 4)
 }
 
 
 readDouble <- function(n) {
-   ret <- readBin(pkgLocal$con, "double", n)
-   while (length(ret) < n) {
-      ret <- c(ret, readBin(pkgLocal$con, "double",
-                            n - length(ret)))
-   }
-   ret
+   readBinFully("double", n)
 }
 
 
 readComplex <- function(n) {
-   ret <- readBin(pkgLocal$con, "complex", n)
-   while (length(ret) < n) {
-      ret <- c(ret, readBin(pkgLocal$con, "complex",
-                            n - length(ret)))
-   }
-   ret
+   readBinFully("complex", n)
 }
 
 
 readRaw <- function(n) {
-   ret <- readBin(pkgLocal$con, "raw", n)
-   while (length(ret) < n) {
-      ret <- c(ret, readBin(pkgLocal$con, "raw", n - length(ret)))
-   }
-   ret
+   readBinFully("raw", n)
 }
 
 
@@ -143,11 +153,7 @@ readDimensions <- function() {
 
 
 readNofAttributes <- function() {
-   ret <- readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
-   while (length(ret) < 1) {
-      ret <- readBin(pkgLocal$con, "integer", size = 1, signed = FALSE)
-   }
-   ret
+   readBinFully("integer", 1, size = 1, signed = FALSE)
 }
 
 

@@ -1115,6 +1115,36 @@ test_that("Julia startup options can be modified", {
 })
 
 
+test_that("A Julia process exiting during a call gives an error, not a hang", {
+   skip_on_cran()
+   juliaEval("1")
+   # Without the check for the end of the connection, R waits forever here.
+   # The time limit makes such a regression fail instead of hang.
+   setTimeLimit(elapsed = 60, transient = TRUE)
+   on.exit(setTimeLimit(elapsed = Inf))
+   expect_error(juliaEval("sleep(0.5); exit(1)"), regexp = "exited unexpectedly")
+   setTimeLimit(elapsed = Inf)
+   # the next call starts a new Julia session
+   expect_equal(juliaCall("prod", c(2, 3)), 6)
+})
+
+
+test_that("A Julia process that has exited between calls is reported as such", {
+   skip_on_cran()
+   juliaPid <- juliaEval("getpid()")
+   # The default signal, as tools::SIGKILL is NA on Windows and pskill()
+   # then kills nothing.
+   expect_true(tools::pskill(juliaPid))
+   Sys.sleep(1)
+   setTimeLimit(elapsed = 60, transient = TRUE)
+   on.exit(setTimeLimit(elapsed = Inf))
+   expect_error(expect_warning(juliaCall("prod", c(2, 3)), NA),
+                regexp = "exited unexpectedly")
+   setTimeLimit(elapsed = Inf)
+   expect_equal(juliaCall("prod", c(2, 3)), 6)
+})
+
+
 test_that("JULIACONNECTOR_SERVER environment variable and Killing Julia works", {
    # if JULIACONNECTOR_SERVER is used, the server must be started with
    # "keeprunning = true" to work.
