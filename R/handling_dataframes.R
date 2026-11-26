@@ -59,8 +59,8 @@
 #'
 #' \dontshow{
 #'    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
-#'       stopJulia()
 #'       rm(mytbl, seltbl)
+#'       stopJulia()
 #'    }
 #' }
 as.data.frame.JuliaProxy <- function(x, ...) {

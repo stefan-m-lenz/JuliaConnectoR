@@ -69,8 +69,8 @@ if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
 
 \dontshow{
    if (Sys.getenv("NOT_CRAN") == "true" && juliaSetupOk()) {
-      stopJulia()
       rm(mytbl, seltbl)
+      stopJulia()
    }
 }
 }
