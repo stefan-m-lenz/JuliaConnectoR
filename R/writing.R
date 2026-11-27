@@ -192,7 +192,7 @@ writeList <- function(theList) {
       posargs <- theList
       nnamed <- 0
    } else {
-      named <- (theNames != "")
+      named <- !is.na(theNames) & (theNames != "")
       posargs <- theList[!named]
       namedargs <- theList[named]
       namedNames <- theNames[named]
